@@ -1,4 +1,4 @@
-# Football Team Divider - Project Description
+# Football Team Divider
 
 ## Overview
 A cross-platform application that automatically splits football players into two balanced teams based on their skill levels. The tool ensures fair matches by analyzing player abilities and creating evenly matched sides.
