@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
+using TeamBalancer.Core.Services.Interfaces;
+using TeamBalancer.Core.Services.Csv;
 
 namespace TeamBalancer.Desktop;
 public static class MauiProgram
@@ -20,6 +22,23 @@ public static class MauiProgram
 		builder.Logging.AddDebug();
 #endif
 
+        // Register data services
+        RegisterDataServices(builder.Services);
+
         return builder.Build();
+    }
+
+    private static void RegisterDataServices(IServiceCollection services)
+    {
+        // Register CSV parser
+        services.AddSingleton<ICsvParser, CsvParser>();
+
+        // Register player repository with CSV file path
+        var dataFilePath = Path.Combine(FileSystem.AppDataDirectory, "players.csv");
+        services.AddSingleton<IPlayerRepository>(sp =>
+        {
+            var csvParser = sp.GetRequiredService<ICsvParser>();
+            return new CsvPlayerRepository(csvParser, dataFilePath);
+        });
     }
 }
