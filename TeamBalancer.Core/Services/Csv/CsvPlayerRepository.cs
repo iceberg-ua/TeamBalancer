@@ -46,7 +46,7 @@ public class CsvPlayerRepository : IPlayerRepository
         if (File.Exists(_filePath))
         {
             var csvContent = await File.ReadAllTextAsync(_filePath);
-            _players = _csvParser.ParsePlayers(csvContent).ToList();
+            _players = [.. _csvParser.ParsePlayers(csvContent)];
         }
 
         _isInitialized = true;

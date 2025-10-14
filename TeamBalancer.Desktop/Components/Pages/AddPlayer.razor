@@ -1,0 +1,91 @@
+@page "/add-player"
+@using TeamBalancer.Core.Models
+@using TeamBalancer.Core.Services.Interfaces
+@using TeamBalancer.Desktop.Components.Shared
+@inject IPlayerRepository PlayerRepository
+@inject NavigationManager Navigation
+
+<div class="add-player-container">
+    <div class="add-player-content">
+        <h1>Add Player</h1>
+
+        <div class="form-container">
+            <div class="form-group">
+                <label for="playerName">Player Name</label>
+                <input id="playerName"
+                       type="text"
+                       class="form-control"
+                       @bind="_playerName"
+                       placeholder="Enter player name" />
+            </div>
+
+            <div class="skills-section">
+                <StarRating Label="Speed"
+                           Value="@_speed"
+                           ValueChanged="@((int v) => _speed = v)" />
+
+                <StarRating Label="Technical Skills"
+                           Value="@_technicalSkills"
+                           ValueChanged="@((int v) => _technicalSkills = v)" />
+
+                <StarRating Label="Stamina"
+                           Value="@_stamina"
+                           ValueChanged="@((int v) => _stamina = v)" />
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" @onclick="SavePlayer" disabled="@(!IsFormValid)">
+                    Save Player
+                </button>
+                <button class="btn btn-secondary" @onclick="Cancel">
+                    Cancel
+                </button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <div class="alert alert-danger">
+                    @_errorMessage
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private string _playerName = string.Empty;
+    private int _speed = 1;
+    private int _technicalSkills = 1;
+    private int _stamina = 1;
+    private string _errorMessage = string.Empty;
+
+    private bool IsFormValid => !string.IsNullOrWhiteSpace(_playerName);
+
+    private async Task SavePlayer()
+    {
+        try
+        {
+            _errorMessage = string.Empty;
+
+            var player = new Player
+            {
+                Name = _playerName.Trim(),
+                Speed = _speed,
+                TechnicalSkills = _technicalSkills,
+                Stamina = _stamina
+            };
+
+            await PlayerRepository.AddAsync(player);
+            Navigation.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error saving player: {ex.Message}";
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/");
+    }
+}
