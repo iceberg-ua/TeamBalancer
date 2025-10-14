@@ -76,6 +76,7 @@
             };
 
             await PlayerRepository.AddAsync(player);
+            await PlayerRepository.SaveChangesAsync();
             Navigation.NavigateTo("/");
         }
         catch (Exception ex)

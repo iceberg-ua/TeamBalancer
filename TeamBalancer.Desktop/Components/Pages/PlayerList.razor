@@ -1,0 +1,137 @@
+@page "/create-teams"
+@using TeamBalancer.Core.Models
+@using TeamBalancer.Core.Services.Interfaces
+@inject IPlayerRepository PlayerRepository
+@inject NavigationManager Navigation
+
+<div class="player-list-container">
+    <div class="player-list-content">
+        <h1>Select Players</h1>
+
+        @if (_isLoading)
+        {
+            <div class="loading">Loading players...</div>
+        }
+        else if (!_players.Any())
+        {
+            <div class="no-players">
+                <p>No players available. Please add players first.</p>
+                <button class="btn btn-primary" @onclick="GoToAddPlayer">Add Player</button>
+            </div>
+        }
+        else
+        {
+            <div class="player-list">
+                @foreach (var player in _players)
+                {
+                    <div class="player-item">
+                        <label class="player-checkbox">
+                            <input type="checkbox"
+                                   checked="@_selectedPlayerIds.Contains(player.Id)"
+                                   @onchange="@((e) => OnPlayerSelectionChanged(player.Id, (bool)e.Value!))" />
+                            <div class="player-info">
+                                <div class="player-name">@player.Name</div>
+                                <div class="player-skills">
+                                    <div class="skill-item">
+                                        <span class="skill-label">Speed:</span>
+                                        <span class="skill-stars">
+                                            @for (int i = 1; i <= 3; i++)
+                                            {
+                                                <span class="star-small @(i <= player.Speed ? "filled" : "")">★</span>
+                                            }
+                                        </span>
+                                    </div>
+                                    <div class="skill-item">
+                                        <span class="skill-label">Tech:</span>
+                                        <span class="skill-stars">
+                                            @for (int i = 1; i <= 3; i++)
+                                            {
+                                                <span class="star-small @(i <= player.TechnicalSkills ? "filled" : "")">★</span>
+                                            }
+                                        </span>
+                                    </div>
+                                    <div class="skill-item">
+                                        <span class="skill-label">Stamina:</span>
+                                        <span class="skill-stars">
+                                            @for (int i = 1; i <= 3; i++)
+                                            {
+                                                <span class="star-small @(i <= player.Stamina ? "filled" : "")">★</span>
+                                            }
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                }
+            </div>
+
+            <div class="selection-info">
+                <p>Selected: @_selectedPlayerIds.Count / @_players.Count players</p>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-success"
+                        @onclick="CreateTeams"
+                        disabled="@(_selectedPlayerIds.Count < 2)">
+                    Create Teams
+                </button>
+                <button class="btn btn-secondary" @onclick="Cancel">
+                    Cancel
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private List<Player> _players = new();
+    private HashSet<Guid> _selectedPlayerIds = new();
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPlayers();
+    }
+
+    private async Task LoadPlayers()
+    {
+        _isLoading = true;
+        var players = await PlayerRepository.GetAllAsync();
+        _players = players.ToList();
+
+        // Pre-select all players
+        _selectedPlayerIds = _players.Select(p => p.Id).ToHashSet();
+
+        _isLoading = false;
+        StateHasChanged();
+    }
+
+    private void OnPlayerSelectionChanged(Guid playerId, bool isSelected)
+    {
+        if (isSelected)
+        {
+            _selectedPlayerIds.Add(playerId);
+        }
+        else
+        {
+            _selectedPlayerIds.Remove(playerId);
+        }
+    }
+
+    private void CreateTeams()
+    {
+        // TODO: Implement team creation logic
+        // For now, just show a message or navigate to results page
+    }
+
+    private void GoToAddPlayer()
+    {
+        Navigation.NavigateTo("/add-player");
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/");
+    }
+}
