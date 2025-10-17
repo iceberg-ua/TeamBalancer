@@ -7,12 +7,11 @@
         @for (int i = 1; i <= MaxRating; i++)
         {
             var index = i;
-            <span class="star @(index <= _mouseOverIndex ? "filled" : "")"
-                  @onclick="() => OnStarClick(index)" 
-                  @onmouseenter="() => _mouseOverIndex = index" 
-                  @onmouseleave="() => _mouseOverIndex = Value">
-                ★
-            </span>
+            <i class="@(index <= _mouseOverIndex ? "fa-solid" : "fa-regular") fa-star star"
+               @onclick="() => OnStarClick(index)"
+               @onmouseenter="() => _mouseOverIndex = index"
+               @onmouseleave="() => _mouseOverIndex = Value">
+            </i>
         }
     </div>
 </div>
