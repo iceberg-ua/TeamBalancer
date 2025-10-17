@@ -9,6 +9,17 @@ public partial class App : Application
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        return new Window(new MainPage()) { Title = "TeamBalancer.Desktop" };
+        var window = new Window(new MainPage())
+        {
+            Title = "Team Balancer",
+            Width = 600,
+            Height = 800,
+            MinimumWidth = 600,
+            MinimumHeight = 800,
+            MaximumWidth = 600,
+            MaximumHeight = 800
+        };
+
+        return window;
     }
 }

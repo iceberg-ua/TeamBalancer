@@ -6,9 +6,11 @@
     <div class="stars">
         @for (int i = 1; i <= MaxRating; i++)
         {
-            var starIndex = i;
-            <span class="star @(starIndex <= Value ? "filled" : "")"
-                  @onclick="() => OnStarClick(starIndex)">
+            var index = i;
+            <span class="star @(index <= _mouseOverIndex ? "filled" : "")"
+                  @onclick="() => OnStarClick(index)" 
+                  @onmouseenter="() => _mouseOverIndex = index" 
+                  @onmouseleave="() => _mouseOverIndex = Value">
                 ★
             </span>
         }
@@ -27,6 +29,15 @@
 
     [Parameter]
     public int MaxRating { get; set; } = 3;
+
+    private int _mouseOverIndex = 1;
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        _mouseOverIndex = Value;
+
+        return base.OnAfterRenderAsync(firstRender);
+    }
 
     private async Task OnStarClick(int rating)
     {
