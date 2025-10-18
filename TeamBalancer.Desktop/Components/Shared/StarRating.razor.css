@@ -1,0 +1,40 @@
+.star-rating {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.star-rating-label {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.stars {
+    display: flex;
+}
+
+.star {
+    font-size: 3rem;
+    cursor: pointer;
+    transition: color 0.2s;
+    user-select: none;
+    padding: 5px;
+}
+
+.fa-regular.fa-star {
+    color: #ddd;
+}
+
+.fa-solid.fa-star {
+    color: #ffc107;
+}
+
+.star:hover {
+    color: #ffb300 !important;
+}
+
+@media (min-width: 768px) {
+    .star {
+        font-size: 3rem;
+    }
+}
