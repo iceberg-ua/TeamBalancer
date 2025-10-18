@@ -24,7 +24,8 @@
         {
             <SelectablePlayerList Players="_players"
                                   SelectedPlayerIds="_selectedPlayerIds"
-                                  OnPlayerSelectionChanged="HandlePlayerSelectionChanged" />
+                                  OnPlayerSelectionChanged="HandlePlayerSelectionChanged"
+                                  OnSelectAllPlayersChanged="HandleSelectAllChanged" />
 
             <div class="selection-info">
                 <p>Selected: @_selectedPlayerIds.Count / @_players.Count players</p>
@@ -76,6 +77,18 @@
         else
         {
             _selectedPlayerIds.Remove(selection.PlayerId);
+        }
+    }
+
+    private void HandleSelectAllChanged(bool selectAll)
+    {
+        if (selectAll)
+        {
+            _selectedPlayerIds = _players.Select(p => p.Id).ToHashSet();
+        }
+        else
+        {
+            _selectedPlayerIds.Clear();
         }
     }
 

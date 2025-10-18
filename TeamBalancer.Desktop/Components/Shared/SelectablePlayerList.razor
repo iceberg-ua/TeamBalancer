@@ -1,7 +1,11 @@
 @using TeamBalancer.Core.Models
 
 <div class="player-list-header">
-    <div class="header-checkbox"></div>
+    <div class="header-checkbox">
+        <input type="checkbox"
+               checked="@IsAllSelected"
+               @onchange="OnSelectAllChanged" />
+    </div>
     <div class="header-name">Player</div>
     <div class="header-skills">
         <span>Speed</span>
@@ -62,8 +66,32 @@
     [Parameter]
     public EventCallback<(Guid PlayerId, bool IsSelected)> OnPlayerSelectionChanged { get; set; }
 
+    [Parameter]
+    public EventCallback<bool> OnSelectAllPlayersChanged { get; set; }
+
+    private bool IsAllSelected => Players.Any() && Players.All(p => SelectedPlayerIds.Contains(p.Id));
+
     private async Task OnSelectionChanged(Guid playerId, bool isSelected)
     {
         await OnPlayerSelectionChanged.InvokeAsync((playerId, isSelected));
+    }
+
+    private async Task OnSelectAllChanged(ChangeEventArgs e)
+    {
+        bool selectAll = (bool)e.Value!;
+        await OnSelectAllPlayersChanged.InvokeAsync(selectAll);
+    }
+
+    public void SelectAll()
+    {
+        foreach (var player in Players)
+        {
+            SelectedPlayerIds.Add(player.Id);
+        }
+    }
+
+    public void DeselectAll()
+    {
+        SelectedPlayerIds.Clear();
     }
 }

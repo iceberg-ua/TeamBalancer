@@ -316,6 +316,12 @@ h1:focus {
     flex-shrink: 0;
 }
 
+.header-checkbox input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    cursor: pointer;
+}
+
 .header-name {
     min-width: 120px;
     flex-shrink: 0;
