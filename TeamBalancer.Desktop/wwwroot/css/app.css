@@ -324,7 +324,7 @@ h1:focus {
 
 .header-skills {
     display: flex;
-    gap: 1rem;
+    gap: 2rem;
     flex: 1;
 }
 
@@ -395,7 +395,7 @@ h1:focus {
 .skill-item {
     display: flex;
     align-items: center;
-    width: 4rem;
+    width: 5rem;
     justify-content: center;
     background-color: rgba(173, 216, 230, 0.15);
     border-radius: 10px;
@@ -481,6 +481,6 @@ h1:focus {
     }
 
     .header-skills span {
-        width: 4.5rem;
+        width: 5rem;
     }
 }
