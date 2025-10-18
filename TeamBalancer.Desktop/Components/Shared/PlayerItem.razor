@@ -1,0 +1,54 @@
+@using TeamBalancer.Core.Models
+
+<div class="player-item">
+    <label class="player-checkbox">
+        <input type="checkbox"
+               checked="@IsSelected"
+               @onchange="@((e) => HandleSelectionChanged((bool)e.Value!))" />
+        <div class="player-info">
+            <div class="player-name">@Player.Name</div>
+            <div class="player-skills">
+                <div class="skill-item">
+                    <span class="skill-icons">
+                        @for (int i = 1; i <= 3; i++)
+                        {
+                            <i class="@(i <= Player.Speed ? "fa-solid" : "fa-regular") fa-futbol skill-icon"></i>
+                        }
+                    </span>
+                </div>
+                <div class="skill-item">
+                    <span class="skill-icons">
+                        @for (int i = 1; i <= 3; i++)
+                        {
+                            <i class="@(i <= Player.TechnicalSkills ? "fa-solid" : "fa-regular") fa-futbol skill-icon"></i>
+                        }
+                    </span>
+                </div>
+                <div class="skill-item">
+                    <span class="skill-icons">
+                        @for (int i = 1; i <= 3; i++)
+                        {
+                            <i class="@(i <= Player.Stamina ? "fa-solid" : "fa-regular") fa-futbol skill-icon"></i>
+                        }
+                    </span>
+                </div>
+            </div>
+        </div>
+    </label>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Player Player { get; set; } = null!;
+
+    [Parameter]
+    public bool IsSelected { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnSelectionChanged { get; set; }
+
+    private async Task HandleSelectionChanged(bool isSelected)
+    {
+        await OnSelectionChanged.InvokeAsync(isSelected);
+    }
+}

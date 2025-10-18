@@ -1,67 +1,38 @@
 @using TeamBalancer.Core.Models
 
-<div class="player-list-header">
-    <div class="header-checkbox">
-        <input type="checkbox"
-               checked="@IsAllSelected"
-               @onchange="OnSelectAllChanged" />
-    </div>
-    <div class="header-name">Player</div>
-    <div class="header-skills">
-        <span>Speed</span>
-        <span>Tech</span>
-        <span>Stamina</span>
-    </div>
-</div>
-
-<div class="player-list">
-    @foreach (var player in Players)
-    {
-        <div class="player-item">
-            <label class="player-checkbox">
-                <input type="checkbox"
-                       checked="@SelectedPlayerIds.Contains(player.Id)"
-                       @onchange="@((e) => OnSelectionChanged(player.Id, (bool)e.Value!))" />
-                <div class="player-info">
-                    <div class="player-name">@player.Name</div>
-                    <div class="player-skills">
-                        <div class="skill-item">
-                            <span class="skill-stars">
-                                @for (int i = 1; i <= 3; i++)
-                                {
-                                    <i class="@(i <= player.Speed ? "fa-solid" : "fa-regular") fa-star star-small"></i>
-                                }
-                            </span>
-                        </div>
-                        <div class="skill-item">
-                            <span class="skill-stars">
-                                @for (int i = 1; i <= 3; i++)
-                                {
-                                    <i class="@(i <= player.TechnicalSkills ? "fa-solid" : "fa-regular") fa-star star-small"></i>
-                                }
-                            </span>
-                        </div>
-                        <div class="skill-item">
-                            <span class="skill-stars">
-                                @for (int i = 1; i <= 3; i++)
-                                {
-                                    <i class="@(i <= player.Stamina ? "fa-solid" : "fa-regular") fa-star star-small"></i>
-                                }
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </label>
+<div class="player-list-container">
+    <div class="player-list-header">
+        <div class="header-checkbox">
+            <input type="checkbox"
+                   checked="@IsAllSelected"
+                   @onchange="OnSelectAllChanged" />
         </div>
-    }
+        <div class="header-name">Player</div>
+        <div class="header-skills">
+            <span>Speed</span>
+            <span>Tech</span>
+            <span>Stamina</span>
+        </div>
+    </div>
+
+    <div class="player-list-scrollable">
+        <div class="player-list">
+            @foreach (var player in Players)
+            {
+                <PlayerItem Player="@player"
+                           IsSelected="@SelectedPlayerIds.Contains(player.Id)"
+                           OnSelectionChanged="@((isSelected) => OnSelectionChanged(player.Id, isSelected))" />
+            }
+        </div>
+    </div>
 </div>
 
 @code {
     [Parameter, EditorRequired]
-    public List<Player> Players { get; set; } = new();
+    public List<Player> Players { get; set; } = [];
 
     [Parameter, EditorRequired]
-    public HashSet<Guid> SelectedPlayerIds { get; set; } = new();
+    public HashSet<Guid> SelectedPlayerIds { get; set; } = [];
 
     [Parameter]
     public EventCallback<(Guid PlayerId, bool IsSelected)> OnPlayerSelectionChanged { get; set; }

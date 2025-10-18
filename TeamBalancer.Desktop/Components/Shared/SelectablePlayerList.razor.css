@@ -1,3 +1,10 @@
+.player-list-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 500px;
+}
+
 .player-list-header {
     display: flex;
     align-items: center;
@@ -7,7 +14,11 @@
     color: #666;
     text-transform: uppercase;
     border-bottom: 2px solid #dee2e6;
-    margin-bottom: 0.5rem;
+    background-color: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    flex-shrink: 0;
 }
 
 .header-checkbox {
@@ -41,93 +52,24 @@
     width: 4rem;
 }
 
+.player-list-scrollable {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
 .player-list {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    margin-bottom: 1.5rem;
-}
-
-.player-item {
-    background-color: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 6px;
-    transition: all 0.2s;
-}
-
-.player-item:hover {
-    background-color: #e9ecef;
-    border-color: #dee2e6;
-}
-
-.player-checkbox {
-    display: flex;
-    align-items: center;
-    padding: 0.65rem 0.75rem;
-    cursor: pointer;
-    margin: 0;
-}
-
-.player-checkbox input[type="checkbox"] {
-    width: 1.25rem;
-    height: 1.25rem;
-    cursor: pointer;
-    margin-right: 0.75rem;
-    flex-shrink: 0;
-}
-
-.player-info {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.player-name {
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: #333;
-    min-width: 120px;
-    flex-shrink: 0;
-}
-
-.player-skills {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-.skill-item {
-    display: flex;
-    align-items: center;
-    width: 5rem;
-    justify-content: center;
-    background-color: rgba(173, 216, 230, 0.15);
-    border-radius: 10px;
-    padding: 0.5rem 0.4rem;
-}
-
-.skill-stars {
-    display: flex;
-    gap: 0.15rem;
-}
-
-.star-small {
-    font-size: 1.1rem;
-    user-select: none;
-    line-height: 1;
-}
-
-.star-small.fa-regular {
-    color: #ddd;
-}
-
-.star-small.fa-solid {
-    color: #ffc107;
+    padding: 0.5rem 0;
 }
 
 @media (min-width: 768px) {
+    .player-list-container {
+        max-height: 600px;
+    }
+
     .player-list-header {
         padding: 0.5rem 1rem;
         font-size: 0.8rem;
@@ -140,28 +82,6 @@
     .header-name {
         min-width: 150px;
         margin-right: 1.5rem;
-    }
-
-    .player-checkbox {
-        padding: 0.75rem 1rem;
-    }
-
-    .player-info {
-        gap: 1.5rem;
-    }
-
-    .player-name {
-        font-size: 1.15rem;
-        min-width: 150px;
-    }
-
-    .star-small {
-        font-size: 1.2rem;
-    }
-
-    .skill-item {
-        width: 4.5rem;
-        padding: 0.55rem 0.45rem;
     }
 
     .header-skills span {

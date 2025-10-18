@@ -1,19 +1,19 @@
-.star-rating {
+.skill-rating {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
 }
 
-.star-rating-label {
+.skill-rating-label {
     font-weight: 600;
     font-size: 1rem;
 }
 
-.stars {
+.rating-icons {
     display: flex;
 }
 
-.star {
+.rating-icon {
     font-size: 3rem;
     cursor: pointer;
     transition: color 0.2s;
@@ -21,20 +21,20 @@
     padding: 5px;
 }
 
-.fa-regular.fa-star {
+.fa-regular.fa-futbol {
     color: #ddd;
 }
 
-.fa-solid.fa-star {
-    color: #ffc107;
+.fa-solid.fa-futbol {
+    color: #28a745;
 }
 
-.star:hover {
-    color: #ffb300 !important;
+.rating-icon:hover {
+    color: #1e7e34 !important;
 }
 
 @media (min-width: 768px) {
-    .star {
+    .rating-icon {
         font-size: 3rem;
     }
 }

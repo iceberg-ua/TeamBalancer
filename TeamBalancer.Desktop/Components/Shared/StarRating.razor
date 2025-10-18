@@ -1,14 +1,14 @@
-<div class="star-rating">
+<div class="skill-rating">
     @if (!string.IsNullOrEmpty(Label))
     {
-        <label class="star-rating-label">@Label</label>
+        <label class="skill-rating-label">@Label</label>
     }
-    <div class="stars">
+    <div class="rating-icons">
         @for (int i = 1; i <= MaxRating; i++)
         {
             var index = i;
-            <i class="@(index <= _mouseOverIndex ? "fa-solid" : "fa-regular") fa-star star"
-               @onclick="() => OnStarClick(index)"
+            <i class="@(index <= _mouseOverIndex ? "fa-solid" : "fa-regular") fa-futbol rating-icon"
+               @onclick="() => OnIconClick(index)"
                @onmouseenter="() => _mouseOverIndex = index"
                @onmouseleave="() => _mouseOverIndex = Value">
             </i>
@@ -38,7 +38,7 @@
         return base.OnAfterRenderAsync(firstRender);
     }
 
-    private async Task OnStarClick(int rating)
+    private async Task OnIconClick(int rating)
     {
         Value = rating;
         await ValueChanged.InvokeAsync(Value);
