@@ -1,0 +1,16 @@
+<div class="skill-item">
+    <span class="skill-icons">
+        @for (int i = 1; i <= MaxRating; i++)
+        {
+            <i class="@(i <= Rating ? "fa-solid" : "fa-regular") fa-futbol skill-icon"></i>
+        }
+    </span>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public int Rating { get; set; }
+
+    [Parameter]
+    public int MaxRating { get; set; } = 3;
+}

@@ -8,30 +8,9 @@
         <div class="player-info">
             <div class="player-name">@Player.Name</div>
             <div class="player-skills">
-                <div class="skill-item">
-                    <span class="skill-icons">
-                        @for (int i = 1; i <= 3; i++)
-                        {
-                            <i class="@(i <= Player.Speed ? "fa-solid" : "fa-regular") fa-futbol skill-icon"></i>
-                        }
-                    </span>
-                </div>
-                <div class="skill-item">
-                    <span class="skill-icons">
-                        @for (int i = 1; i <= 3; i++)
-                        {
-                            <i class="@(i <= Player.TechnicalSkills ? "fa-solid" : "fa-regular") fa-futbol skill-icon"></i>
-                        }
-                    </span>
-                </div>
-                <div class="skill-item">
-                    <span class="skill-icons">
-                        @for (int i = 1; i <= 3; i++)
-                        {
-                            <i class="@(i <= Player.Stamina ? "fa-solid" : "fa-regular") fa-futbol skill-icon"></i>
-                        }
-                    </span>
-                </div>
+                <SkillRatingDisplay Rating="@Player.Speed" />
+                <SkillRatingDisplay Rating="@Player.TechnicalSkills" />
+                <SkillRatingDisplay Rating="@Player.Stamina" />
             </div>
         </div>
     </label>
