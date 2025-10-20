@@ -12,8 +12,9 @@ public interface ITeamBalancingStrategy
     /// </summary>
     /// <param name="players">The list of players to balance.</param>
     /// <param name="numberOfTeams">The number of teams to create.</param>
+    /// <param name="shuffle">Whether to shuffle players before balancing for variety.</param>
     /// <returns>A list of balanced teams.</returns>
-    List<Team> BalanceTeams(List<Player> players, int numberOfTeams);
+    List<Team> BalanceTeams(List<Player> players, int numberOfTeams, bool shuffle = false);
 
     /// <summary>
     /// Calculates a balance score for the given teams (lower is better).

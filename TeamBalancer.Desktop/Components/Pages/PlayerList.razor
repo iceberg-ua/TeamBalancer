@@ -108,8 +108,9 @@
             return;
         }
 
-        // Balance teams using snake draft strategy (2 teams for now)
-        var teams = TeamBalancingService.BalanceTeams(selectedPlayers, numberOfTeams: 2);
+        // Balance teams using snake draft strategy with shuffle enabled for variety
+        // Shuffle ensures each generation creates different teams while maintaining balance
+        var teams = TeamBalancingService.BalanceTeams(selectedPlayers, numberOfTeams: 2, shuffle: true);
 
         // Store teams in state service
         TeamState.SetTeams(teams);

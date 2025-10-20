@@ -23,10 +23,11 @@ public class TeamBalancingService
     /// </summary>
     /// <param name="players">The list of players to balance.</param>
     /// <param name="numberOfTeams">The number of teams to create.</param>
+    /// <param name="shuffle">Whether to shuffle players for variety while maintaining balance.</param>
     /// <returns>A list of balanced teams.</returns>
-    public List<Team> BalanceTeams(List<Player> players, int numberOfTeams)
+    public List<Team> BalanceTeams(List<Player> players, int numberOfTeams, bool shuffle = false)
     {
-        return BalanceTeams(players, numberOfTeams, _defaultStrategy);
+        return BalanceTeams(players, numberOfTeams, _defaultStrategy, shuffle);
     }
 
     /// <summary>
@@ -35,8 +36,9 @@ public class TeamBalancingService
     /// <param name="players">The list of players to balance.</param>
     /// <param name="numberOfTeams">The number of teams to create.</param>
     /// <param name="strategy">The balancing strategy to use.</param>
+    /// <param name="shuffle">Whether to shuffle players for variety while maintaining balance.</param>
     /// <returns>A list of balanced teams.</returns>
-    public List<Team> BalanceTeams(List<Player> players, int numberOfTeams, ITeamBalancingStrategy strategy)
+    public List<Team> BalanceTeams(List<Player> players, int numberOfTeams, ITeamBalancingStrategy strategy, bool shuffle = false)
     {
         if (players == null || players.Count == 0)
         {
@@ -53,7 +55,7 @@ public class TeamBalancingService
             throw new ArgumentNullException(nameof(strategy));
         }
 
-        return strategy.BalanceTeams(players, numberOfTeams);
+        return strategy.BalanceTeams(players, numberOfTeams, shuffle);
     }
 
     /// <summary>
