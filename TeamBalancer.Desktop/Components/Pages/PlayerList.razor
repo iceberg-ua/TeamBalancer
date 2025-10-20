@@ -1,8 +1,12 @@
 @page "/create-teams"
 @using TeamBalancer.Core.Models
 @using TeamBalancer.Core.Services.Interfaces
+@using TeamBalancer.Core.Services.Balancing
 @using TeamBalancer.Desktop.Components.Shared
+@using TeamBalancer.Desktop.Services
 @inject IPlayerRepository PlayerRepository
+@inject TeamBalancingService TeamBalancingService
+@inject TeamStateService TeamState
 @inject NavigationManager Navigation
 
 <div class="player-list-container">
@@ -94,8 +98,24 @@
 
     private void CreateTeams()
     {
-        // TODO: Implement team creation logic
-        // For now, just show a message or navigate to results page
+        // Get selected players
+        var selectedPlayers = _players
+            .Where(p => _selectedPlayerIds.Contains(p.Id))
+            .ToList();
+
+        if (selectedPlayers.Count < 2)
+        {
+            return;
+        }
+
+        // Balance teams using snake draft strategy (2 teams for now)
+        var teams = TeamBalancingService.BalanceTeams(selectedPlayers, numberOfTeams: 2);
+
+        // Store teams in state service
+        TeamState.SetTeams(teams);
+
+        // Navigate to teams page
+        Navigation.NavigateTo("/teams");
     }
 
     private void GoToAddPlayer()

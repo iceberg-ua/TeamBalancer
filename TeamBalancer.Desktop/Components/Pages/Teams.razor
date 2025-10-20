@@ -1,0 +1,114 @@
+@page "/teams"
+@using TeamBalancer.Core.Models
+@using TeamBalancer.Desktop.Components.Shared
+@using TeamBalancer.Desktop.Services
+@inject NavigationManager Navigation
+@inject TeamStateService TeamState
+@implements IDisposable
+
+<div class="teams-container">
+    <div class="teams-content">
+        <h1>Balanced Teams</h1>
+
+        @if (GeneratedTeams == null || !GeneratedTeams.Any())
+        {
+            <div class="no-teams">
+                <p>No teams have been created yet.</p>
+                <button class="btn btn-primary" @onclick="GoToCreateTeams">Create Teams</button>
+            </div>
+        }
+        else
+        {
+            <div class="teams-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Total Players:</span>
+                    <span class="stat-value">@GeneratedTeams.Sum(t => t.PlayerCount)</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Number of Teams:</span>
+                    <span class="stat-value">@GeneratedTeams.Count</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Skill Range:</span>
+                    <span class="stat-value">@((GeneratedTeams.Max(t => t.OverallTeamSkill) - GeneratedTeams.Min(t => t.OverallTeamSkill)).ToString("F2"))</span>
+                </div>
+            </div>
+
+            <div class="teams-grid">
+                @foreach (var team in GeneratedTeams)
+                {
+                    <div class="team-section">
+                        <div class="team-header">
+                            <h2>@team.Name</h2>
+                            <div class="team-summary">
+                                <span class="player-count">@team.PlayerCount players</span>
+                                <span class="overall-skill">Overall: @team.OverallTeamSkill.ToString("F2")</span>
+                            </div>
+                        </div>
+
+                        <div class="team-stats-grid">
+                            <div class="team-stat">
+                                <span class="stat-label">Speed</span>
+                                <span class="stat-value">@team.AverageSpeed.ToString("F2")</span>
+                            </div>
+                            <div class="team-stat">
+                                <span class="stat-label">Technical</span>
+                                <span class="stat-value">@team.AverageTechnicalSkills.ToString("F2")</span>
+                            </div>
+                            <div class="team-stat">
+                                <span class="stat-label">Stamina</span>
+                                <span class="stat-value">@team.AverageStamina.ToString("F2")</span>
+                            </div>
+                        </div>
+
+                        <div class="team-players">
+                            @foreach (var player in team.Players.OrderByDescending(p => p.OverallSkillLevel))
+                            {
+                                <PlayerItem Player="@player" IsSelected="false" />
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" @onclick="GoToCreateTeams">Create New Teams</button>
+                <button class="btn btn-secondary" @onclick="GoHome">Home</button>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    public List<Team>? GeneratedTeams { get; set; }
+
+    protected override void OnInitialized()
+    {
+        // Load teams from state service
+        GeneratedTeams = TeamState.CurrentTeams;
+
+        // Subscribe to team changes
+        TeamState.OnTeamsChanged += OnTeamsChanged;
+    }
+
+    private void OnTeamsChanged()
+    {
+        GeneratedTeams = TeamState.CurrentTeams;
+        StateHasChanged();
+    }
+
+    private void GoToCreateTeams()
+    {
+        Navigation.NavigateTo("/create-teams");
+    }
+
+    private void GoHome()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    public void Dispose()
+    {
+        TeamState.OnTeamsChanged -= OnTeamsChanged;
+    }
+}

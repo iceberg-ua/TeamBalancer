@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using TeamBalancer.Core.Services.Interfaces;
 using TeamBalancer.Core.Services.Csv;
+using TeamBalancer.Core.Services.Balancing;
+using TeamBalancer.Desktop.Services;
 
 namespace TeamBalancer.Desktop;
 public static class MauiProgram
@@ -40,5 +42,12 @@ public static class MauiProgram
             var csvParser = sp.GetRequiredService<ICsvParser>();
             return new CsvPlayerRepository(csvParser, dataFilePath);
         });
+
+        // Register team balancing services
+        services.AddSingleton<ITeamBalancingStrategy, SnakeDraftStrategy>();
+        services.AddSingleton<TeamBalancingService>();
+
+        // Register UI services
+        services.AddSingleton<TeamStateService>();
     }
 }
