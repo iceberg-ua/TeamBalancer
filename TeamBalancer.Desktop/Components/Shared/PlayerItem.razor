@@ -14,6 +14,13 @@
             </div>
         </div>
     </label>
+
+    @if (ShowDeleteButton)
+    {
+        <button class="delete-button" @onclick="HandleDelete" @onclick:stopPropagation="true" title="Delete player">
+            <span class="delete-icon">×</span>
+        </button>
+    }
 </div>
 
 @code {
@@ -24,10 +31,21 @@
     public bool IsSelected { get; set; }
 
     [Parameter]
+    public bool ShowDeleteButton { get; set; } = false;
+
+    [Parameter]
     public EventCallback<bool> OnSelectionChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<Player> OnDelete { get; set; }
 
     private async Task HandleSelectionChanged(bool isSelected)
     {
         await OnSelectionChanged.InvokeAsync(isSelected);
+    }
+
+    private async Task HandleDelete()
+    {
+        await OnDelete.InvokeAsync(Player);
     }
 }

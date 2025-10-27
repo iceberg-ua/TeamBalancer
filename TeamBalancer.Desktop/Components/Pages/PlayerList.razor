@@ -4,10 +4,12 @@
 @using TeamBalancer.Core.Services.Balancing
 @using TeamBalancer.Desktop.Components.Shared
 @using TeamBalancer.Desktop.Services
+@using Microsoft.JSInterop
 @inject IPlayerRepository PlayerRepository
 @inject TeamBalancingService TeamBalancingService
 @inject TeamStateService TeamState
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 
 <div class="player-list-container">
     <div class="player-list-content">
@@ -28,8 +30,10 @@
         {
             <SelectablePlayerList Players="_players"
                                   SelectedPlayerIds="_selectedPlayerIds"
+                                  ShowDeleteButton="true"
                                   OnPlayerSelectionChanged="HandlePlayerSelectionChanged"
-                                  OnSelectAllPlayersChanged="HandleSelectAllChanged" />
+                                  OnSelectAllPlayersChanged="HandleSelectAllChanged"
+                                  OnPlayerDelete="HandlePlayerDelete" />
 
             <div class="selection-info">
                 <p>Selected: @_selectedPlayerIds.Count / @_players.Count players</p>
@@ -160,5 +164,31 @@
     private void Cancel()
     {
         Navigation.NavigateTo("/");
+    }
+
+    private async Task HandlePlayerDelete(Player player)
+    {
+        // Confirm deletion
+        bool confirmed = await ConfirmDelete(player.Name);
+
+        if (confirmed)
+        {
+            // Delete player
+            await PlayerRepository.DeleteAsync(player.Id);
+            await PlayerRepository.SaveChangesAsync();
+
+            // Remove from selected if it was selected
+            _selectedPlayerIds.Remove(player.Id);
+
+            // Reload players
+            await LoadPlayers();
+        }
+    }
+
+    private async Task<bool> ConfirmDelete(string playerName)
+    {
+        return await JSRuntime.InvokeAsync<bool>(
+            "confirm",
+            $"Are you sure you want to delete {playerName}? This action cannot be undone.");
     }
 }

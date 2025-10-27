@@ -21,7 +21,9 @@
             {
                 <PlayerItem Player="@player"
                            IsSelected="@SelectedPlayerIds.Contains(player.Id)"
-                           OnSelectionChanged="@((isSelected) => OnSelectionChanged(player.Id, isSelected))" />
+                           ShowDeleteButton="@ShowDeleteButton"
+                           OnSelectionChanged="@((isSelected) => OnSelectionChanged(player.Id, isSelected))"
+                           OnDelete="@OnPlayerDelete" />
             }
         </div>
     </div>
@@ -35,10 +37,16 @@
     public HashSet<Guid> SelectedPlayerIds { get; set; } = [];
 
     [Parameter]
+    public bool ShowDeleteButton { get; set; } = false;
+
+    [Parameter]
     public EventCallback<(Guid PlayerId, bool IsSelected)> OnPlayerSelectionChanged { get; set; }
 
     [Parameter]
     public EventCallback<bool> OnSelectAllPlayersChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<Player> OnPlayerDelete { get; set; }
 
     private bool IsAllSelected => Players.Any() && Players.All(p => SelectedPlayerIds.Contains(p.Id));
 
