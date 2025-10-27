@@ -35,6 +35,34 @@
                 <p>Selected: @_selectedPlayerIds.Count / @_players.Count players</p>
             </div>
 
+            <div class="algorithm-selection">
+                <label class="algorithm-label">Balancing Algorithm:</label>
+                <div class="algorithm-options">
+                    <label class="algorithm-option">
+                        <input type="radio"
+                               name="algorithm"
+                               value="@BalancingAlgorithmType.SnakeDraft"
+                               checked="@(_selectedAlgorithm == BalancingAlgorithmType.SnakeDraft)"
+                               @onchange="@(() => _selectedAlgorithm = BalancingAlgorithmType.SnakeDraft)" />
+                        <div class="algorithm-info">
+                            <span class="algorithm-name">Snake Draft</span>
+                            <span class="algorithm-description">Fast, alternating picks (recommended for speed)</span>
+                        </div>
+                    </label>
+                    <label class="algorithm-option">
+                        <input type="radio"
+                               name="algorithm"
+                               value="@BalancingAlgorithmType.IterativeSwap"
+                               checked="@(_selectedAlgorithm == BalancingAlgorithmType.IterativeSwap)"
+                               @onchange="@(() => _selectedAlgorithm = BalancingAlgorithmType.IterativeSwap)" />
+                        <div class="algorithm-info">
+                            <span class="algorithm-name">Iterative Swap</span>
+                            <span class="algorithm-description">Better balance, optimizes by swapping players</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
             <div class="button-group">
                 <button class="btn btn-success"
                         @onclick="CreateTeams"
@@ -53,6 +81,7 @@
     private List<Player> _players = new();
     private HashSet<Guid> _selectedPlayerIds = new();
     private bool _isLoading = true;
+    private BalancingAlgorithmType _selectedAlgorithm = BalancingAlgorithmType.SnakeDraft;
 
     protected override async Task OnInitializedAsync()
     {
@@ -108,9 +137,13 @@
             return;
         }
 
-        // Balance teams using snake draft strategy with shuffle enabled for variety
+        // Balance teams using selected algorithm with shuffle enabled for variety
         // Shuffle ensures each generation creates different teams while maintaining balance
-        var teams = TeamBalancingService.BalanceTeams(selectedPlayers, numberOfTeams: 2, shuffle: true);
+        var teams = TeamBalancingService.BalanceTeams(
+            selectedPlayers,
+            numberOfTeams: 2,
+            algorithmType: _selectedAlgorithm,
+            shuffle: true);
 
         // Store teams in state service
         TeamState.SetTeams(teams);

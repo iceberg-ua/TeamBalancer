@@ -8,6 +8,7 @@ namespace TeamBalancer.Core.Services.Balancing;
 public class TeamBalancingService
 {
     private readonly ITeamBalancingStrategy _defaultStrategy;
+    private readonly Dictionary<BalancingAlgorithmType, ITeamBalancingStrategy> _strategies;
 
     /// <summary>
     /// Initializes a new instance of the TeamBalancingService.
@@ -16,6 +17,13 @@ public class TeamBalancingService
     public TeamBalancingService(ITeamBalancingStrategy defaultStrategy)
     {
         _defaultStrategy = defaultStrategy ?? throw new ArgumentNullException(nameof(defaultStrategy));
+
+        // Initialize all available strategies
+        _strategies = new Dictionary<BalancingAlgorithmType, ITeamBalancingStrategy>
+        {
+            [BalancingAlgorithmType.SnakeDraft] = new SnakeDraftStrategy(),
+            [BalancingAlgorithmType.IterativeSwap] = new IterativeSwapStrategy()
+        };
     }
 
     /// <summary>
@@ -28,6 +36,24 @@ public class TeamBalancingService
     public List<Team> BalanceTeams(List<Player> players, int numberOfTeams, bool shuffle = false)
     {
         return BalanceTeams(players, numberOfTeams, _defaultStrategy, shuffle);
+    }
+
+    /// <summary>
+    /// Balances players into teams using a specific algorithm type.
+    /// </summary>
+    /// <param name="players">The list of players to balance.</param>
+    /// <param name="numberOfTeams">The number of teams to create.</param>
+    /// <param name="algorithmType">The algorithm type to use.</param>
+    /// <param name="shuffle">Whether to shuffle players for variety while maintaining balance.</param>
+    /// <returns>A list of balanced teams.</returns>
+    public List<Team> BalanceTeams(List<Player> players, int numberOfTeams, BalancingAlgorithmType algorithmType, bool shuffle = false)
+    {
+        if (!_strategies.TryGetValue(algorithmType, out var strategy))
+        {
+            throw new ArgumentException($"Unknown algorithm type: {algorithmType}", nameof(algorithmType));
+        }
+
+        return BalanceTeams(players, numberOfTeams, strategy, shuffle);
     }
 
     /// <summary>
