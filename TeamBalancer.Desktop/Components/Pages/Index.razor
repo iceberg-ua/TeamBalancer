@@ -1,7 +1,10 @@
 ﻿@page "/"
 @using TeamBalancer.Core.Services.Interfaces
+@using Microsoft.JSInterop
 @inject IPlayerRepository PlayerRepository
+@inject ICsvImportExportService CsvImportExportService
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 
 <div class="index-container">
     <div class="index-content">
@@ -10,13 +13,30 @@
         <div class="index-buttons">
             <button class="btn btn-primary" @onclick="AddPlayer">Add Player</button>
             <button class="btn btn-success" @onclick="CreateTeams" disabled="@(!CanCreateTeams)">Create Teams</button>
+
+            <div class="import-export-section">
+                <button class="btn btn-info" @onclick="ExportPlayers">Export Players (CSV)</button>
+                <label class="btn btn-warning import-button">
+                    Import Players (CSV)
+                    <InputFile OnChange="ImportPlayers" accept=".csv" style="display: none;" />
+                </label>
+            </div>
         </div>
+
+        @if (!string.IsNullOrEmpty(_message))
+        {
+            <div class="alert @(_isError ? "alert-danger" : "alert-success")">
+                @_message
+            </div>
+        }
     </div>
 </div>
 
 @code {
     private int _playerCount = 0;
     private bool CanCreateTeams => _playerCount >= 2;
+    private string _message = string.Empty;
+    private bool _isError = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -37,5 +57,63 @@
     private void CreateTeams()
     {
         Navigation.NavigateTo("/create-teams");
+    }
+
+    private async Task ExportPlayers()
+    {
+        try
+        {
+            _message = string.Empty;
+            var csvContent = await CsvImportExportService.ExportPlayersAsync();
+            var fileName = $"players_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+
+            // Trigger download in browser
+            await JSRuntime.InvokeVoidAsync("downloadFile", fileName, csvContent, "text/csv");
+
+            _message = "Players exported successfully!";
+            _isError = false;
+        }
+        catch (Exception ex)
+        {
+            _message = $"Error exporting players: {ex.Message}";
+            _isError = true;
+        }
+    }
+
+    private async Task ImportPlayers(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            _message = string.Empty;
+            var file = e.File;
+
+            if (file == null)
+                return;
+
+            // Read file content
+            using var stream = file.OpenReadStream(maxAllowedSize: 1024 * 1024); // 1MB max
+            using var reader = new StreamReader(stream);
+            var csvContent = await reader.ReadToEndAsync();
+
+            // Import players
+            var importedCount = await CsvImportExportService.ImportPlayersAsync(csvContent);
+
+            if (importedCount > 0)
+            {
+                _message = $"Successfully imported {importedCount} player(s)!";
+                _isError = false;
+                await LoadPlayers();
+            }
+            else
+            {
+                _message = "No valid players found in the CSV file.";
+                _isError = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            _message = $"Error importing players: {ex.Message}";
+            _isError = true;
+        }
     }
 }

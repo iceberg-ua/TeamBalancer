@@ -43,6 +43,9 @@ public static class MauiProgram
             return new CsvPlayerRepository(csvParser, dataFilePath);
         });
 
+        // Register CSV import/export service
+        services.AddSingleton<ICsvImportExportService, CsvImportExportService>();
+
         // Register team balancing services
         services.AddSingleton<ITeamBalancingStrategy, SnakeDraftStrategy>();
         services.AddSingleton<TeamBalancingService>();
