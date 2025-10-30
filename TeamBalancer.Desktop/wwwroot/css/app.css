@@ -99,6 +99,8 @@ h1:focus {
 .index-content {
     text-align: center;
     padding: 2rem;
+    position: relative;
+    min-height: 400px;
 }
 
 .index-content h1 {
@@ -119,18 +121,39 @@ h1:focus {
     font-size: 1.2rem;
 }
 
-.import-export-section {
+.csv-actions {
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid #ddd;
+    gap: 0.75rem;
 }
 
-.import-button {
+.icon-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    background-color: #f8f9fa;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    margin: 0;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+}
+
+.icon-button:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+    color: #495057;
+    transform: translateY(-2px);
+}
+
+.icon-button:active {
+    transform: translateY(0);
 }
 
 .alert {

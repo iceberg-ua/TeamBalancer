@@ -13,14 +13,6 @@
         <div class="index-buttons">
             <button class="btn btn-primary" @onclick="AddPlayer">Add Player</button>
             <button class="btn btn-success" @onclick="CreateTeams" disabled="@(!CanCreateTeams)">Create Teams</button>
-
-            <div class="import-export-section">
-                <button class="btn btn-info" @onclick="ExportPlayers">Export Players (CSV)</button>
-                <label class="btn btn-warning import-button">
-                    Import Players (CSV)
-                    <InputFile OnChange="ImportPlayers" accept=".csv" style="display: none;" />
-                </label>
-            </div>
         </div>
 
         @if (!string.IsNullOrEmpty(_message))
@@ -29,6 +21,16 @@
                 @_message
             </div>
         }
+
+        <div class="csv-actions">
+            <button class="icon-button" @onclick="ExportPlayers" title="Export players to CSV">
+                <i class="fas fa-upload "></i>
+            </button>
+            <label class="icon-button" title="Import players from CSV">
+                <i class="fas fa-download"></i>
+                <InputFile OnChange="ImportPlayers" accept=".csv" style="display: none;" />
+            </label>
+        </div>
     </div>
 </div>
 
