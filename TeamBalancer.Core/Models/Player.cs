@@ -75,6 +75,15 @@ public class Player
     }
 
     /// <summary>
+    /// Validates that the player name doesn't contain invalid characters that would break CSV format.
+    /// </summary>
+    /// <returns>True if the name is valid, false otherwise.</returns>
+    public bool IsNameValid()
+    {
+        return !string.IsNullOrWhiteSpace(Name) && !Name.Contains(',');
+    }
+
+    /// <summary>
     /// Returns a string representation of the player.
     /// </summary>
     public override string ToString()

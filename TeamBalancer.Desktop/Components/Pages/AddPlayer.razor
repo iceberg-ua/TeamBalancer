@@ -14,9 +14,16 @@
                 <label for="playerName">Player Name</label>
                 <input id="playerName"
                        type="text"
-                       class="form-control"
-                       @bind="_playerName"
+                       class="form-control @(_showNameError ? "is-invalid" : "")"
+                       value="@_playerName"
+                       @oninput="OnNameInput"
                        placeholder="Enter player name" />
+                @if (_showNameError)
+                {
+                    <div class="invalid-feedback">
+                        Player name cannot contain commas.
+                    </div>
+                }
             </div>
 
             <div class="skills-section">
@@ -58,8 +65,15 @@
     private int _technicalSkills = 1;
     private int _stamina = 1;
     private string _errorMessage = string.Empty;
+    private bool _showNameError = false;
 
-    private bool IsFormValid => !string.IsNullOrWhiteSpace(_playerName);
+    private bool IsFormValid => !string.IsNullOrWhiteSpace(_playerName) && !_playerName.Contains(',');
+
+    private void OnNameInput(ChangeEventArgs e)
+    {
+        _playerName = e.Value?.ToString() ?? string.Empty;
+        _showNameError = _playerName.Contains(',');
+    }
 
     private async Task SavePlayer()
     {

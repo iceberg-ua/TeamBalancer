@@ -99,9 +99,11 @@ public class CsvPlayerRepository : IPlayerRepository
     public async Task<Player> AddAsync(Player player)
     {
         await EnsureInitializedAsync();
-        
-        if (player == null)
-            throw new ArgumentNullException(nameof(player));
+
+        ArgumentNullException.ThrowIfNull(player);
+
+        if (!player.IsNameValid())
+            throw new ArgumentException("Player name cannot be empty or contain commas.", nameof(player));
 
         if (!player.AreSkillLevelsValid())
             throw new ArgumentException("Player skill levels must be between 1 and 3.", nameof(player));
@@ -114,7 +116,7 @@ public class CsvPlayerRepository : IPlayerRepository
         player.IsActive = true;
 
         _players.Add(player);
-        
+
         return player;
     }
 
@@ -127,6 +129,9 @@ public class CsvPlayerRepository : IPlayerRepository
 
         if (player == null)
             throw new ArgumentNullException(nameof(player));
+
+        if (!player.IsNameValid())
+            throw new ArgumentException("Player name cannot be empty or contain commas.", nameof(player));
 
         if (!player.AreSkillLevelsValid())
             throw new ArgumentException("Player skill levels must be between 1 and 3.", nameof(player));
