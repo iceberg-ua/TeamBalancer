@@ -122,6 +122,20 @@
     color: #666;
 }
 
+.button-group {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.button-group button {
+    min-width: 200px;
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+}
+
 @media (min-width: 768px) {
     .player-list-content {
         padding: 2rem;
@@ -129,5 +143,11 @@
 
     .player-list-content h1 {
         font-size: 2.5rem;
+    }
+
+    .button-group button {
+        min-width: 250px;
+        padding: 1.25rem 2.5rem;
+        font-size: 1.4rem;
     }
 }
