@@ -21,16 +21,16 @@
     padding: 5px;
 }
 
-.fa-regular.fa-futbol {
+.fa-regular.fa-star {
     color: #ddd;
 }
 
-.fa-solid.fa-futbol {
-    color: #28a745;
+.fa-solid.fa-star {
+    color: #ffc107;
 }
 
 .rating-icon:hover {
-    color: #1e7e34 !important;
+    color: #ffb300 !important;
 }
 
 @media (min-width: 768px) {

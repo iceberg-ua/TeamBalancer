@@ -7,7 +7,7 @@
         @for (int i = 1; i <= MaxRating; i++)
         {
             var index = i;
-            <i class="@(index <= _mouseOverIndex ? "fa-solid" : "fa-regular") fa-futbol rating-icon"
+            <i class="@(index <= _mouseOverIndex ? "fa-solid" : "fa-regular") fa-star rating-icon"
                @onclick="() => OnIconClick(index)"
                @onmouseenter="() => _mouseOverIndex = index"
                @onmouseleave="() => _mouseOverIndex = Value">
