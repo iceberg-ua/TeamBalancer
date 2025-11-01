@@ -8,7 +8,7 @@ namespace TeamBalancer.Core.Services.Balancing;
 /// Team A, Team B, Team B, Team A, Team A, Team B, etc.
 /// Supports optional shuffling to create variety while maintaining balance.
 /// </summary>
-public class SnakeDraftStrategy : ITeamBalancingStrategy
+public class SnakeDraftStrategy : BaseTeamBalancingStrategy
 {
     private readonly Random _random = new();
 
@@ -18,7 +18,7 @@ public class SnakeDraftStrategy : ITeamBalancingStrategy
     /// <param name="players">The list of players to balance.</param>
     /// <param name="numberOfTeams">The number of teams to create.</param>
     /// <param name="shuffle">If true, adds randomization while maintaining overall balance.</param>
-    public List<Team> BalanceTeams(List<Player> players, int numberOfTeams, bool shuffle = false)
+    public override List<Team> BalanceTeams(List<Player> players, int numberOfTeams, bool shuffle = false)
     {
         if (players == null || players.Count == 0)
         {
@@ -86,53 +86,6 @@ public class SnakeDraftStrategy : ITeamBalancingStrategy
         }
 
         return teams;
-    }
-
-    /// <summary>
-    /// Calculates balance score based on variance in overall skill levels.
-    /// Also considers variance in individual attributes (Speed, Technical, Stamina).
-    /// </summary>
-    public double CalculateBalanceScore(List<Team> teams)
-    {
-        if (teams == null || teams.Count == 0)
-        {
-            return 0;
-        }
-
-        // Calculate variance in overall skill
-        var overallSkills = teams.Select(t => t.OverallTeamSkill).ToList();
-        double overallVariance = CalculateVariance(overallSkills);
-
-        // Calculate variance in individual attributes
-        var speedAvgs = teams.Select(t => t.AverageSpeed).ToList();
-        var techAvgs = teams.Select(t => t.AverageTechnicalSkills).ToList();
-        var staminaAvgs = teams.Select(t => t.AverageStamina).ToList();
-
-        double speedVariance = CalculateVariance(speedAvgs);
-        double techVariance = CalculateVariance(techAvgs);
-        double staminaVariance = CalculateVariance(staminaAvgs);
-
-        // Calculate variance in player counts
-        var playerCounts = teams.Select(t => (double)t.PlayerCount).ToList();
-        double countVariance = CalculateVariance(playerCounts);
-
-        // Weighted sum of variances (overall skill is weighted more heavily)
-        return (overallVariance * 2.0) + speedVariance + techVariance + staminaVariance + (countVariance * 1.5);
-    }
-
-    /// <summary>
-    /// Calculates statistical variance for a list of values.
-    /// </summary>
-    private double CalculateVariance(List<double> values)
-    {
-        if (values.Count == 0)
-        {
-            return 0;
-        }
-
-        double mean = values.Average();
-        double sumOfSquares = values.Sum(v => Math.Pow(v - mean, 2));
-        return sumOfSquares / values.Count;
     }
 
     /// <summary>
