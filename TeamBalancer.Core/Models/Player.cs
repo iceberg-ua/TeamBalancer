@@ -75,12 +75,45 @@ public class Player
     }
 
     /// <summary>
-    /// Validates that the player name doesn't contain invalid characters that would break CSV format.
+    /// Validates that the player name doesn't contain invalid characters that would break CSV format
+    /// or allow CSV injection attacks.
     /// </summary>
     /// <returns>True if the name is valid, false otherwise.</returns>
     public bool IsNameValid()
     {
-        return !string.IsNullOrWhiteSpace(Name) && !Name.Contains(',');
+        if (string.IsNullOrWhiteSpace(Name))
+        {
+            return false;
+        }
+
+        // Trim to check for leading/trailing whitespace
+        if (Name != Name.Trim())
+        {
+            return false;
+        }
+
+        // Check for CSV special characters that would break parsing
+        if (Name.Contains(',') || Name.Contains('"') || Name.Contains('\n') || Name.Contains('\r'))
+        {
+            return false;
+        }
+
+        // Check for CSV injection characters (formula injection attack prevention)
+        // These characters at the start of a cell can cause Excel/Sheets to execute formulas
+        char firstChar = Name[0];
+        if (firstChar == '=' || firstChar == '+' || firstChar == '-' || firstChar == '@' ||
+            firstChar == '\t' || firstChar == '\r')
+        {
+            return false;
+        }
+
+        // Reasonable length limit to prevent DoS
+        if (Name.Length > 100)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     /// <summary>

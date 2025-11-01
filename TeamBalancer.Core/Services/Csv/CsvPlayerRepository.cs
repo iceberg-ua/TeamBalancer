@@ -103,7 +103,7 @@ public class CsvPlayerRepository : IPlayerRepository
         ArgumentNullException.ThrowIfNull(player);
 
         if (!player.IsNameValid())
-            throw new ArgumentException("Player name cannot be empty or contain commas.", nameof(player));
+            throw new ArgumentException("Player name is invalid. Name cannot be empty, contain special characters (,\"\\n\\r), start with formula characters (=+-@), or exceed 100 characters.", nameof(player));
 
         if (!player.AreSkillLevelsValid())
             throw new ArgumentException("Player skill levels must be between 1 and 3.", nameof(player));
@@ -131,7 +131,7 @@ public class CsvPlayerRepository : IPlayerRepository
             throw new ArgumentNullException(nameof(player));
 
         if (!player.IsNameValid())
-            throw new ArgumentException("Player name cannot be empty or contain commas.", nameof(player));
+            throw new ArgumentException("Player name is invalid. Name cannot be empty, contain special characters (,\"\\n\\r), start with formula characters (=+-@), or exceed 100 characters.", nameof(player));
 
         if (!player.AreSkillLevelsValid())
             throw new ArgumentException("Player skill levels must be between 1 and 3.", nameof(player));

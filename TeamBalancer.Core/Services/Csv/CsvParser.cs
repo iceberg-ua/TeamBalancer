@@ -110,20 +110,58 @@ public class CsvParser : ICsvParser
 
     /// <summary>
     /// Serializes a collection of Player objects into CSV format.
+    /// Applies defense-in-depth by sanitizing values to prevent CSV injection.
     /// </summary>
     public string SerializePlayers(IEnumerable<Player> players)
     {
         var sb = new StringBuilder();
-        
+
         // Write header
         sb.AppendLine("Name,Speed,TechnicalSkills,Stamina");
 
         // Write player data
         foreach (var player in players)
         {
-            sb.AppendLine($"{player.Name},{player.Speed},{player.TechnicalSkills},{player.Stamina}");
+            // Sanitize the name to prevent CSV injection (defense-in-depth)
+            string sanitizedName = SanitizeCsvValue(player.Name);
+            sb.AppendLine($"{sanitizedName},{player.Speed},{player.TechnicalSkills},{player.Stamina}");
         }
 
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Sanitizes a CSV value to prevent CSV injection attacks.
+    /// This is defense-in-depth - validation should already prevent bad data,
+    /// but we sanitize on output as an additional security layer.
+    /// </summary>
+    /// <param name="value">The value to sanitize.</param>
+    /// <returns>A sanitized value safe for CSV output.</returns>
+    private string SanitizeCsvValue(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return string.Empty;
+        }
+
+        // If the value starts with a potentially dangerous character, prepend a single quote
+        // This is the standard CSV injection prevention technique
+        char firstChar = value[0];
+        if (firstChar == '=' || firstChar == '+' || firstChar == '-' || firstChar == '@' ||
+            firstChar == '\t' || firstChar == '\r')
+        {
+            _logger.LogWarning("Sanitizing potentially dangerous CSV value starting with '{Char}': {Value}", firstChar, value);
+            return "'" + value;
+        }
+
+        // If the value contains commas, quotes, or newlines, wrap it in quotes and escape internal quotes
+        if (value.Contains(',') || value.Contains('"') || value.Contains('\n') || value.Contains('\r'))
+        {
+            // Escape quotes by doubling them (CSV standard)
+            string escaped = value.Replace("\"", "\"\"");
+            return $"\"{escaped}\"";
+        }
+
+        return value;
     }
 }
