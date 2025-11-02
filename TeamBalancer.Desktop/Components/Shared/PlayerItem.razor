@@ -1,6 +1,6 @@
 @using TeamBalancer.Core.Models
 
-<div class="player-item">
+<div class="player-item" @onclick="CloseMenu">
     <label class="player-checkbox">
         <input type="checkbox"
                checked="@IsSelected"
@@ -15,21 +15,41 @@
         </div>
     </label>
 
-    <div class="player-actions">
-        @if (ShowEditButton)
-        {
-            <button class="edit-button" @onclick="HandleEdit" @onclick:stopPropagation="true" title="Edit player">
-                <i class="fas fa-edit"></i>
+    @if (ShowEditButton || ShowDeleteButton)
+    {
+        <div class="player-actions">
+            <button class="actions-menu-button"
+                    @onclick="ToggleMenu"
+                    @onclick:stopPropagation="true"
+                    title="Player actions">
+                <i class="fas fa-ellipsis-v"></i>
             </button>
-        }
 
-        @if (ShowDeleteButton)
-        {
-            <button class="delete-button" @onclick="HandleDelete" @onclick:stopPropagation="true" title="Delete player">
-                <i class="fas fa-times"></i>
-            </button>
-        }
-    </div>
+            @if (_showMenu)
+            {
+                <div class="actions-menu">
+                    @if (ShowEditButton)
+                    {
+                        <button class="menu-item edit-item"
+                                @onclick="HandleEdit"
+                                @onclick:stopPropagation="true">
+                            <i class="fas fa-edit"></i>
+                            <span>Edit Player</span>
+                        </button>
+                    }
+                    @if (ShowDeleteButton)
+                    {
+                        <button class="menu-item delete-item"
+                                @onclick="HandleDelete"
+                                @onclick:stopPropagation="true">
+                            <i class="fas fa-trash"></i>
+                            <span>Delete Player</span>
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+    }
 </div>
 
 @code {
@@ -54,6 +74,21 @@
     [Parameter]
     public EventCallback<Player> OnDelete { get; set; }
 
+    private bool _showMenu = false;
+
+    private void ToggleMenu()
+    {
+        _showMenu = !_showMenu;
+    }
+
+    private void CloseMenu()
+    {
+        if (_showMenu)
+        {
+            _showMenu = false;
+        }
+    }
+
     private async Task HandleSelectionChanged(bool isSelected)
     {
         await OnSelectionChanged.InvokeAsync(isSelected);
@@ -61,11 +96,13 @@
 
     private async Task HandleEdit()
     {
+        _showMenu = false;
         await OnEdit.InvokeAsync(Player);
     }
 
     private async Task HandleDelete()
     {
+        _showMenu = false;
         await OnDelete.InvokeAsync(Player);
     }
 }
