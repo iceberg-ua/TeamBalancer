@@ -15,12 +15,21 @@
         </div>
     </label>
 
-    @if (ShowDeleteButton)
-    {
-        <button class="delete-button" @onclick="HandleDelete" @onclick:stopPropagation="true" title="Delete player">
-            <i class="fas fa-times"></i>
-        </button>
-    }
+    <div class="player-actions">
+        @if (ShowEditButton)
+        {
+            <button class="edit-button" @onclick="HandleEdit" @onclick:stopPropagation="true" title="Edit player">
+                <i class="fas fa-edit"></i>
+            </button>
+        }
+
+        @if (ShowDeleteButton)
+        {
+            <button class="delete-button" @onclick="HandleDelete" @onclick:stopPropagation="true" title="Delete player">
+                <i class="fas fa-times"></i>
+            </button>
+        }
+    </div>
 </div>
 
 @code {
@@ -31,10 +40,16 @@
     public bool IsSelected { get; set; }
 
     [Parameter]
+    public bool ShowEditButton { get; set; } = false;
+
+    [Parameter]
     public bool ShowDeleteButton { get; set; } = false;
 
     [Parameter]
     public EventCallback<bool> OnSelectionChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<Player> OnEdit { get; set; }
 
     [Parameter]
     public EventCallback<Player> OnDelete { get; set; }
@@ -42,6 +57,11 @@
     private async Task HandleSelectionChanged(bool isSelected)
     {
         await OnSelectionChanged.InvokeAsync(isSelected);
+    }
+
+    private async Task HandleEdit()
+    {
+        await OnEdit.InvokeAsync(Player);
     }
 
     private async Task HandleDelete()

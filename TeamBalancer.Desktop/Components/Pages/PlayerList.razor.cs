@@ -150,6 +150,15 @@ public partial class PlayerList : ComponentBase
     }
 
     /// <summary>
+    /// Handles player edit action by navigating to the add-player page with the player ID.
+    /// </summary>
+    /// <param name="player">The player to edit.</param>
+    private void HandlePlayerEdit(Player player)
+    {
+        Navigation.NavigateTo($"/add-player/{player.Id}");
+    }
+
+    /// <summary>
     /// Handles player deletion with confirmation dialog.
     /// </summary>
     /// <param name="player">The player to delete.</param>

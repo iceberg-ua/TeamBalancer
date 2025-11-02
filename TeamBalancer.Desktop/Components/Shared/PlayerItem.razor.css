@@ -49,12 +49,25 @@
     align-items: center;
 }
 
-.delete-button {
+.player-actions {
     position: absolute;
     right: 0.35rem;
     top: 50%;
     transform: translateY(-50%);
-    background-color: #dc3545;
+    display: flex;
+    gap: 0.3rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s;
+}
+
+.player-item:hover .player-actions {
+    opacity: 0.8;
+    visibility: visible;
+}
+
+.edit-button,
+.delete-button {
     border: none;
     border-radius: 3px;
     width: 22px;
@@ -64,28 +77,46 @@
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s;
-    opacity: 0;
-    visibility: hidden;
 }
 
-.player-item:hover .delete-button {
-    opacity: 0.8;
-    visibility: visible;
+.edit-button {
+    background-color: #007bff;
+}
+
+.edit-button:hover {
+    background-color: #0056b3;
+    transform: scale(1.15);
+}
+
+.edit-button:active {
+    transform: scale(0.9);
+}
+
+.edit-button i {
+    color: white;
+    font-size: 0.75rem;
+}
+
+.delete-button {
+    background-color: #dc3545;
 }
 
 .delete-button:hover {
     background-color: #c82333;
-    opacity: 1;
-    transform: translateY(-50%) scale(1.15);
+    transform: scale(1.15);
 }
 
 .delete-button:active {
-    transform: translateY(-50%) scale(0.9);
+    transform: scale(0.9);
 }
 
 .delete-button i {
     color: white;
     font-size: 0.9rem;
+}
+
+.player-item:hover .player-actions {
+    opacity: 1;
 }
 
 @media (min-width: 768px) {
