@@ -31,6 +31,11 @@
 
     private int _mouseOverIndex = 1;
 
+    protected override void OnParametersSet()
+    {
+        _mouseOverIndex = Value;
+    }
+
     protected override Task OnAfterRenderAsync(bool firstRender)
     {
         _mouseOverIndex = Value;
