@@ -2,9 +2,12 @@
 
 <div class="player-item" @onclick="CloseMenu">
     <label class="player-checkbox">
-        <input type="checkbox"
-               checked="@IsSelected"
-               @onchange="@((e) => HandleSelectionChanged((bool)e.Value!))" />
+        @if (ShowCheckbox)
+        {
+            <input type="checkbox"
+                   checked="@IsSelected"
+                   @onchange="@((e) => HandleSelectionChanged((bool)e.Value!))" />
+        }
         <div class="player-info">
             <div class="player-name">@Player.Name</div>
             <div class="player-skills">
@@ -58,6 +61,9 @@
 
     [Parameter]
     public bool IsSelected { get; set; }
+
+    [Parameter]
+    public bool ShowCheckbox { get; set; } = true;
 
     [Parameter]
     public bool ShowEditButton { get; set; } = false;

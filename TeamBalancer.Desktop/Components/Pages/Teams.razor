@@ -64,7 +64,7 @@
                         <div class="team-players">
                             @foreach (var player in team.Players.OrderByDescending(p => p.OverallSkillLevel))
                             {
-                                <PlayerItem Player="@player" IsSelected="false" />
+                                <PlayerItem Player="@player" IsSelected="false" ShowCheckbox="false" />
                             }
                         </div>
                     </div>
