@@ -7,14 +7,92 @@ a, .btn-link {
     color: #006bb7;
 }
 
+/* Global Button Styles */
+.btn {
+    min-width: 200px;
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
 .btn-primary {
     color: #fff;
     background-color: #1b6ec2;
-    border-color: #1861ac;
+}
+
+.btn-primary:hover {
+    background-color: #155a9c;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(27, 110, 194, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+    background-color: #124a82;
+}
+
+.btn-secondary {
+    color: #fff;
+    background-color: #6c757d;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+}
+
+.btn-secondary:active {
+    transform: translateY(0);
+    background-color: #545b62;
+}
+
+.btn-success {
+    color: #fff;
+    background-color: #28a745;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+.btn-success:active {
+    transform: translateY(0);
+    background-color: #1e7e34;
+}
+
+.btn-danger {
+    color: #fff;
+    background-color: #dc3545;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+.btn-danger:active {
+    transform: translateY(0);
+    background-color: #bd2130;
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
     box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+@media (min-width: 768px) {
+    .btn {
+        min-width: 250px;
+        padding: 1.25rem 2.5rem;
+        font-size: 1.4rem;
+    }
 }
 
 .content {
@@ -115,12 +193,6 @@ h1:focus {
     align-items: center;
 }
 
-.index-buttons button {
-    min-width: 200px;
-    padding: 1rem 2rem;
-    font-size: 1.2rem;
-}
-
 .csv-actions {
     position: absolute;
     bottom: 1rem;
@@ -178,12 +250,6 @@ h1:focus {
 @media (min-width: 768px) {
     .index-content h1 {
         font-size: 3rem;
-    }
-
-    .index-buttons button {
-        min-width: 250px;
-        padding: 1.25rem 2.5rem;
-        font-size: 1.4rem;
     }
 }
 
