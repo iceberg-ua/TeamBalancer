@@ -3,18 +3,18 @@
 @using TeamBalancer.Core.Models
 @using TeamBalancer.Desktop.Components.Shared
 
-<div class="add-player-container">
-    <div class="add-player-content">
-        <h1>@PageTitle</h1>
+<div class="page-container">
+    <div class="page-content-narrow">
+        <h1 class="page-title">@PageTitle</h1>
 
         @if (_isLoading)
         {
-            <div class="loading">Loading player...</div>
+            <div class="loading text-center text-muted card-padding">Loading player...</div>
         }
         else
         {
-            <div class="form-container">
-                <div class="form-group">
+            <div class="form-container flex-col gap-2">
+                <div class="form-group flex-col">
                     <label for="playerName">Player Name</label>
                     <input id="playerName"
                            type="text"
@@ -30,7 +30,7 @@
                     }
                 </div>
 
-                <div class="skills-section">
+                <div class="skills-section flex-col">
                     <StarRating Label="Speed"
                                Value="@_speed"
                                ValueChanged="@((int v) => _speed = v)" />
