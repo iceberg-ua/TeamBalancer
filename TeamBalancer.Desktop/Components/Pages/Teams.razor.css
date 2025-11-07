@@ -8,6 +8,7 @@
     border: 1px solid lightgray;
     margin-bottom: 10px;
     display: flex;
+    justify-content: space-evenly;
     gap: 1.5rem;
 }
 
@@ -90,5 +91,22 @@
 
 .team-players {
     padding: 1rem;
+}
+
+.teams-button-group {
+    flex-wrap: wrap;
+}
+
+.teams-button-group .btn {
+    min-width: 150px;
+    flex: 1 1 auto;
+}
+
+@media (max-width: 767px) {
+    .teams-button-group .btn {
+        min-width: 120px;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+    }
 }
 
