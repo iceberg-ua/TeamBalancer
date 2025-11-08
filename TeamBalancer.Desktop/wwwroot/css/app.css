@@ -147,7 +147,6 @@ a, .btn-link {
 
 /* Global Button Styles */
 .btn {
-    min-width: 200px;
     padding: 0.75rem 1.5rem;
     font-size: 1rem;
     border: none;
@@ -343,7 +342,7 @@ h1:focus {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    align-items: center;
+    align-items: stretch;
     margin-top: 100%;
 }
 
