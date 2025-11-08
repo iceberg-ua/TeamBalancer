@@ -1,14 +1,22 @@
 @page "/teams"
 @using TeamBalancer.Core.Models
+@using TeamBalancer.Desktop.Components.Layout
 @using TeamBalancer.Desktop.Components.Shared
 @using TeamBalancer.Desktop.Services
 @inject NavigationManager Navigation
 @inject TeamStateService TeamState
 @implements IDisposable
 
+<LayoutSection Section="Header">
+    <h1 class="app-title">Team Balancer - Teams</h1>
+</LayoutSection>
+
+<LayoutSection Section="Footer">
+    <p>&copy; @DateTime.Now.Year Team Balancer. All rights reserved.</p>
+</LayoutSection>
+
 <div class="page-container">
     <div class="page-content-narrow">
-        <h1 class="page-title">Balanced Teams</h1>
 
         @if (GeneratedTeams == null || !GeneratedTeams.Any())
         {

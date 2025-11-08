@@ -3,9 +3,16 @@
 @using TeamBalancer.Core.Services.Balancing
 @using TeamBalancer.Desktop.Components.Shared
 
+<LayoutSection Section="Header">
+    <h1 class="app-title">Team Balancer - Select Players</h1>
+</LayoutSection>
+
+<LayoutSection Section="Footer">
+    <p>&copy; @DateTime.Now.Year Team Balancer. All rights reserved.</p>
+</LayoutSection>
+
 <div class="page-container">
     <div class="page-content-narrow">
-        <h1 class="page-title">Select Players</h1>
 
         @if (_isLoading)
         {

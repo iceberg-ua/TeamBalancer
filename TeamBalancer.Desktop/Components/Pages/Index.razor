@@ -1,15 +1,22 @@
 ﻿@page "/"
 @using TeamBalancer.Core.Services.Interfaces
 @using Microsoft.JSInterop
+@using TeamBalancer.Desktop.Components.Layout
 @inject IPlayerRepository PlayerRepository
 @inject ICsvImportExportService CsvImportExportService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 
+<LayoutSection Section="Header">
+    <h1 class="header-title-centered">Team Balancer</h1>
+</LayoutSection>
+
+<LayoutSection Section="Footer">
+    <span>&copy; @DateTime.Now.Year Team Balancer. All rights reserved.</span>
+</LayoutSection>
+
 <div class="index-container">
     <div class="index-content">
-        <h1>Team Balancer</h1>
-
         <div class="index-buttons">
             <button class="btn btn-primary" @onclick="AddPlayer">Add Player</button>
             <button class="btn btn-success" @onclick="CreateTeams" disabled="@(!CanCreateTeams)">Create Teams</button>
