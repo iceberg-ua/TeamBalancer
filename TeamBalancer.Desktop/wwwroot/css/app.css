@@ -148,8 +148,8 @@ a, .btn-link {
 /* Global Button Styles */
 .btn {
     min-width: 200px;
-    padding: 1rem 2rem;
-    font-size: 1.2rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
     border: none;
     border-radius: 6px;
     font-weight: 600;
@@ -227,9 +227,9 @@ a, .btn-link {
 
 @media (min-width: 768px) {
     .btn {
-        min-width: 250px;
-        padding: 1.25rem 2.5rem;
-        font-size: 1.4rem;
+        min-width: 150px;
+        padding: 0.875rem 1.75rem;
+        font-size: 1.1rem;
     }
 }
 
