@@ -85,6 +85,8 @@ public partial class PlayerList : ComponentBase
         {
             _selectedPlayerIds.Remove(selection.PlayerId);
         }
+
+        StateHasChanged();
     }
 
     /// <summary>
@@ -101,6 +103,7 @@ public partial class PlayerList : ComponentBase
         {
             _selectedPlayerIds.Clear();
         }
+        StateHasChanged();
     }
 
     /// <summary>

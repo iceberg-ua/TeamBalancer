@@ -4,16 +4,14 @@
 @using TeamBalancer.Desktop.Components.Shared
 
 <LayoutSection Section="Header">
-    <h1 class="app-title">Select Players</h1>
+    <h1 class="header-title-centered">Select Players</h1>
 </LayoutSection>
 
 @if (_players.Any() && !_isLoading)
 {
     <LayoutSection Section="Footer">
         <div class="button-group">
-            <button class="btn btn-success"
-                    @onclick="CreateTeams"
-                    disabled="@(_selectedPlayerIds.Count < 2)">
+            <button class="btn btn-success" @onclick="CreateTeams" disabled="@(_selectedPlayerIds.Count < 2)">
                 Create Teams
             </button>
             <button class="btn btn-secondary" @onclick="Cancel">
@@ -23,62 +21,27 @@
     </LayoutSection>
 }
 
-<div class="page-container">
-    <div class="page-content-narrow">
+<div class="page-container-playerlist">
+    @if (_isLoading)
+    {
+        <div class="loading text-center text-muted card-padding">Loading players...</div>
+    }
+    else if (!_players.Any())
+    {
+        <div class="no-players text-center card-padding">
+            <p class="mb-2">No players available. Please add players first.</p>
+            <button class="btn btn-primary" @onclick="GoToAddPlayer">Add Player</button>
+        </div>
+    }
+    else
+    {
+        <div class="selection-info text-center card-padding mb-1">
+            <p>Selected: @_selectedPlayerIds.Count / @_players.Count players</p>
+        </div>
 
-        @if (_isLoading)
-        {
-            <div class="loading text-center text-muted card-padding">Loading players...</div>
-        }
-        else if (!_players.Any())
-        {
-            <div class="no-players text-center card-padding">
-                <p class="mb-2">No players available. Please add players first.</p>
-                <button class="btn btn-primary" @onclick="GoToAddPlayer">Add Player</button>
-            </div>
-        }
-        else
-        {
-            <SelectablePlayerList Players="_players"
-                                  SelectedPlayerIds="_selectedPlayerIds"
-                                  ShowEditButton="true"
-                                  ShowDeleteButton="true"
-                                  OnPlayerSelectionChanged="HandlePlayerSelectionChanged"
-                                  OnSelectAllPlayersChanged="HandleSelectAllChanged"
-                                  OnPlayerEdit="HandlePlayerEdit"
-                                  OnPlayerDelete="HandlePlayerDelete" />
-
-            <div class="selection-info text-center card-padding mb-1">
-                <p>Selected: @_selectedPlayerIds.Count / @_players.Count players</p>
-            </div>
-
-            <div class="algorithm-selection card card-padding-lg mb-2">
-                <label class="algorithm-label">Balancing Algorithm:</label>
-                <div class="algorithm-options flex-col gap-1">
-                    <div class="algorithm-option">
-                        <input type="radio"
-                               name="algorithm"
-                               value="@BalancingAlgorithmType.SnakeDraft"
-                               checked="@(_selectedAlgorithm == BalancingAlgorithmType.SnakeDraft)"
-                               @onchange="@(() => _selectedAlgorithm = BalancingAlgorithmType.SnakeDraft)" />
-                        <div class="algorithm-info flex-col">
-                            <span class="algorithm-name">Snake Draft</span>
-                            <span class="algorithm-description text-sm text-muted">Fast, alternating picks (recommended for speed)</span>
-                        </div>
-                    </div>
-                    <div class="algorithm-option">
-                        <input type="radio"
-                               name="algorithm"
-                               value="@BalancingAlgorithmType.IterativeSwap"
-                               checked="@(_selectedAlgorithm == BalancingAlgorithmType.IterativeSwap)"
-                               @onchange="@(() => _selectedAlgorithm = BalancingAlgorithmType.IterativeSwap)" />
-                        <div class="algorithm-info flex-col">
-                            <span class="algorithm-name">Iterative Swap</span>
-                            <span class="algorithm-description text-sm text-muted">Better balance, optimizes by swapping players</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
-    </div>
+        <SelectablePlayerList Players="_players" SelectedPlayerIds="_selectedPlayerIds" ShowEditButton="true"
+            ShowDeleteButton="true" OnPlayerSelectionChanged="HandlePlayerSelectionChanged"
+            OnSelectAllPlayersChanged="HandleSelectAllChanged" OnPlayerEdit="HandlePlayerEdit"
+            OnPlayerDelete="HandlePlayerDelete" />
+    }
 </div>
