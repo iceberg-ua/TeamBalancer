@@ -4,12 +4,24 @@
 @using TeamBalancer.Desktop.Components.Shared
 
 <LayoutSection Section="Header">
-    <h1 class="app-title">Team Balancer - Select Players</h1>
+    <h1 class="app-title">Select Players</h1>
 </LayoutSection>
 
-<LayoutSection Section="Footer">
-    <p>&copy; @DateTime.Now.Year Team Balancer. All rights reserved.</p>
-</LayoutSection>
+@if (_players.Any() && !_isLoading)
+{
+    <LayoutSection Section="Footer">
+        <div class="button-group">
+            <button class="btn btn-success"
+                    @onclick="CreateTeams"
+                    disabled="@(_selectedPlayerIds.Count < 2)">
+                Create Teams
+            </button>
+            <button class="btn btn-secondary" @onclick="Cancel">
+                Cancel
+            </button>
+        </div>
+    </LayoutSection>
+}
 
 <div class="page-container">
     <div class="page-content-narrow">
@@ -43,7 +55,7 @@
             <div class="algorithm-selection card card-padding-lg mb-2">
                 <label class="algorithm-label">Balancing Algorithm:</label>
                 <div class="algorithm-options flex-col gap-1">
-                    <label class="algorithm-option">
+                    <div class="algorithm-option">
                         <input type="radio"
                                name="algorithm"
                                value="@BalancingAlgorithmType.SnakeDraft"
@@ -53,8 +65,8 @@
                             <span class="algorithm-name">Snake Draft</span>
                             <span class="algorithm-description text-sm text-muted">Fast, alternating picks (recommended for speed)</span>
                         </div>
-                    </label>
-                    <label class="algorithm-option">
+                    </div>
+                    <div class="algorithm-option">
                         <input type="radio"
                                name="algorithm"
                                value="@BalancingAlgorithmType.IterativeSwap"
@@ -64,19 +76,8 @@
                             <span class="algorithm-name">Iterative Swap</span>
                             <span class="algorithm-description text-sm text-muted">Better balance, optimizes by swapping players</span>
                         </div>
-                    </label>
+                    </div>
                 </div>
-            </div>
-
-            <div class="button-group">
-                <button class="btn btn-success"
-                        @onclick="CreateTeams"
-                        disabled="@(_selectedPlayerIds.Count < 2)">
-                    Create Teams
-                </button>
-                <button class="btn btn-secondary" @onclick="Cancel">
-                    Cancel
-                </button>
             </div>
         }
     </div>
