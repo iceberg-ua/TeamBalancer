@@ -11,7 +11,7 @@
 {
     <LayoutSection Section="Footer">
         <div class="button-group">
-            <button class="btn btn-success" @onclick="CreateTeams" disabled="@(_selectedPlayerIds.Count < 2)">
+            <button class="btn btn-success" @onclick="CreateTeams" disabled="@NoPlayersSelected">
                 Create Teams
             </button>
             <button class="btn btn-secondary" @onclick="Cancel">
@@ -35,13 +35,15 @@
     }
     else
     {
-        <div class="selection-info text-center card-padding mb-1">
+        <div class="selection-info-container">
             <p>Selected: @_selectedPlayerIds.Count / @_players.Count players</p>
         </div>
 
-        <SelectablePlayerList Players="_players" SelectedPlayerIds="_selectedPlayerIds" ShowEditButton="true"
-            ShowDeleteButton="true" OnPlayerSelectionChanged="HandlePlayerSelectionChanged"
-            OnSelectAllPlayersChanged="HandleSelectAllChanged" OnPlayerEdit="HandlePlayerEdit"
-            OnPlayerDelete="HandlePlayerDelete" />
+        <div class="player-list-wrapper">
+            <SelectablePlayerList Players="_players" SelectedPlayerIds="_selectedPlayerIds" ShowEditButton="true"
+                ShowDeleteButton="true" OnPlayerSelectionChanged="HandlePlayerSelectionChanged"
+                OnSelectAllPlayersChanged="HandleSelectAllChanged" OnPlayerEdit="HandlePlayerEdit"
+                OnPlayerDelete="HandlePlayerDelete" />
+        </div>
     }
 </div>

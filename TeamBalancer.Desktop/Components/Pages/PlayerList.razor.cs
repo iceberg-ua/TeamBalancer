@@ -3,6 +3,7 @@ using Microsoft.JSInterop;
 using TeamBalancer.Core.Models;
 using TeamBalancer.Core.Services.Balancing;
 using TeamBalancer.Core.Services.Interfaces;
+using TeamBalancer.Desktop.Components.Layout;
 using TeamBalancer.Desktop.Services;
 
 namespace TeamBalancer.Desktop.Components.Pages;
@@ -30,6 +31,9 @@ public partial class PlayerList : ComponentBase
     [Inject]
     private IJSRuntime JSRuntime { get; set; } = default!;
 
+    [CascadingParameter]
+    private MainLayout? Layout { get; set; }
+
     #endregion
 
     #region Private Fields
@@ -38,6 +42,15 @@ public partial class PlayerList : ComponentBase
     private HashSet<Guid> _selectedPlayerIds = new();
     private bool _isLoading = true;
     private BalancingAlgorithmType _selectedAlgorithm = BalancingAlgorithmType.SnakeDraft;
+
+    #endregion
+
+    #region Properties
+
+    /// <summary>
+    /// Gets whether the Create Teams button should be enabled.
+    /// </summary>
+    private bool NoPlayersSelected => _selectedPlayerIds.Count == 0;
 
     #endregion
 
@@ -87,6 +100,7 @@ public partial class PlayerList : ComponentBase
         }
 
         StateHasChanged();
+        Layout?.Refresh();
     }
 
     /// <summary>
@@ -97,13 +111,14 @@ public partial class PlayerList : ComponentBase
     {
         if (selectAll)
         {
-            _selectedPlayerIds = _players.Select(p => p.Id).ToHashSet();
+            _selectedPlayerIds = [.. _players.Select(p => p.Id)];
         }
         else
         {
             _selectedPlayerIds.Clear();
         }
         StateHasChanged();
+        Layout?.Refresh();
     }
 
     /// <summary>
