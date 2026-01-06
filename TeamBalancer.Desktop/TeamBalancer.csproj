@@ -22,10 +22,10 @@
         <Nullable>enable</Nullable>
 
         <!-- Display name -->
-        <ApplicationTitle>TeamBalancer.Desktop</ApplicationTitle>
+        <ApplicationTitle>Team Balancer</ApplicationTitle>
 
         <!-- App Identifier -->
-        <ApplicationId>com.companyname.teambalancer.desktop</ApplicationId>
+        <ApplicationId>com.melnyk.teambalancer</ApplicationId>
 
         <!-- Versions -->
         <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
