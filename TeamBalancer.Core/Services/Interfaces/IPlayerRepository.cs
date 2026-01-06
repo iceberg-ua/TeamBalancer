@@ -22,6 +22,13 @@ public interface IPlayerRepository
     Task<Player?> GetByIdAsync(Guid id);
 
     /// <summary>
+    /// Retrieves a player by their name.
+    /// </summary>
+    /// <param name="name">The name of the player.</param>
+    /// <returns>The player if found, null otherwise.</returns>
+    Task<Player?> GetByNameAsync(string name);
+
+    /// <summary>
     /// Adds a new player to the data source.
     /// </summary>
     /// <param name="player">The player to add.</param>

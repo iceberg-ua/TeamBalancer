@@ -7,22 +7,8 @@
     <h1 class="header-title-centered">@PageTitle</h1>
 </LayoutSection>
 
-@if (!_isLoading)
-{
-    <LayoutSection Section="Footer">
-        <div class="button-group">
-            <button class="btn btn-primary" @onclick="SavePlayer" disabled="@(!IsFormValid)">
-                @SaveButtonText
-            </button>
-            <button class="btn btn-secondary" @onclick="Cancel">
-                Cancel
-            </button>
-        </div>
-    </LayoutSection>
-}
-
-<div class="page-container">
-    <div class="page-content-narrow">
+<div class="page-container-addplayer">
+    <div class="page-content-addplayer">
 
         @if (_isLoading)
         {
@@ -36,8 +22,9 @@
                     <input id="playerName"
                            type="text"
                            class="form-control @(_showNameError ? "is-invalid" : "")"
-                           value="@_playerName"
-                           @oninput="OnNameInput"
+                           @bind="_playerName"
+                           @bind:event="oninput"
+                           @bind:after="ValidateName"
                            placeholder="Enter player name" />
                     @if (_showNameError)
                     {
@@ -70,4 +57,18 @@
             </div>
         }
     </div>
+
+    @if (!_isLoading)
+    {
+        <div class="page-footer-addplayer">
+            <div class="button-group">
+                <button class="btn btn-primary" @onclick="SavePlayer" disabled="@(!IsFormValid)">
+                    @SaveButtonText
+                </button>
+                <button class="btn btn-secondary" @onclick="Cancel">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    }
 </div>

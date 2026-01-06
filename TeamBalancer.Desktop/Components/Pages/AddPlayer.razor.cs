@@ -71,6 +71,10 @@ public partial class AddPlayer : ComponentBase
             if (string.IsNullOrWhiteSpace(_playerName))
                 return false;
 
+            // If there's a validation error showing, form is not valid
+            if (_showNameError)
+                return false;
+
             // Create a temporary player to validate the name
             var tempPlayer = new Player { Name = _playerName.Trim() };
             return tempPlayer.IsNameValid();
@@ -146,13 +150,10 @@ public partial class AddPlayer : ComponentBase
     }
 
     /// <summary>
-    /// Handles player name input changes and validates the name.
+    /// Validates the player name after binding.
     /// </summary>
-    /// <param name="e">The change event arguments.</param>
-    private void OnNameInput(ChangeEventArgs e)
+    private async void ValidateName()
     {
-        _playerName = e.Value?.ToString() ?? string.Empty;
-
         // Validate the name
         if (string.IsNullOrWhiteSpace(_playerName))
         {
@@ -196,7 +197,25 @@ public partial class AddPlayer : ComponentBase
         }
         else
         {
-            _nameErrorMessage = string.Empty;
+            // Check if name already exists (only for new players or if name changed in edit mode)
+            var trimmedName = _playerName.Trim();
+            if (!IsEditMode || (_existingPlayer != null && !_existingPlayer.Name.Equals(trimmedName, StringComparison.OrdinalIgnoreCase)))
+            {
+                var existingPlayer = await PlayerRepository.GetByNameAsync(trimmedName);
+                if (existingPlayer != null)
+                {
+                    _showNameError = true;
+                    _nameErrorMessage = "A player with this name already exists.";
+                }
+                else
+                {
+                    _nameErrorMessage = string.Empty;
+                }
+            }
+            else
+            {
+                _nameErrorMessage = string.Empty;
+            }
         }
     }
 

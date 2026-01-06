@@ -1,3 +1,28 @@
+.page-container-addplayer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.page-content-addplayer {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 1rem;
+}
+
+.page-footer-addplayer {
+    flex-shrink: 0;
+    padding: 1rem 0;
+    background-color: #f8f9fa;
+    border-top: 1px solid #e0e0e0;
+    margin: 0 -1rem -1rem -1rem;
+    padding: 1rem;
+}
+
 .form-container {
     display: flex;
     flex-direction: column;
@@ -15,13 +40,14 @@
 .form-control {
     padding: 0.75rem;
     font-size: 1rem;
-    border: 1px solid #ccc;
+    border: 2px solid #ccc;
     border-radius: 4px;
 }
 
 .form-control:focus {
     outline: none;
     border-color: #1b6ec2;
+    box-shadow: none;
 }
 
 .skills-section {
@@ -49,5 +75,6 @@
 }
 
 .is-invalid {
-    border-color: #e50000 !important;
+    border-color: #dc3545 !important;
+    border-width: 2px;
 }

@@ -94,6 +94,21 @@ public class CsvPlayerRepository : IPlayerRepository
     }
 
     /// <summary>
+    /// Retrieves a player by their name (case-insensitive).
+    /// </summary>
+    public async Task<Player?> GetByNameAsync(string name)
+    {
+        await EnsureInitializedAsync();
+
+        if (string.IsNullOrWhiteSpace(name))
+            return null;
+
+        return _players.FirstOrDefault(p =>
+            p.IsActive &&
+            p.Name.Equals(name.Trim(), StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
     /// Adds a new player to the data source.
     /// </summary>
     public async Task<Player> AddAsync(Player player)
