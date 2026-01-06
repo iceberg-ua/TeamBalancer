@@ -14,6 +14,8 @@ public partial class Teams : IDisposable
 
     public List<Team>? GeneratedTeams { get; set; }
 
+    private int _activeTabIndex = 0;
+
     protected override void OnInitialized()
     {
         // Load teams from state service

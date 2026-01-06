@@ -7,9 +7,19 @@
     <h1 class="header-title-centered">@PageTitle</h1>
 </LayoutSection>
 
-<LayoutSection Section="Footer">
-    <p>&copy; @DateTime.Now.Year Team Balancer. All rights reserved.</p>
-</LayoutSection>
+@if (!_isLoading)
+{
+    <LayoutSection Section="Footer">
+        <div class="button-group">
+            <button class="btn btn-primary" @onclick="SavePlayer" disabled="@(!IsFormValid)">
+                @SaveButtonText
+            </button>
+            <button class="btn btn-secondary" @onclick="Cancel">
+                Cancel
+            </button>
+        </div>
+    </LayoutSection>
+}
 
 <div class="page-container">
     <div class="page-content-narrow">
@@ -49,15 +59,6 @@
                     <StarRating Label="Stamina"
                                Value="@_stamina"
                                ValueChanged="@((int v) => _stamina = v)" />
-                </div>
-
-                <div class="button-group">
-                    <button class="btn btn-primary" @onclick="SavePlayer" disabled="@(!IsFormValid)">
-                        @SaveButtonText
-                    </button>
-                    <button class="btn btn-secondary" @onclick="Cancel">
-                        Cancel
-                    </button>
                 </div>
 
                 @if (!string.IsNullOrEmpty(_errorMessage))

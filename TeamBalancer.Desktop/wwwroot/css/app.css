@@ -181,14 +181,7 @@ a, .btn-link {
     align-items: center;
 }
 
-/* Footer Content Layout */
-.footer-content {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    align-items: center;
-}
-
+/* Footer Content Layout for specific use cases */
 .footer-content .selection-info {
     text-align: center;
 }
@@ -196,13 +189,6 @@ a, .btn-link {
 .footer-content .selection-info p {
     margin: 0;
     font-weight: 600;
-}
-
-@media (min-width: 768px) {
-    .footer-content {
-        flex-direction: row;
-        justify-content: space-between;
-    }
 }
 
 /* Global Button Styles */

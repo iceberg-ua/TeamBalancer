@@ -30,10 +30,6 @@
     align-items: center;
 }
 
-.button-group button {
-    flex: 1;
-}
-
 .alert {
     padding: 1rem;
     border-radius: 4px;
