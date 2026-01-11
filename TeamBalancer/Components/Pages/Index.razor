@@ -1,12 +1,42 @@
 ﻿@page "/"
 
 <LayoutSection Section="Header">
-    <h1 class="header-title-centered">Team Balancer</h1>
+    <div class="header-with-menu">
+        <h1 class="header-title-centered">Team Balancer</h1>
+        <button class="menu-button" @onclick="ToggleMenu" title="Menu">
+            <i class="fas fa-ellipsis-v"></i>
+        </button>
+    </div>
 </LayoutSection>
 
 <LayoutSection Section="Footer">
     <span>&copy; @DateTime.Now.Year Team Balancer. All rights reserved.</span>
 </LayoutSection>
+
+@if (_showMenu)
+{
+    <div class="menu-overlay" @onclick="ToggleMenu">
+        <div class="menu-popup" @onclick:stopPropagation="true">
+            <div class="menu-header">
+                <h3>Menu</h3>
+                <button class="close-button" @onclick="ToggleMenu">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="menu-items">
+                <button class="menu-item" @onclick="ExportPlayers">
+                    <i class="fas fa-upload"></i>
+                    <span>Export Players</span>
+                </button>
+                <label class="menu-item">
+                    <i class="fas fa-download"></i>
+                    <span>Import Players</span>
+                    <InputFile OnChange="ImportPlayers" accept=".csv" style="display: none;" />
+                </label>
+            </div>
+        </div>
+    </div>
+}
 
 <div class="index-container">
     <div class="index-content">
@@ -24,16 +54,6 @@
 
         <div class="field-image">
             <img src="images/appiconfg.svg" alt="Team Balancer" />
-        </div>
-
-        <div class="csv-actions">
-            <button class="icon-button" @onclick="ExportPlayers" title="Export players to CSV">
-                <i class="fas fa-upload "></i>
-            </button>
-            <label class="icon-button" title="Import players from CSV">
-                <i class="fas fa-download"></i>
-                <InputFile OnChange="ImportPlayers" accept=".csv" style="display: none;" />
-            </label>
         </div>
     </div>
 </div>
