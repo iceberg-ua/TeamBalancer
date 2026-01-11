@@ -65,4 +65,30 @@
     <path d="M4 100 a4 4 0 0 1 4 4"/>
     <path d="M104 100 a4 4 0 0 0 -4 4"/>
   </g>
+
+  <!-- Players (7v7): Blue vs Red -->
+<g id="players" stroke="#ffffff" stroke-width="0.6" opacity="0.98">
+    <!-- Blue team (left): 2-3-1 (+GK), stretched wider -->
+    <circle cx="10" cy="54" r="2.6" fill="#2d7dff"/>  <!-- GK -->
+    <circle cx="24" cy="30" r="2.6" fill="#2d7dff"/>  <!-- LCB -->
+    <circle cx="24" cy="78" r="2.6" fill="#2d7dff"/>  <!-- RCB -->
+    <circle cx="40" cy="20" r="2.6" fill="#2d7dff"/>  <!-- LM (very wide) -->
+    <circle cx="36" cy="54" r="2.6" fill="#2d7dff"/>  <!-- CM -->
+    <circle cx="40" cy="88" r="2.6" fill="#2d7dff"/>  <!-- RM (very wide) -->
+    <circle cx="48" cy="54" r="2.6" fill="#2d7dff"/>  <!-- ST -->
+
+    <!-- Red team (right): 3-1-2 (+GK), stretched wider -->
+    <circle cx="98" cy="54" r="2.6" fill="#ff3b3b"/>  <!-- GK -->
+    <!-- Back three (wider + slightly deeper) -->
+    <circle cx="88" cy="22" r="2.6" fill="#ff3b3b"/>  <!-- LCB (near touchline) -->
+    <circle cx="90" cy="54" r="2.6" fill="#ff3b3b"/>  <!-- CB -->
+    <circle cx="88" cy="86" r="2.6" fill="#ff3b3b"/>  <!-- RCB (near touchline) -->
+    <!-- Pivot -->
+    <circle cx="74" cy="54" r="2.6" fill="#ff3b3b"/>  <!-- DM -->
+    <!-- Front two (higher + wider channels) -->
+    <circle cx="62" cy="26" r="2.6" fill="#ff3b3b"/>  <!-- LF -->
+    <circle cx="62" cy="82" r="2.6" fill="#ff3b3b"/>  <!-- RF -->
+  </g>
+
+
 </svg>
