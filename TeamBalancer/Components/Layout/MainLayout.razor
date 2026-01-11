@@ -1,0 +1,49 @@
+﻿@inherits LayoutComponentBase
+
+<CascadingValue Value="this" IsFixed=true>
+    <div class="main-layout">
+        @if (HeaderContent != null)
+        {
+            <header class="main-header">
+                <div class="header-content">
+                    @HeaderContent
+                </div>
+            </header>
+        }
+
+        <main class="main-content">
+            @Body
+        </main>
+
+        @if (FooterContent != null)
+        {
+            <footer class="main-footer">
+                <div class="footer-content">
+                    @FooterContent
+                </div>
+            </footer>
+        }
+    </div>
+</CascadingValue>
+
+@code {
+    public RenderFragment? HeaderContent { get; set; }
+    public RenderFragment? FooterContent { get; set; }
+
+    public void SetHeader(RenderFragment content)
+    {
+        HeaderContent = content;
+        StateHasChanged();
+    }
+
+    public void SetFooter(RenderFragment content)
+    {
+        FooterContent = content;
+        StateHasChanged();
+    }
+
+    public void Refresh()
+    {
+        StateHasChanged();
+    }
+}

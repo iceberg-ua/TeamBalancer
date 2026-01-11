@@ -1,0 +1,114 @@
+@using TeamBalancer.Core.Models
+
+<div class="player-item" @onclick="CloseMenu">
+    <label class="player-checkbox">
+        @if (ShowCheckbox)
+        {
+            <input type="checkbox"
+                   checked="@IsSelected"
+                   @onchange="@((e) => HandleSelectionChanged((bool)e.Value!))" />
+        }
+        <div class="player-info">
+            <div class="player-name">@Player.Name</div>
+            <div class="player-skills">
+                <SkillRatingDisplay Rating="@Player.Speed" />
+                <SkillRatingDisplay Rating="@Player.TechnicalSkills" />
+                <SkillRatingDisplay Rating="@Player.Stamina" />
+            </div>
+        </div>
+    </label>
+
+    @if (ShowEditButton || ShowDeleteButton)
+    {
+        <div class="player-actions">
+            <button class="actions-menu-button"
+                    @onclick="ToggleMenu"
+                    @onclick:stopPropagation="true"
+                    title="Player actions">
+                <i class="fas fa-ellipsis-v"></i>
+            </button>
+
+            @if (_showMenu)
+            {
+                <div class="actions-menu">
+                    @if (ShowEditButton)
+                    {
+                        <button class="menu-item edit-item"
+                                @onclick="HandleEdit"
+                                @onclick:stopPropagation="true">
+                            <i class="fas fa-edit"></i>
+                            <span>Edit Player</span>
+                        </button>
+                    }
+                    @if (ShowDeleteButton)
+                    {
+                        <button class="menu-item delete-item"
+                                @onclick="HandleDelete"
+                                @onclick:stopPropagation="true">
+                            <i class="fas fa-trash"></i>
+                            <span>Delete Player</span>
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Player Player { get; set; } = null!;
+
+    [Parameter]
+    public bool IsSelected { get; set; }
+
+    [Parameter]
+    public bool ShowCheckbox { get; set; } = true;
+
+    [Parameter]
+    public bool ShowEditButton { get; set; } = false;
+
+    [Parameter]
+    public bool ShowDeleteButton { get; set; } = false;
+
+    [Parameter]
+    public EventCallback<bool> OnSelectionChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<Player> OnEdit { get; set; }
+
+    [Parameter]
+    public EventCallback<Player> OnDelete { get; set; }
+
+    private bool _showMenu = false;
+
+    private void ToggleMenu()
+    {
+        _showMenu = !_showMenu;
+    }
+
+    private void CloseMenu()
+    {
+        if (_showMenu)
+        {
+            _showMenu = false;
+        }
+    }
+
+    private async Task HandleSelectionChanged(bool isSelected)
+    {
+        await OnSelectionChanged.InvokeAsync(isSelected);
+    }
+
+    private async Task HandleEdit()
+    {
+        _showMenu = false;
+        await OnEdit.InvokeAsync(Player);
+    }
+
+    private async Task HandleDelete()
+    {
+        _showMenu = false;
+        await OnDelete.InvokeAsync(Player);
+    }
+}

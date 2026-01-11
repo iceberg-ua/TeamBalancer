@@ -1,0 +1,74 @@
+@page "/add-player"
+@page "/add-player/{PlayerId:guid}"
+@using TeamBalancer.Core.Models
+@using TeamBalancer.Components.Shared
+
+<LayoutSection Section="Header">
+    <h1 class="header-title-centered">@PageTitle</h1>
+</LayoutSection>
+
+<div class="page-container-addplayer">
+    <div class="page-content-addplayer">
+
+        @if (_isLoading)
+        {
+            <div class="loading text-center text-muted card-padding">Loading player...</div>
+        }
+        else
+        {
+            <div class="form-container flex-col gap-2">
+                <div class="form-group flex-col">
+                    <label for="playerName">Player Name</label>
+                    <input id="playerName"
+                           type="text"
+                           class="form-control @(_showNameError ? "is-invalid" : "")"
+                           @bind="_playerName"
+                           @bind:event="oninput"
+                           @bind:after="ValidateName"
+                           placeholder="Enter player name" />
+                    @if (_showNameError)
+                    {
+                        <div class="invalid-feedback">
+                            @_nameErrorMessage
+                        </div>
+                    }
+                </div>
+
+                <div class="skills-section flex-col">
+                    <StarRating Label="Speed"
+                               Value="@_speed"
+                               ValueChanged="@((int v) => _speed = v)" />
+
+                    <StarRating Label="Technical Skills"
+                               Value="@_technicalSkills"
+                               ValueChanged="@((int v) => _technicalSkills = v)" />
+
+                    <StarRating Label="Stamina"
+                               Value="@_stamina"
+                               ValueChanged="@((int v) => _stamina = v)" />
+                </div>
+
+                @if (!string.IsNullOrEmpty(_errorMessage))
+                {
+                    <div class="alert alert-danger">
+                        @_errorMessage
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    @if (!_isLoading)
+    {
+        <div class="page-footer-addplayer">
+            <div class="button-group">
+                <button class="btn btn-primary" @onclick="SavePlayer" disabled="@(!IsFormValid)">
+                    @SaveButtonText
+                </button>
+                <button class="btn btn-secondary" @onclick="Cancel">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    }
+</div>

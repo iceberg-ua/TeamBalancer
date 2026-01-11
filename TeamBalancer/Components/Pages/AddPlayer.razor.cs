@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components;
 using TeamBalancer.Core.Models;
 using TeamBalancer.Core.Services.Interfaces;
 
-namespace TeamBalancer.Desktop.Components.Pages;
+namespace TeamBalancer.Components.Pages;
 
 /// <summary>
 /// Code-behind for AddPlayer component.
