@@ -23,6 +23,7 @@ public partial class Index
     private bool CanCreateTeams => _playerCount >= 2;
     private string _message = string.Empty;
     private bool _isError = false;
+    private bool _showMenu = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -95,11 +96,18 @@ public partial class Index
                 _message = "No valid players found in the CSV file.";
                 _isError = true;
             }
+
+            _showMenu = false;
         }
         catch (Exception ex)
         {
             _message = $"Error importing players: {ex.Message}";
             _isError = true;
         }
+    }
+
+    private void ToggleMenu()
+    {
+        _showMenu = !_showMenu;
     }
 }
