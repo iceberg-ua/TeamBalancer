@@ -366,8 +366,9 @@ h1:focus {
     background-color: #1b6ec2;
     color: white;
     padding: 1rem;
-    padding-top: calc(1rem + env(safe-area-inset-top));
+    padding-top: calc(1rem + env(safe-area-inset-top, 0px));
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 10;
 }
 
 .main-content {
@@ -379,12 +380,25 @@ h1:focus {
 .main-footer {
     flex-shrink: 0;
     background-color: #f8f9fa;
-    padding: 0.75rem;
-    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    padding: 1rem;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
     text-align: center;
     border-top: 1px solid #dee2e6;
-    font-size: 0.875rem;
-    color: #6c757d;
+    z-index: 10;
+}
+
+.footer-buttons {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.footer-buttons .btn {
+    flex: 1;
+    min-width: 140px;
+    max-width: 200px;
 }
 
 /* Header with menu button */
@@ -396,20 +410,28 @@ h1:focus {
 }
 
 .menu-button {
-    background: none;
+    background: rgba(255, 255, 255, 0.2);
     border: none;
+    border-radius: 8px;
     color: white;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     cursor: pointer;
-    padding: 0.5rem;
+    padding: 0.5rem 0.75rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: opacity 0.2s;
+    transition: all 0.2s;
+    min-width: 44px;
+    min-height: 44px;
 }
 
 .menu-button:hover {
-    opacity: 0.8;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.menu-button:active {
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(0.95);
 }
 
 /* Header title styles */
