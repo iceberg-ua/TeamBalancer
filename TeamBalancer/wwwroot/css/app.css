@@ -409,28 +409,42 @@ h1:focus {
     position: relative;
 }
 
+button.menu-button,
 .menu-button {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
+    background: transparent !important;
+    border: none !important;
+    border-width: 0 !important;
     border-radius: 8px;
-    color: white;
-    font-size: 1.25rem;
+    color: white !important;
+    font-size: 1.5rem;
     cursor: pointer;
-    padding: 0.5rem 0.75rem;
+    padding: 0.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
     min-width: 44px;
     min-height: 44px;
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: none !important;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
-.menu-button:hover {
-    background: rgba(255, 255, 255, 0.3);
+button.menu-button:hover,
+button.menu-button:focus,
+.menu-button:hover,
+.menu-button:focus {
+    background: rgba(255, 255, 255, 0.15) !important;
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
 }
 
+button.menu-button:active,
 .menu-button:active {
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.25) !important;
     transform: scale(0.95);
 }
 
@@ -452,32 +466,37 @@ h1:focus {
 }
 
 /* Menu overlay and popup */
+div.menu-overlay,
 .menu-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: flex-start;
-    justify-content: flex-end;
-    z-index: 1000;
-    padding-top: calc(env(safe-area-inset-top) + 4rem);
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: flex-end !important;
+    z-index: 9999 !important;
+    padding-top: 4rem;
     padding-right: 1rem;
+    margin: 0 !important;
 }
 
+div.menu-popup,
 .menu-popup {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    background: white !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
     min-width: 250px;
     max-width: 90%;
     overflow: hidden;
 }
 
 .menu-header {
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: space-between;
     padding: 1rem;
@@ -491,49 +510,63 @@ h1:focus {
     color: #333;
 }
 
+button.close-button,
 .close-button {
-    background: none;
-    border: none;
-    color: #6c757d;
+    background: none !important;
+    border: none !important;
+    color: #6c757d !important;
     font-size: 1.5rem;
     cursor: pointer;
-    padding: 0;
+    padding: 0.25rem;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: color 0.2s;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
+button.close-button:hover,
 .close-button:hover {
-    color: #333;
+    color: #333 !important;
+    background: rgba(0, 0, 0, 0.05) !important;
+    border-radius: 4px;
 }
 
 .menu-items {
-    display: flex;
-    flex-direction: column;
+    display: flex !important;
+    flex-direction: column !important;
 }
 
+button.menu-item,
+label.menu-item,
 .menu-item {
-    display: flex;
+    display: flex !important;
     align-items: center;
     gap: 1rem;
-    padding: 1rem;
-    border: none;
-    background: white;
+    padding: 1rem !important;
+    border: none !important;
+    background: white !important;
     cursor: pointer;
     transition: background-color 0.2s;
     font-size: 1rem;
     text-align: left;
     width: 100%;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid #f0f0f0 !important;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
+button.menu-item:last-child,
+label.menu-item:last-child,
 .menu-item:last-child {
-    border-bottom: none;
+    border-bottom: none !important;
 }
 
+button.menu-item:hover,
+label.menu-item:hover,
 .menu-item:hover {
-    background-color: #f8f9fa;
+    background-color: #f0f4f8 !important;
 }
 
 .menu-item i {
@@ -541,6 +574,7 @@ h1:focus {
     color: #1b6ec2;
     width: 24px;
     text-align: center;
+    flex-shrink: 0;
 }
 
 .menu-item span {
