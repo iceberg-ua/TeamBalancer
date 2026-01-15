@@ -4,18 +4,19 @@
              xmlns:local="clr-namespace:TeamBalancer"
              xmlns:components="clr-namespace:TeamBalancer.Components"
              x:Class="TeamBalancer.MainPage"
-             NavigationPage.HasNavigationBar="False">
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="#1b6ec2">
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+    <Grid RowDefinitions="Auto,*">
+        <!-- Status bar spacer - height set in code-behind for Android -->
+        <BoxView x:Name="StatusBarSpacer"
+                 Grid.Row="0"
+                 Color="#1b6ec2"
+                 HeightRequest="0" />
 
-        <!-- Status bar spacer - matches header color -->
-        <BoxView Grid.Row="0" Color="#1b6ec2" x:Name="StatusBarSpacer" />
-
-        <BlazorWebView Grid.Row="1" x:Name="blazorWebView" HostPage="wwwroot/index.html">
+        <BlazorWebView Grid.Row="1"
+                       x:Name="blazorWebView"
+                       HostPage="wwwroot/index.html">
             <BlazorWebView.RootComponents>
                 <RootComponent Selector="#app" ComponentType="{x:Type components:Routes}" />
             </BlazorWebView.RootComponents>

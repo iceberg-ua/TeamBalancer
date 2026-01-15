@@ -409,6 +409,11 @@ h1:focus {
     position: relative;
 }
 
+.header-spacer {
+    min-width: 44px;
+    min-height: 44px;
+}
+
 button.menu-button,
 .menu-button {
     background: transparent !important;
