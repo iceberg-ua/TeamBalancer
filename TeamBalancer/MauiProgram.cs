@@ -53,5 +53,8 @@ public static class MauiProgram
 
 		// Register UI services
 		services.AddSingleton<TeamStateService>();
+
+		// Register file save service
+		services.AddSingleton<IFileSaveService, FileSaveService>();
 	}
 }

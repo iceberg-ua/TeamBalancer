@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.JSInterop;
 using TeamBalancer.Core.Services.Interfaces;
+using TeamBalancer.Services;
 
 namespace TeamBalancer.Components.Pages;
 
@@ -17,7 +17,7 @@ public partial class Index
     private NavigationManager Navigation { get; set; } = default!;
 
     [Inject]
-    private IJSRuntime JSRuntime { get; set; } = default!;
+    private IFileSaveService FileSaveService { get; set; } = default!;
 
     private int _playerCount = 0;
     private bool CanCreateTeams => _playerCount >= 2;
@@ -56,10 +56,10 @@ public partial class Index
             var csvContent = await CsvImportExportService.ExportPlayersAsync();
             var fileName = $"players_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
 
-            // Trigger download in browser
-            await JSRuntime.InvokeVoidAsync("downloadFile", fileName, csvContent, "text/csv");
+            // Use native share dialog to save/share the file
+            await FileSaveService.SaveAndShareAsync(fileName, csvContent, "text/csv");
 
-            _message = $"Exported to Downloads/{fileName}";
+            _message = "Players exported successfully!";
             _isError = false;
         }
         catch (Exception ex)
