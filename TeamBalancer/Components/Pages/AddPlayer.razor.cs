@@ -180,9 +180,9 @@ public partial class AddPlayer : ComponentBase
             {
                 _nameErrorMessage = "Player name cannot contain quotes.";
             }
-            else if (_playerName.Length > 100)
+            else if (_playerName.Length > 15)
             {
-                _nameErrorMessage = "Player name cannot exceed 100 characters.";
+                _nameErrorMessage = "Player name cannot exceed 15 characters.";
             }
             else if (_playerName.Length > 0 &&
                      (_playerName[0] == '=' || _playerName[0] == '+' ||

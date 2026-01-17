@@ -48,6 +48,8 @@ public partial class Index
 
     private async Task ExportPlayers()
     {
+        _showMenu = false;
+
         try
         {
             _message = string.Empty;
@@ -57,7 +59,7 @@ public partial class Index
             // Trigger download in browser
             await JSRuntime.InvokeVoidAsync("downloadFile", fileName, csvContent, "text/csv");
 
-            _message = "Players exported successfully!";
+            _message = $"Exported to Downloads/{fileName}";
             _isError = false;
         }
         catch (Exception ex)

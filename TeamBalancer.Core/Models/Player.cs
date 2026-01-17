@@ -107,8 +107,8 @@ public class Player
             return false;
         }
 
-        // Reasonable length limit to prevent DoS
-        if (Name.Length > 100)
+        // Reasonable length limit for UI display
+        if (Name.Length > 15)
         {
             return false;
         }

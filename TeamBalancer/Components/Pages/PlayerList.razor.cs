@@ -42,6 +42,8 @@ public partial class PlayerList : ComponentBase
     private HashSet<Guid> _selectedPlayerIds = new();
     private bool _isLoading = true;
     private BalancingAlgorithmType _selectedAlgorithm = BalancingAlgorithmType.SnakeDraft;
+    private bool _showDeleteConfirm = false;
+    private Player? _playerToDelete = null;
 
     #endregion
 
@@ -177,38 +179,39 @@ public partial class PlayerList : ComponentBase
     }
 
     /// <summary>
-    /// Handles player deletion with confirmation dialog.
+    /// Handles player deletion by showing confirmation dialog.
     /// </summary>
     /// <param name="player">The player to delete.</param>
-    private async Task HandlePlayerDelete(Player player)
+    private void HandlePlayerDelete(Player player)
     {
-        // Confirm deletion
-        bool confirmed = await ConfirmDelete(player.Name);
-
-        if (confirmed)
-        {
-            // Delete player
-            await PlayerRepository.DeleteAsync(player.Id);
-            await PlayerRepository.SaveChangesAsync();
-
-            // Remove from selected if it was selected
-            _selectedPlayerIds.Remove(player.Id);
-
-            // Reload players
-            await LoadPlayers();
-        }
+        _playerToDelete = player;
+        _showDeleteConfirm = true;
     }
 
     /// <summary>
-    /// Shows a confirmation dialog using JavaScript interop.
+    /// Confirms and executes the player deletion.
     /// </summary>
-    /// <param name="playerName">Name of the player being deleted.</param>
-    /// <returns>True if user confirmed, false otherwise.</returns>
-    private async Task<bool> ConfirmDelete(string playerName)
+    private async Task ConfirmDeletePlayer()
     {
-        return await JSRuntime.InvokeAsync<bool>(
-            "confirm",
-            $"Are you sure you want to delete {playerName}? This action cannot be undone.");
+        if (_playerToDelete != null)
+        {
+            await PlayerRepository.DeleteAsync(_playerToDelete.Id);
+            await PlayerRepository.SaveChangesAsync();
+            _selectedPlayerIds.Remove(_playerToDelete.Id);
+            await LoadPlayers();
+        }
+
+        _showDeleteConfirm = false;
+        _playerToDelete = null;
+    }
+
+    /// <summary>
+    /// Cancels the delete operation.
+    /// </summary>
+    private void CancelDelete()
+    {
+        _showDeleteConfirm = false;
+        _playerToDelete = null;
     }
 
     #endregion

@@ -25,6 +25,7 @@
                            @bind="_playerName"
                            @bind:event="oninput"
                            @bind:after="ValidateName"
+                           maxlength="15"
                            placeholder="Enter player name" />
                     @if (_showNameError)
                     {

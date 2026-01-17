@@ -47,3 +47,22 @@
         </div>
     }
 </div>
+
+@if (_showDeleteConfirm)
+{
+    <div class="confirm-overlay" @onclick="CancelDelete">
+        <div class="confirm-dialog" @onclick:stopPropagation="true">
+            <div class="confirm-header">
+                <h3>Team Balancer</h3>
+            </div>
+            <div class="confirm-body">
+                <p>Are you sure you want to delete <strong>@_playerToDelete?.Name</strong>?</p>
+                <p class="confirm-warning">This action cannot be undone.</p>
+            </div>
+            <div class="confirm-footer">
+                <button class="btn btn-secondary" @onclick="CancelDelete">Cancel</button>
+                <button class="btn btn-danger" @onclick="ConfirmDeletePlayer">Delete</button>
+            </div>
+        </div>
+    </div>
+}
