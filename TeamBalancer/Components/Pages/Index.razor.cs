@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using TeamBalancer.Components.Layout;
 using TeamBalancer.Core.Services.Interfaces;
 using TeamBalancer.Services;
 
@@ -19,13 +20,16 @@ public partial class Index
     [Inject]
     private IFileSaveService FileSaveService { get; set; } = default!;
 
+    [CascadingParameter]
+    private MainLayout? Layout { get; set; }
+
     private int _playerCount = 0;
     private bool CanCreateTeams => _playerCount >= 2;
     private string _message = string.Empty;
     private bool _isError = false;
     private bool _showMenu = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
         await LoadPlayers();
     }
@@ -34,6 +38,7 @@ public partial class Index
     {
         var players = await PlayerRepository.GetAllAsync();
         _playerCount = players.Count();
+        Layout?.Refresh();
     }
 
     private void AddPlayer()
