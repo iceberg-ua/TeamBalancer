@@ -18,13 +18,13 @@ a, .btn-link {
     align-items: flex-start;
     height: 100%;
     width: 100%;
-    padding: 1rem;
+    padding: 0.5rem;
     overflow: hidden;
 }
 
 .page-content {
     width: 100%;
-    padding: 1rem;
+    padding: 0.5rem;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -33,7 +33,7 @@ a, .btn-link {
 .page-content-narrow {
     width: 100%;
     max-width: 600px;
-    padding: 1rem;
+    padding: 0.5rem;
     display: flex;
     flex-direction: column;
     height: 100%;
