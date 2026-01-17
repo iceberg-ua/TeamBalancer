@@ -1,20 +1,20 @@
 .skill-item {
     display: flex;
     align-items: center;
-    width: 5rem;
     justify-content: center;
     background-color: rgba(173, 216, 230, 0.15);
-    border-radius: 10px;
-    padding: 0.5rem 0.4rem;
+    border-radius: 6px;
+    padding: 0.25rem 0.3rem;
+    min-width: 3.2rem;
 }
 
 .skill-icons {
     display: flex;
-    gap: 0.15rem;
+    gap: 0.1rem;
 }
 
 .skill-icon {
-    font-size: 1.1rem;
+    font-size: 0.75rem;
     user-select: none;
     line-height: 1;
 }
@@ -29,11 +29,11 @@
 
 @media (min-width: 768px) {
     .skill-icon {
-        font-size: 1.2rem;
+        font-size: 0.85rem;
     }
 
     .skill-item {
-        width: 4.5rem;
-        padding: 0.55rem 0.45rem;
+        min-width: 3.5rem;
+        padding: 0.3rem 0.35rem;
     }
 }
