@@ -21,14 +21,14 @@
 }
 
 .header-checkbox {
-    width: 1.25rem;
-    margin-right: 0.75rem;
+    width: 1rem;
+    margin-right: 0.5rem;
     flex-shrink: 0;
 }
 
 .header-checkbox input[type="checkbox"] {
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 1rem;
+    height: 1rem;
     cursor: pointer;
 }
 
