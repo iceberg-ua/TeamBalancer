@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using TeamBalancer.Core.Models;
+using TeamBalancer.Core.Services.Balancing;
 using TeamBalancer.Services;
 
 namespace TeamBalancer.Components.Pages;
@@ -11,6 +12,9 @@ public partial class Teams : IDisposable
 
     [Inject]
     private TeamStateService TeamState { get; set; } = default!;
+
+    [Inject]
+    private TeamBalancingService BalancingService { get; set; } = default!;
 
     public List<Team>? GeneratedTeams { get; set; }
 
@@ -40,22 +44,13 @@ public partial class Teams : IDisposable
         var allPlayers = GeneratedTeams.SelectMany(t => t.Players).ToList();
         var numberOfTeams = GeneratedTeams.Count;
 
-        // Shuffle the players randomly
-        var random = new Random();
-        var shuffledPlayers = allPlayers.OrderBy(x => random.Next()).ToList();
+        // Use the balancing service with shuffle=true for variety while maintaining balance
+        var newTeams = BalancingService.BalanceTeams(allPlayers, numberOfTeams, shuffle: true);
 
-        // Redistribute players into teams
-        var newTeams = new List<Team>();
-        for (int i = 0; i < numberOfTeams; i++)
+        // Rename teams to match current naming (Team 1, Team 2, etc.)
+        for (int i = 0; i < newTeams.Count; i++)
         {
-            newTeams.Add(new Team { Name = $"Team {i + 1}", Players = new List<Player>() });
-        }
-
-        // Distribute players evenly across teams
-        for (int i = 0; i < shuffledPlayers.Count; i++)
-        {
-            var teamIndex = i % numberOfTeams;
-            newTeams[teamIndex].Players.Add(shuffledPlayers[i]);
+            newTeams[i].Name = $"Team {i + 1}";
         }
 
         // Update the state service with new teams

@@ -57,31 +57,25 @@ public class SnakeDraftStrategy : BaseTeamBalancingStrategy
         }
 
         // Distribute players using snake draft pattern
+        // Pattern: A, B, B, A, A, B, B, A... (each team picks once, then direction reverses)
         int currentTeamIndex = 0;
-        bool forward = true;
+        int direction = 1;
 
         foreach (var player in sortedPlayers)
         {
             teams[currentTeamIndex].AddPlayer(player);
 
-            // Move to next team in snake pattern
-            if (forward)
+            // Calculate next team index
+            int nextIndex = currentTeamIndex + direction;
+
+            // If next index is out of bounds, reverse direction (team picks again at the turn)
+            if (nextIndex >= numberOfTeams || nextIndex < 0)
             {
-                currentTeamIndex++;
-                if (currentTeamIndex >= numberOfTeams)
-                {
-                    currentTeamIndex = numberOfTeams - 1;
-                    forward = false;
-                }
+                direction = -direction;
             }
             else
             {
-                currentTeamIndex--;
-                if (currentTeamIndex < 0)
-                {
-                    currentTeamIndex = 0;
-                    forward = true;
-                }
+                currentTeamIndex = nextIndex;
             }
         }
 
