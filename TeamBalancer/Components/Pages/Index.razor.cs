@@ -54,18 +54,17 @@ public partial class Index
     private async Task ExportPlayers()
     {
         _showMenu = false;
+        _message = string.Empty;
 
         try
         {
-            _message = string.Empty;
             var csvContent = await CsvImportExportService.ExportPlayersAsync();
             var fileName = $"players_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
 
             // Use native share dialog to save/share the file
+            // Note: Share API returns immediately after showing dialog,
+            // so we can't know if user completed the export
             await FileSaveService.SaveAndShareAsync(fileName, csvContent, "text/csv");
-
-            _message = "Players exported successfully!";
-            _isError = false;
         }
         catch (Exception ex)
         {

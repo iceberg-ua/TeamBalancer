@@ -7,19 +7,18 @@
     <h1 class="header-title-centered">Select Players</h1>
 </LayoutSection>
 
-@if (_players.Any() && !_isLoading)
-{
-    <LayoutSection Section="Footer">
-        <div class="button-group">
+<LayoutSection Section="Footer">
+    <div class="button-group">
+        @if (_players.Any() && !_isLoading)
+        {
             <button class="btn btn-success" @onclick="CreateTeams" disabled="@NoPlayersSelected">
                 Create Teams
             </button>
-            <button class="btn btn-secondary" @onclick="Cancel">
-                Cancel
-            </button>
-        </div>
-    </LayoutSection>
-}
+        }
+        <button class="btn btn-primary btn-icon" @onclick="GoToAddPlayer"><i class="fas fa-plus"></i></button>
+        <button class="btn btn-secondary" @onclick="Cancel">Home</button>
+    </div>
+</LayoutSection>
 
 <div class="page-container-playerlist">
     @if (_isLoading)
@@ -30,7 +29,6 @@
     {
         <div class="no-players text-center card-padding">
             <p class="mb-2">No players available. Please add players first.</p>
-            <button class="btn btn-primary" @onclick="GoToAddPlayer">Add Player</button>
         </div>
     }
     else

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using TeamBalancer.Core.Models;
 using TeamBalancer.Core.Services.Interfaces;
 
@@ -17,6 +18,9 @@ public partial class AddPlayer : ComponentBase
 
     [Inject]
     private NavigationManager Navigation { get; set; } = default!;
+
+    [Inject]
+    private IJSRuntime JSRuntime { get; set; } = default!;
 
     #endregion
 
@@ -254,8 +258,8 @@ public partial class AddPlayer : ComponentBase
                 await PlayerRepository.SaveChangesAsync();
             }
 
-            // Navigate back to appropriate page
-            Navigation.NavigateTo(IsEditMode ? "/create-teams" : "/");
+            // Navigate back to previous page
+            await JSRuntime.InvokeVoidAsync("history.back");
         }
         catch (Exception ex)
         {
@@ -266,9 +270,9 @@ public partial class AddPlayer : ComponentBase
     /// <summary>
     /// Cancels the operation and navigates back.
     /// </summary>
-    private void Cancel()
+    private async Task Cancel()
     {
-        Navigation.NavigateTo(IsEditMode ? "/create-teams" : "/");
+        await JSRuntime.InvokeVoidAsync("history.back");
     }
 
     #endregion
