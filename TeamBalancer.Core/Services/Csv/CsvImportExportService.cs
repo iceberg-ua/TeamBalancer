@@ -67,6 +67,15 @@ public class CsvImportExportService : ICsvImportExportService
                     continue;
                 }
 
+                // Check if player with same name already exists
+                var existingPlayer = await _playerRepository.GetByNameAsync(player.Name);
+                if (existingPlayer != null)
+                {
+                    _logger.LogWarning("Skipping player '{PlayerName}' - a player with this name already exists", player.Name);
+                    skippedCount++;
+                    continue;
+                }
+
                 await _playerRepository.AddAsync(player);
                 _logger.LogDebug("Successfully imported player '{PlayerName}'", player.Name);
                 importedCount++;
