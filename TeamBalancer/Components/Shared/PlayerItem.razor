@@ -8,19 +8,12 @@
                    checked="@IsSelected"
                    @onchange="@((e) => HandleSelectionChanged((bool)e.Value!))" />
         }
-        <div class="player-info">
-            <div class="player-name">@Player.Name</div>
-            <div class="player-skills">
-                <SkillRatingDisplay Rating="@Player.Speed" />
-                <SkillRatingDisplay Rating="@Player.TechnicalSkills" />
-                <SkillRatingDisplay Rating="@Player.Stamina" />
-            </div>
-        </div>
+        <div class="player-name">@Player.Name</div>
     </label>
 
-    @if (ShowEditButton || ShowDeleteButton)
-    {
-        <div class="player-actions">
+    <div class="player-actions">
+        @if (ShowEditButton || ShowDeleteButton)
+        {
             <button class="actions-menu-button"
                     @onclick="ToggleMenu"
                     @onclick:stopPropagation="true"
@@ -30,7 +23,8 @@
 
             @if (_showMenu)
             {
-                <div class="actions-menu">
+                <div class="actions-overlay" @onclick="CloseMenu"></div>
+                <div class="actions-menu" @onclick:stopPropagation="true">
                     @if (ShowEditButton)
                     {
                         <button class="menu-item edit-item"
@@ -51,8 +45,14 @@
                     }
                 </div>
             }
-        </div>
-    }
+        }
+    </div>
+
+    <div class="player-skills">
+        <SkillRatingDisplay Rating="@Player.Speed" />
+        <SkillRatingDisplay Rating="@Player.TechnicalSkills" />
+        <SkillRatingDisplay Rating="@Player.Stamina" />
+    </div>
 </div>
 
 @code {

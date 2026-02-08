@@ -1,10 +1,10 @@
 ﻿/*#if (SampleContent)*/
 :root {
     /* Player list item padding */
-    --player-item-padding-top: 0.5rem;
-    --player-item-padding-right: 2rem;
-    --player-item-padding-bottom: 0.5rem;
-    --player-item-padding-left: 0.6rem;
+    --player-item-padding-top: 0.35rem;
+    --player-item-padding-right: 0.3rem;
+    --player-item-padding-bottom: 0.35rem;
+    --player-item-padding-left: 0.3rem;
     --player-item-padding: var(--player-item-padding-top) var(--player-item-padding-right) var(--player-item-padding-bottom) var(--player-item-padding-left);
 }
 

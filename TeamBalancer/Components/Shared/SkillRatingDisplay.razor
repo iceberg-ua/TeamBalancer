@@ -2,7 +2,10 @@
     <span class="skill-icons">
         @for (int i = 1; i <= MaxRating; i++)
         {
-            <i class="@(i <= Rating ? "fa-solid" : "fa-regular") fa-star skill-icon"></i>
+            var zIndex = MaxRating - i + 1;
+            var lightness = 48 + (i - 1) * 3;
+            <i class="@(i <= Rating ? "fa-solid" : "fa-regular") fa-star skill-icon"
+               style="--star-index: @zIndex; --star-color: hsl(45, 100%, @(lightness)%);"></i>
         }
     </span>
 </div>

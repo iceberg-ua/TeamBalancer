@@ -5,18 +5,25 @@
     background-color: rgba(173, 216, 230, 0.15);
     border-radius: 6px;
     padding: 0.25rem 0.3rem;
-    min-width: 3.2rem;
+    width: 1.8rem;
+    box-sizing: border-box;
 }
 
 .skill-icons {
     display: flex;
-    gap: 0.1rem;
+    position: relative;
 }
 
 .skill-icon {
     font-size: 0.75rem;
     user-select: none;
     line-height: 1;
+    position: relative;
+    z-index: var(--star-index, 1);
+}
+
+.skill-icon:not(:first-child) {
+    margin-left: -0.45rem;
 }
 
 .skill-icon.fa-regular {
@@ -24,7 +31,7 @@
 }
 
 .skill-icon.fa-solid {
-    color: #ffc107;
+    color: var(--star-color, #ffc107);
 }
 
 @media (min-width: 768px) {
@@ -33,7 +40,7 @@
     }
 
     .skill-item {
-        min-width: 3.5rem;
+        width: 2.2rem;
         padding: 0.3rem 0.35rem;
     }
 }
