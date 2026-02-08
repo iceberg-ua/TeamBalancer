@@ -189,9 +189,9 @@ public class CsvPlayerRepository : IPlayerRepository
     {
         await EnsureInitializedAsync();
 
-        // Only save active players to CSV
+        // Only save active players to CSV (include selection state for persistence)
         var activePlayers = _players.Where(p => p.IsActive);
-        var csvContent = _csvParser.SerializePlayers(activePlayers);
+        var csvContent = _csvParser.SerializePlayers(activePlayers, includeSelection: true);
         
         await File.WriteAllTextAsync(_filePath, csvContent);
 

@@ -54,6 +54,12 @@ public class Player
     public bool IsActive { get; set; }
 
     /// <summary>
+    /// Gets or sets whether the player is selected for team creation.
+    /// Persisted to CSV storage but excluded from import/export.
+    /// </summary>
+    public bool IsSelected { get; set; }
+
+    /// <summary>
     /// Initializes a new instance of the Player class with default values.
     /// </summary>
     public Player()
@@ -61,6 +67,7 @@ public class Player
         Id = Guid.NewGuid();
         CreatedAt = DateTime.UtcNow;
         IsActive = true;
+        IsSelected = true;
     }
 
     /// <summary>

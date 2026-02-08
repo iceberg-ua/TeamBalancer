@@ -18,6 +18,7 @@ public interface ICsvParser
     /// Serializes a collection of Player objects into CSV format.
     /// </summary>
     /// <param name="players">The players to serialize.</param>
+    /// <param name="includeSelection">Whether to include the IsSelected column (for storage only, not for export).</param>
     /// <returns>CSV formatted string.</returns>
-    string SerializePlayers(IEnumerable<Player> players);
+    string SerializePlayers(IEnumerable<Player> players, bool includeSelection = false);
 }

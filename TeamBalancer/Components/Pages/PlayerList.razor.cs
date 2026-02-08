@@ -71,7 +71,7 @@ public partial class PlayerList : ComponentBase
     #region Private Methods
 
     /// <summary>
-    /// Loads all players from the repository and pre-selects them.
+    /// Loads all players from the repository and restores selection state from Player.IsSelected.
     /// </summary>
     private async Task LoadPlayers()
     {
@@ -79,8 +79,7 @@ public partial class PlayerList : ComponentBase
         var players = await PlayerRepository.GetAllAsync();
         _players = players.ToList();
 
-        // Pre-select all players
-        _selectedPlayerIds = _players.Select(p => p.Id).ToHashSet();
+        _selectedPlayerIds = [.. _players.Where(p => p.IsSelected).Select(p => p.Id)];
 
         _isLoading = false;
         StateHasChanged();
@@ -101,6 +100,10 @@ public partial class PlayerList : ComponentBase
             _selectedPlayerIds.Remove(selection.PlayerId);
         }
 
+        // Update the model in memory (persisted to CSV on app close)
+        var player = _players.FirstOrDefault(p => p.Id == selection.PlayerId);
+        player?.IsSelected = selection.IsSelected;
+
         StateHasChanged();
         Layout?.Refresh();
     }
@@ -119,6 +122,13 @@ public partial class PlayerList : ComponentBase
         {
             _selectedPlayerIds.Clear();
         }
+
+        // Update all player models in memory
+        foreach (var player in _players)
+        {
+            player.IsSelected = selectAll;
+        }
+
         StateHasChanged();
         Layout?.Refresh();
     }

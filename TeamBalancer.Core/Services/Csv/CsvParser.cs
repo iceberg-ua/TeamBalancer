@@ -63,6 +63,12 @@ public class CsvParser : ICsvParser
                     Stamina = int.Parse(parts[3].Trim())
                 };
 
+                // Parse optional IsSelected column (5th column, used in storage CSV)
+                if (parts.Length >= 5 && bool.TryParse(parts[4].Trim(), out var isSelected))
+                {
+                    player.IsSelected = isSelected;
+                }
+
                 // Validate skill levels
                 if (!player.AreSkillLevelsValid())
                 {
@@ -112,19 +118,23 @@ public class CsvParser : ICsvParser
     /// Serializes a collection of Player objects into CSV format.
     /// Applies defense-in-depth by sanitizing values to prevent CSV injection.
     /// </summary>
-    public string SerializePlayers(IEnumerable<Player> players)
+    public string SerializePlayers(IEnumerable<Player> players, bool includeSelection = false)
     {
         var sb = new StringBuilder();
 
         // Write header
-        sb.AppendLine("Name,Speed,TechnicalSkills,Stamina");
+        sb.AppendLine(includeSelection
+            ? "Name,Speed,TechnicalSkills,Stamina,IsSelected"
+            : "Name,Speed,TechnicalSkills,Stamina");
 
         // Write player data
         foreach (var player in players)
         {
             // Sanitize the name to prevent CSV injection (defense-in-depth)
             string sanitizedName = SanitizeCsvValue(player.Name);
-            sb.AppendLine($"{sanitizedName},{player.Speed},{player.TechnicalSkills},{player.Stamina}");
+            sb.AppendLine(includeSelection
+                ? $"{sanitizedName},{player.Speed},{player.TechnicalSkills},{player.Stamina},{player.IsSelected}"
+                : $"{sanitizedName},{player.Speed},{player.TechnicalSkills},{player.Stamina}");
         }
 
         return sb.ToString();

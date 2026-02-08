@@ -76,6 +76,8 @@ public class CsvImportExportService : ICsvImportExportService
                     continue;
                 }
 
+                // Imported players default to deselected
+                player.IsSelected = false;
                 await _playerRepository.AddAsync(player);
                 _logger.LogDebug("Successfully imported player '{PlayerName}'", player.Name);
                 importedCount++;
