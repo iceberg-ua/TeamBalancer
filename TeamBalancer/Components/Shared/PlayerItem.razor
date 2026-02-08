@@ -1,12 +1,13 @@
 @using TeamBalancer.Core.Models
 
-<div class="player-item" @onclick="CloseMenu">
+<div class="player-item @(IsMenuOpen ? "menu-open" : "")" @onclick="CloseMenu">
     <label class="player-checkbox">
         @if (ShowCheckbox)
         {
             <input type="checkbox"
                    checked="@IsSelected"
-                   @onchange="@((e) => HandleSelectionChanged((bool)e.Value!))" />
+                   @onchange="@((e) => HandleSelectionChanged((bool)e.Value!))"
+                   @onclick:stopPropagation="true" />
         }
         <div class="player-name">@Player.Name</div>
     </label>
@@ -21,9 +22,8 @@
                 <i class="fas fa-ellipsis-v"></i>
             </button>
 
-            @if (_showMenu)
+            @if (IsMenuOpen)
             {
-                <div class="actions-overlay" @onclick="CloseMenu"></div>
                 <div class="actions-menu" @onclick:stopPropagation="true">
                     @if (ShowEditButton)
                     {
@@ -80,18 +80,22 @@
     [Parameter]
     public EventCallback<Player> OnDelete { get; set; }
 
-    private bool _showMenu = false;
+    [Parameter]
+    public bool IsMenuOpen { get; set; }
 
-    private void ToggleMenu()
+    [Parameter]
+    public EventCallback<bool> OnMenuToggle { get; set; }
+
+    private async Task ToggleMenu()
     {
-        _showMenu = !_showMenu;
+        await OnMenuToggle.InvokeAsync(!IsMenuOpen);
     }
 
-    private void CloseMenu()
+    private async Task CloseMenu()
     {
-        if (_showMenu)
+        if (IsMenuOpen)
         {
-            _showMenu = false;
+            await OnMenuToggle.InvokeAsync(false);
         }
     }
 
@@ -102,13 +106,13 @@
 
     private async Task HandleEdit()
     {
-        _showMenu = false;
+        IsMenuOpen = false;
         await OnEdit.InvokeAsync(Player);
     }
 
     private async Task HandleDelete()
     {
-        _showMenu = false;
+        IsMenuOpen = false;
         await OnDelete.InvokeAsync(Player);
     }
 }

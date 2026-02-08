@@ -1,13 +1,18 @@
 @using TeamBalancer.Core.Models
 
-<div class="player-list-container">
-    <div class="player-list-header">
-        <div class="header-checkbox">
+@if (_openMenuPlayerId != null)
+{
+    <div class="menu-backdrop" @onclick="CloseAllMenus"></div>
+}
+
+<div class="player-list-container" @onclick="CloseAllMenus">
+    <div class="player-list-header" @onclick:stopPropagation="true">
+        <label class="header-label">
             <input type="checkbox"
                    checked="@IsAllSelected"
                    @onchange="OnSelectAllChanged" />
-        </div>
-        <div class="header-name">Player</div>
+            <span class="header-name">Player (@SelectedPlayerIds.Count/@Players.Count)</span>
+        </label>
         <div class="header-actions-spacer"></div>
         <div class="header-skills">
             <span>Speed</span>
@@ -24,6 +29,8 @@
                            IsSelected="@SelectedPlayerIds.Contains(player.Id)"
                            ShowEditButton="@ShowEditButton"
                            ShowDeleteButton="@ShowDeleteButton"
+                           IsMenuOpen="@(_openMenuPlayerId == player.Id)"
+                           OnMenuToggle="@((isOpen) => HandleMenuToggle(player.Id, isOpen))"
                            OnSelectionChanged="@((isSelected) => OnSelectionChanged(player.Id, isSelected))"
                            OnEdit="@OnPlayerEdit"
                            OnDelete="@OnPlayerDelete" />
@@ -57,7 +64,24 @@
     [Parameter]
     public EventCallback<Player> OnPlayerDelete { get; set; }
 
+    private Guid? _openMenuPlayerId = null;
+
     private bool IsAllSelected => Players.Any() && Players.All(p => SelectedPlayerIds.Contains(p.Id));
+
+    private void HandleMenuToggle(Guid playerId, bool isOpen)
+    {
+        _openMenuPlayerId = isOpen ? playerId : null;
+        StateHasChanged();
+    }
+
+    private void CloseAllMenus()
+    {
+        if (_openMenuPlayerId != null)
+        {
+            _openMenuPlayerId = null;
+            StateHasChanged();
+        }
+    }
 
     private async Task OnSelectionChanged(Guid playerId, bool isSelected)
     {

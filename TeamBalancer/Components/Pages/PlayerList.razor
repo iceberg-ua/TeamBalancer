@@ -31,10 +31,6 @@
     }
     else
     {
-        <div class="selection-info-container">
-            <p>Selected: @_selectedPlayerIds.Count / @_players.Count players</p>
-        </div>
-
         <div class="player-list-wrapper">
             <SelectablePlayerList Players="_players" SelectedPlayerIds="_selectedPlayerIds" ShowEditButton="true"
                 ShowDeleteButton="true" OnPlayerSelectionChanged="HandlePlayerSelectionChanged"

@@ -1,3 +1,14 @@
+.menu-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9998;
+    background: rgba(0, 0, 0, 0.01);
+    cursor: default;
+}
+
 .player-list-container {
     display: flex;
     flex-direction: column;
@@ -20,22 +31,28 @@
     flex-shrink: 0;
 }
 
-.header-checkbox {
-    width: 1rem;
-    flex-shrink: 0;
+.header-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    flex: 1;
+    min-width: 0;
 }
 
-.header-checkbox input[type="checkbox"] {
+.header-label input[type="checkbox"] {
     width: 1rem;
     height: 1rem;
     cursor: pointer;
     margin-right: 0.3rem;
+    flex-shrink: 0;
 }
 
 .header-name {
     min-width: 0;
     flex: 1;
-    margin-left: 0.3rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .header-actions-spacer {
