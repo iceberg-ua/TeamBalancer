@@ -123,6 +123,11 @@ public class CsvPlayerRepository : IPlayerRepository
         if (!player.AreSkillLevelsValid())
             throw new ArgumentException("Player skill levels must be between 1 and 3.", nameof(player));
 
+        // An Unspecified primary position is tolerated here so players coming from CSVs that
+        // predate position support can still be added; only contradictory data is rejected.
+        if (player.PrimaryPosition != Position.Unspecified && !player.IsPositionValid())
+            throw new ArgumentException("Player secondary position must differ from the primary position.", nameof(player));
+
         // Ensure new ID if not set
         if (player.Id == Guid.Empty)
             player.Id = Guid.NewGuid();
@@ -151,6 +156,11 @@ public class CsvPlayerRepository : IPlayerRepository
         if (!player.AreSkillLevelsValid())
             throw new ArgumentException("Player skill levels must be between 1 and 3.", nameof(player));
 
+        // An Unspecified primary position is tolerated here so players loaded from CSVs that
+        // predate position support can still be edited; only contradictory data is rejected.
+        if (player.PrimaryPosition != Position.Unspecified && !player.IsPositionValid())
+            throw new ArgumentException("Player secondary position must differ from the primary position.", nameof(player));
+
         var existingPlayer = _players.FirstOrDefault(p => p.Id == player.Id);
         if (existingPlayer == null)
             throw new InvalidOperationException($"Player with ID {player.Id} not found.");
@@ -159,6 +169,8 @@ public class CsvPlayerRepository : IPlayerRepository
         existingPlayer.Speed = player.Speed;
         existingPlayer.TechnicalSkills = player.TechnicalSkills;
         existingPlayer.Stamina = player.Stamina;
+        existingPlayer.PrimaryPosition = player.PrimaryPosition;
+        existingPlayer.SecondaryPosition = player.SecondaryPosition;
         existingPlayer.UpdatedAt = DateTime.UtcNow;
         existingPlayer.IsActive = player.IsActive;
 

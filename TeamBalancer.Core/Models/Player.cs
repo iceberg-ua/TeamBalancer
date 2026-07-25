@@ -34,6 +34,18 @@ public class Player
     public int Stamina { get; set; }
 
     /// <summary>
+    /// Gets or sets the player's main position on the pitch.
+    /// Defaults to <see cref="Position.Unspecified"/> for data that predates position support.
+    /// </summary>
+    public Position PrimaryPosition { get; set; } = Position.Unspecified;
+
+    /// <summary>
+    /// Gets or sets the player's optional fallback position.
+    /// Null when the player has no secondary position.
+    /// </summary>
+    public Position? SecondaryPosition { get; set; }
+
+    /// <summary>
     /// Gets the overall skill level calculated as the average of all skill attributes.
     /// </summary>
     public double OverallSkillLevel => (Speed + TechnicalSkills + Stamina) / 3.0;
@@ -79,6 +91,26 @@ public class Player
         return Speed >= 1 && Speed <= 3 &&
                TechnicalSkills >= 1 && TechnicalSkills <= 3 &&
                Stamina >= 1 && Stamina <= 3;
+    }
+
+    /// <summary>
+    /// Validates that the player has a real primary position and that the secondary position,
+    /// when set, differs from it.
+    /// </summary>
+    /// <returns>True if the positions are valid, false otherwise.</returns>
+    public bool IsPositionValid()
+    {
+        if (PrimaryPosition == Position.Unspecified)
+        {
+            return false;
+        }
+
+        if (SecondaryPosition.HasValue && SecondaryPosition.Value == PrimaryPosition)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     /// <summary>
