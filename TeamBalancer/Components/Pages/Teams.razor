@@ -75,18 +75,24 @@
                         </div>
                     }
 
+                    @* Each cell pushes its name pill to the card's outer edge and its rating
+                       inwards, so the two ratings meet in the middle like the bars above.
+                       Team B's pair is ordered by hand rather than reversed in CSS. *@
                     <div class="balance-legend">
-                        @for (var i = 0; i < 2; i++)
-                        {
-                            var team = GeneratedTeams[i];
-                            <div class="legend-slot">
-                                <span class="legend-tag @TeamColorClass(i)"
-                                      title="@team.Name overall rating: @Overall(team).ToString("F2")">
-                                    <span class="legend-name">@team.Name</span>
-                                    <span class="legend-rating">@Overall(team).ToString("F1")</span>
-                                </span>
-                            </div>
-                        }
+                        <div class="legend-cell">
+                            <span class="legend-tag team-a">@GeneratedTeams[0].Name</span>
+                            <span class="legend-rating team-a"
+                                  title="@GeneratedTeams[0].Name overall rating: @Overall(GeneratedTeams[0]).ToString("F2")">
+                                @Overall(GeneratedTeams[0]).ToString("F1")
+                            </span>
+                        </div>
+                        <div class="legend-cell">
+                            <span class="legend-rating team-b"
+                                  title="@GeneratedTeams[1].Name overall rating: @Overall(GeneratedTeams[1]).ToString("F2")">
+                                @Overall(GeneratedTeams[1]).ToString("F1")
+                            </span>
+                            <span class="legend-tag team-b">@GeneratedTeams[1].Name</span>
+                        </div>
                     </div>
                 </div>
             }
