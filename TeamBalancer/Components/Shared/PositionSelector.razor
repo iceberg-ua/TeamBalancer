@@ -3,31 +3,39 @@
 
 <div class="position-selector flex-col">
     <div class="form-group flex-col">
-        <label for="primaryPosition">Primary Position</label>
-        <select id="primaryPosition"
-                class="form-control @(PrimaryPosition == Position.Unspecified ? "is-unset" : "")"
-                value="@PrimaryPosition"
-                @onchange="OnPrimaryChanged">
-            <option value="@Position.Unspecified">Select a position...</option>
+        <label id="primaryPositionLabel">Primary Position</label>
+        <div class="seg @(PrimaryPosition == Position.Unspecified ? "is-unset" : "")"
+             role="group"
+             aria-labelledby="primaryPositionLabel">
             @foreach (var position in PositionExtensions.SelectablePositions)
             {
-                <option value="@position">@position.ToDisplayName()</option>
+                var option = position;
+                <button type="button"
+                        class="seg-opt @(PrimaryPosition == option ? "is-selected" : "")"
+                        title="@option.ToDisplayName()"
+                        aria-pressed="@(PrimaryPosition == option)"
+                        @onclick="() => TogglePrimary(option)">
+                    @option.ToAbbreviation()
+                </button>
             }
-        </select>
+        </div>
     </div>
 
     <div class="form-group flex-col">
-        <label for="secondaryPosition">Secondary Position (optional)</label>
-        <select id="secondaryPosition"
-                class="form-control"
-                value="@(SecondaryPosition?.ToString() ?? string.Empty)"
-                @onchange="OnSecondaryChanged">
-            <option value="">None</option>
+        <label id="secondaryPositionLabel">Secondary Position (optional)</label>
+        <div class="seg" role="group" aria-labelledby="secondaryPositionLabel">
             @foreach (var position in PositionExtensions.SelectablePositions.Where(p => p != PrimaryPosition))
             {
-                <option value="@position">@position.ToDisplayName()</option>
+                var option = position;
+                <button type="button"
+                        class="seg-opt @(SecondaryPosition == option ? "is-selected" : "")"
+                        title="@option.ToDisplayName()"
+                        aria-pressed="@(SecondaryPosition == option)"
+                        @onclick="() => ToggleSecondary(option)">
+                    @option.ToAbbreviation()
+                </button>
             }
-        </select>
+        </div>
     </div>
 </div>
 
@@ -44,14 +52,18 @@
     [Parameter]
     public EventCallback<Position?> SecondaryPositionChanged { get; set; }
 
-    private async Task OnPrimaryChanged(ChangeEventArgs e)
+    /// <summary>
+    /// Picks a primary position, or clears it when the already-selected option is tapped
+    /// again - the segmented control has no separate "none" option to fall back to.
+    /// </summary>
+    private async Task TogglePrimary(Position position)
     {
-        var primary = ParsePosition(e.Value?.ToString()) ?? Position.Unspecified;
+        var primary = PrimaryPosition == position ? Position.Unspecified : position;
 
         PrimaryPosition = primary;
         await PrimaryPositionChanged.InvokeAsync(primary);
 
-        // The secondary dropdown never offers the current primary, but an already-chosen
+        // The secondary row never offers the current primary, but an already-chosen
         // secondary can collide with a newly picked primary. Drop it instead of leaving the
         // form in a combination the model would reject.
         if (SecondaryPosition.HasValue && SecondaryPosition.Value == primary)
@@ -61,27 +73,14 @@
         }
     }
 
-    private async Task OnSecondaryChanged(ChangeEventArgs e)
+    /// <summary>
+    /// Picks a secondary position, or clears it when the selected option is tapped again.
+    /// </summary>
+    private async Task ToggleSecondary(Position position)
     {
-        var secondary = ParsePosition(e.Value?.ToString());
+        var secondary = SecondaryPosition == position ? null : (Position?)position;
 
         SecondaryPosition = secondary;
         await SecondaryPositionChanged.InvokeAsync(secondary);
-    }
-
-    /// <summary>
-    /// Parses a dropdown value into a position, treating both an empty value and
-    /// Unspecified as "nothing selected".
-    /// </summary>
-    private static Position? ParsePosition(string? value)
-    {
-        if (string.IsNullOrEmpty(value))
-        {
-            return null;
-        }
-
-        return Enum.TryParse<Position>(value, out var position) && position != Position.Unspecified
-            ? position
-            : null;
     }
 }

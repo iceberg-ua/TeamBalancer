@@ -5,7 +5,7 @@
     right: 0;
     bottom: 0;
     z-index: 9998;
-    background: rgba(0, 0, 0, 0.01);
+    background: transparent;
     cursor: default;
 }
 
@@ -21,10 +21,10 @@
     padding: var(--player-item-padding);
     font-size: 0.75rem;
     font-weight: 600;
-    color: #666;
+    color: var(--color-text-muted);
     text-transform: uppercase;
-    border-bottom: 2px solid #dee2e6;
-    background-color: white;
+    border-bottom: 2px solid var(--color-divider);
+    background-color: var(--color-bg);
     position: sticky;
     top: 0;
     z-index: 10;

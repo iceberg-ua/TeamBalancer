@@ -28,75 +28,78 @@
         }
         else
         {
-            <div class="tabs-container">
-                <div class="tabs-header">
-                    @{ var tabIndex = 0; }
-                    @foreach (var team in GeneratedTeams)
+            @* Teams can be regenerated underneath us, so never trust the stored index blindly. *@
+            var activeIndex = Math.Clamp(_activeTabIndex, 0, GeneratedTeams.Count - 1);
+            var activeTeam = GeneratedTeams[activeIndex];
+
+            <div class="seg team-tabs" role="tablist">
+                @for (var i = 0; i < GeneratedTeams.Count; i++)
+                {
+                    var index = i;
+                    <button type="button"
+                            role="tab"
+                            aria-selected="@(index == activeIndex)"
+                            class="seg-opt @TeamColorClass(index) @(index == activeIndex ? "is-selected" : "")"
+                            @onclick="() => _activeTabIndex = index">
+                        @GeneratedTeams[index].Name
+                    </button>
+                }
+            </div>
+
+            @if (GeneratedTeams.Count == 2)
+            {
+                <div class="balance-card">
+                    <div class="card-kicker">Balance comparison</div>
+
+                    @foreach (var metric in GetBalanceMetrics(GeneratedTeams[0], GeneratedTeams[1]))
                     {
-                        var currentTabIndex = tabIndex;
-                        var teamColorClass = tabIndex % 2 == 0 ? "team-red" : "team-green";
-                        <button class="tab-button @(currentTabIndex == _activeTabIndex ? "active" : "") @teamColorClass"
-                                @onclick="() => _activeTabIndex = currentTabIndex">
-                            @team.Name
-                        </button>
-                        tabIndex++;
-                    }
-                </div>
-
-                <div class="tab-content">
-                    @{ var contentIndex = 0; }
-                    @foreach (var team in GeneratedTeams)
-                    {
-                        var currentContentIndex = contentIndex;
-                        var teamColorClass = contentIndex % 2 == 0 ? "team-red" : "team-green";
-                        <div class="tab-pane @(currentContentIndex == _activeTabIndex ? "active" : "")">
-                            <div class="team-section card">
-                                <div class="team-header @teamColorClass">
-                                    <h2>@team.Name</h2>
-                                    <div class="team-summary">
-                                        <span class="player-count">@team.PlayerCount players</span>
-                                        <span class="overall-skill">Overall: @team.OverallTeamSkill.ToString("F2")</span>
-                                    </div>
+                        <div class="balance-row">
+                            <span class="balance-label">@metric.Label</span>
+                            <div class="balance-bars">
+                                <div class="balance-track">
+                                    <div class="balance-fill team-a"
+                                         style="width:@Percent(metric.LeftValue)"
+                                         title="@GeneratedTeams[0].Name @metric.Label: @metric.LeftValue.ToString("F2")"></div>
                                 </div>
-
-                                <div class="team-stats-grid">
-                                    <div class="team-stat">
-                                        <span class="stat-label">Speed</span>
-                                        <span class="stat-value">@team.AverageSpeed.ToString("F2")</span>
-                                    </div>
-                                    <div class="team-stat">
-                                        <span class="stat-label">Technical</span>
-                                        <span class="stat-value">@team.AverageTechnicalSkills.ToString("F2")</span>
-                                    </div>
-                                    <div class="team-stat">
-                                        <span class="stat-label">Stamina</span>
-                                        <span class="stat-value">@team.AverageStamina.ToString("F2")</span>
-                                    </div>
-                                </div>
-
-                                <div class="team-positions">
-                                    @foreach (var entry in GetPositionSummary(team))
-                                    {
-                                        <span class="position-chip @entry.CssClass @(entry.Count == 0 ? "is-empty" : "")"
-                                              title="@entry.Title">
-                                            <span class="chip-count">@entry.Count</span>
-                                            <span class="chip-label">@entry.Label</span>
-                                        </span>
-                                    }
-                                </div>
-
-                                <div class="team-players">
-                                    @foreach (var player in team.Players.OrderByDescending(p => p.OverallSkillLevel))
-                                    {
-                                        <PlayerItem Player="@player" IsSelected="false" ShowCheckbox="false" />
-                                    }
+                                <div class="balance-track">
+                                    <div class="balance-fill team-b"
+                                         style="width:@Percent(metric.RightValue)"
+                                         title="@GeneratedTeams[1].Name @metric.Label: @metric.RightValue.ToString("F2")"></div>
                                 </div>
                             </div>
                         </div>
-                        contentIndex++;
+                    }
+
+                    <div class="balance-legend">
+                        <span class="legend-tag team-a">@GeneratedTeams[0].Name</span>
+                        <span class="legend-tag team-b">@GeneratedTeams[1].Name</span>
+                    </div>
+                </div>
+            }
+
+            <div class="position-tiles @TeamColorClass(activeIndex)">
+                @foreach (var entry in GetPositionSummary(activeTeam))
+                {
+                    <div class="position-tile @(entry.Count == 0 ? "is-empty" : "")" title="@entry.Title">
+                        <span class="tile-count">@entry.Count</span>
+                        <span class="tile-label">@entry.Label</span>
+                    </div>
+                }
+            </div>
+
+            @if (activeTeam.Players.Count == 0)
+            {
+                <p class="no-players-hint text-center text-muted">No players on this team.</p>
+            }
+            else
+            {
+                <div class="team-players">
+                    @foreach (var player in activeTeam.Players.OrderByDescending(p => p.OverallSkillLevel))
+                    {
+                        <PlayerItem Player="@player" IsSelected="false" ShowCheckbox="false" />
                     }
                 </div>
-            </div>
+            }
         }
     </div>
 </div>

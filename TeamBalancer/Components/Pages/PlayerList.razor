@@ -9,11 +9,11 @@
 
 <LayoutSection Section="Footer">
     <div class="button-group">
+        <button class="btn btn-secondary btn-icon" @onclick="GoToAddPlayer"><i class="fas fa-plus"></i></button>
         @if (_players.Any() && !_isLoading)
         {
             <button class="btn btn-success" @onclick="CreateTeams" disabled="@NoPlayersSelected">Create</button>
         }
-        <button class="btn btn-primary btn-icon" @onclick="GoToAddPlayer"><i class="fas fa-plus"></i></button>
         <button class="btn btn-secondary" @onclick="Cancel">Home</button>
     </div>
 </LayoutSection>

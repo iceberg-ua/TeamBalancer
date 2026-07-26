@@ -1,46 +1,39 @@
-
 .loading {
     font-size: 1.2rem;
 }
 
 .selection-info {
-    background-color: #e7f3ff;
+    background-color: rgba(127, 176, 105, 0.12);
     border-radius: 8px;
 }
 
 .selection-info p {
     margin: 0;
     font-weight: 600;
-    color: #0056b3;
-}
-
-.algorithm-selection {
+    color: var(--color-accent);
 }
 
 .algorithm-label {
     display: block;
     font-size: 1rem;
     font-weight: 600;
-    color: #333;
+    color: var(--color-text);
     margin-bottom: 1rem;
-}
-
-.algorithm-options {
 }
 
 .algorithm-option {
     display: flex;
     align-items: flex-start;
     padding: 1rem;
-    border: 2px solid #e0e0e0;
+    border: 2px solid var(--color-divider);
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .algorithm-option:hover {
-    border-color: #667eea;
-    background-color: #f8f9ff;
+    border-color: var(--color-accent);
+    background-color: rgba(127, 176, 105, 0.06);
 }
 
 .algorithm-option input[type="radio"] {
@@ -52,12 +45,12 @@
 }
 
 .algorithm-option input[type="radio"]:checked ~ .algorithm-info {
-    color: #667eea;
+    color: var(--color-accent);
 }
 
 .algorithm-option:has(input[type="radio"]:checked) {
-    border-color: #667eea;
-    background-color: #f0f3ff;
+    border-color: var(--color-accent);
+    background-color: rgba(127, 176, 105, 0.1);
 }
 
 .algorithm-info {
@@ -68,7 +61,7 @@
 .algorithm-name {
     font-weight: 600;
     font-size: 1rem;
-    color: #333;
+    color: var(--color-text);
 }
 
 .confirm-overlay {
@@ -77,7 +70,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.55);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -86,18 +79,19 @@
 }
 
 .confirm-dialog {
-    background: white;
+    background: var(--color-surface);
     border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 0 1px var(--color-divider), 0 16px 40px rgba(0, 0, 0, 0.5);
     max-width: 320px;
     width: 100%;
     overflow: hidden;
 }
 
 .confirm-header {
-    background-color: #1b6ec2;
-    color: white;
+    background-color: var(--color-surface);
+    color: var(--color-text);
     padding: 1rem;
+    border-bottom: 1px solid var(--color-divider);
 }
 
 .confirm-header h3 {
@@ -112,24 +106,25 @@
 
 .confirm-body p {
     margin: 0 0 0.5rem 0;
-    color: #333;
+    color: var(--color-text);
 }
 
 .confirm-body .confirm-warning {
     font-size: 0.85rem;
-    color: #666;
+    color: var(--color-text-muted);
 }
 
 .confirm-footer {
     display: flex;
     gap: 0.75rem;
     padding: 1rem 1.25rem;
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid var(--color-divider);
     justify-content: flex-end;
 }
 
 .confirm-footer .btn {
     min-width: auto;
+    height: auto;
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
 }

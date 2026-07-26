@@ -1,22 +1,19 @@
 .player-item {
     position: relative;
-    background-color: #f8f9fa;
-    border: 1px solid #e9ecef;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-divider);
     border-radius: 6px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background-color 0.2s, border-color 0.2s;
     z-index: 1;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     display: flex;
     align-items: center;
     padding: var(--player-item-padding);
 }
 
 .player-item:hover {
-    background-color: #f0fdf4;
-    border-color: #cbd5e0;
+    background-color: rgba(127, 176, 105, 0.08);
+    border-color: var(--color-accent);
     z-index: 10;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .player-item.menu-open {
@@ -43,7 +40,7 @@
 .player-name {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #333;
+    color: var(--color-text);
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -68,58 +65,24 @@
     font-weight: 700;
     letter-spacing: 0.02em;
     line-height: 1.4;
-    color: white;
     white-space: nowrap;
+    background-color: var(--color-neutral-800);
+    color: var(--color-neutral-100);
 }
 
-/* The secondary position is a fallback, so it reads as an outline of its own colour. */
+/* The secondary position is a fallback, so it reads as an accent outline instead of a solid fill. */
 .position-badge.is-secondary {
-    background-color: transparent !important;
-    border: 1px solid currentColor;
+    background-color: transparent;
+    border: 1px solid var(--color-accent);
+    color: var(--color-accent);
     font-weight: 600;
-}
-
-.position-badge.pos-gk {
-    background-color: #f0a500;
-    color: white;
-}
-
-.position-badge.pos-def {
-    background-color: #1b6ec2;
-    color: white;
-}
-
-.position-badge.pos-mid {
-    background-color: #28a745;
-    color: white;
-}
-
-.position-badge.pos-fwd {
-    background-color: #dc3545;
-    color: white;
 }
 
 .position-badge.pos-unset {
-    background-color: #eceff1;
-    color: #78858d;
-    border: 1px dashed #b7c0c6;
+    background-color: transparent;
+    color: var(--color-text-muted);
+    border: 1px dashed var(--color-divider);
     font-weight: 600;
-}
-
-.position-badge.is-secondary.pos-gk {
-    color: #b87c00;
-}
-
-.position-badge.is-secondary.pos-def {
-    color: #1b6ec2;
-}
-
-.position-badge.is-secondary.pos-mid {
-    color: #1e7e34;
-}
-
-.position-badge.is-secondary.pos-fwd {
-    color: #c82333;
 }
 
 .player-skills {
@@ -159,8 +122,7 @@
 }
 
 .actions-menu-button:hover {
-    background-color: rgba(108, 117, 125, 0.1);
-    transform: scale(1.1);
+    background-color: rgba(233, 233, 237, 0.1);
 }
 
 .actions-menu-button:active {
@@ -168,7 +130,7 @@
 }
 
 .actions-menu-button i {
-    color: #6c757d;
+    color: var(--color-text-muted);
     font-size: 0.85rem;
 }
 
@@ -179,7 +141,7 @@
     right: 0;
     bottom: 0;
     z-index: 9999;
-    background: rgba(0, 0, 0, 0.01);
+    background: transparent;
     cursor: default;
 }
 
@@ -187,10 +149,10 @@
     position: absolute;
     right: 0;
     top: calc(100% + 0.25rem);
-    background: white;
-    border: 1px solid #dee2e6;
+    background: var(--color-surface);
+    border: 1px solid var(--color-divider);
     border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
     min-width: 160px;
     z-index: 10000;
     overflow: hidden;
@@ -199,7 +161,7 @@
 .menu-item {
     width: 100%;
     border: none;
-    background: white;
+    background: var(--color-surface);
     padding: 0.5rem 0.75rem;
     display: flex;
     align-items: center;
@@ -212,7 +174,7 @@
 }
 
 .menu-item:hover {
-    background-color: #f8f9fa;
+    background-color: rgba(233, 233, 237, 0.06);
 }
 
 .menu-item i {
@@ -221,19 +183,19 @@
 }
 
 .edit-item {
-    color: #007bff;
+    color: var(--color-accent);
 }
 
 .edit-item:hover {
-    background-color: #e7f3ff;
+    background-color: rgba(127, 176, 105, 0.1);
 }
 
 .delete-item {
-    color: #dc3545;
+    color: #d16b72;
 }
 
 .delete-item:hover {
-    background-color: #ffe5e8;
+    background-color: rgba(161, 58, 66, 0.12);
 }
 
 @media (min-width: 768px) {

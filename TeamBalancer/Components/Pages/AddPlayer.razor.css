@@ -17,8 +17,8 @@
 .page-footer-addplayer {
     flex-shrink: 0;
     padding: 1rem 0;
-    background-color: #f8f9fa;
-    border-top: 1px solid #e0e0e0;
+    background-color: var(--color-bg);
+    border-top: 1px solid var(--color-divider);
     margin: 0 -1rem -1rem -1rem;
     padding: 1rem;
 }
@@ -35,18 +35,21 @@
 .form-group label {
     font-weight: 600;
     font-size: 1rem;
+    color: var(--color-text);
 }
 
 .form-control {
     padding: 0.75rem;
     font-size: 1rem;
-    border: 2px solid #ccc;
+    border: 2px solid var(--color-divider);
     border-radius: 4px;
+    background-color: var(--color-surface);
+    color: var(--color-text);
 }
 
 .form-control:focus {
     outline: none;
-    border-color: #1b6ec2;
+    border-color: var(--color-accent);
     box-shadow: none;
 }
 
@@ -63,19 +66,19 @@
 }
 
 .alert-danger {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+    background-color: rgba(161, 58, 66, 0.18);
+    color: #e5a7ab;
+    border: 1px solid rgba(161, 58, 66, 0.4);
 }
 
 .invalid-feedback {
-    color: #e50000;
+    color: #d16b72;
     font-size: 0.875rem;
     margin-top: 0.25rem;
 }
 
 .is-invalid {
-    border-color: #dc3545 !important;
+    border-color: #a13a42 !important;
     border-width: 2px;
 }
 
@@ -83,7 +86,7 @@
    The position message sits after a component, so it sets its own visibility. */
 .position-feedback {
     display: block;
-    color: #e50000;
+    color: #d16b72;
     font-size: 0.875rem;
     margin-top: -0.5rem;
 }

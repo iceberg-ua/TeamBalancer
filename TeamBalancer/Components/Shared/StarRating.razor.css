@@ -10,6 +10,7 @@
     font-size: 1.1rem;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     text-align: center;
+    color: var(--color-text);
 }
 
 .rating-icons {
@@ -25,15 +26,16 @@
 }
 
 .fa-regular.fa-star {
-    color: #ddd;
+    color: var(--color-divider);
 }
 
 .fa-solid.fa-star {
-    color: #ffc107;
+    color: var(--color-accent);
 }
 
 .rating-icon:hover {
-    color: #ffb300 !important;
+    color: var(--color-accent) !important;
+    opacity: 0.75;
 }
 
 @media (min-width: 768px) {

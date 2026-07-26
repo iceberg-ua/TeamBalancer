@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using TeamBalancer.Core.Models;
 using TeamBalancer.Core.Services.Balancing;
@@ -48,20 +49,53 @@ public partial class Teams : IDisposable
         // Use the balancing service with shuffle=true for variety while maintaining balance
         var newTeams = BalancingService.BalanceTeams(allPlayers, numberOfTeams, shuffle: true);
 
-        // Rename teams to match current naming (Team 1, Team 2, etc.)
-        for (int i = 0; i < newTeams.Count; i++)
-        {
-            newTeams[i].Name = $"Team {i + 1}";
-        }
+        // The balancing strategies already name teams "Team A", "Team B", ... - leave those
+        // alone so a reshuffle doesn't rename the tabs out from under the user.
 
         // Update the state service with new teams
         TeamState.SetTeams(newTeams);
     }
 
     /// <summary>
+    /// The highest value a single skill rating can take. Comparison bars are drawn as a
+    /// fraction of it, so a full bar means a team averages the maximum on that skill.
+    /// </summary>
+    private const double MaxSkillRating = 3;
+
+    /// <summary>
     /// A single position count shown in a team's position summary.
     /// </summary>
     private sealed record PositionSummaryEntry(string Label, string CssClass, int Count, string Title);
+
+    /// <summary>
+    /// One skill compared across the two teams, rendered as a mirrored pair of bars.
+    /// </summary>
+    private sealed record BalanceMetric(string Label, double LeftValue, double RightValue);
+
+    /// <summary>
+    /// Gets the three skills the comparison card puts head to head.
+    /// </summary>
+    private static IEnumerable<BalanceMetric> GetBalanceMetrics(Team left, Team right)
+    {
+        yield return new BalanceMetric("Speed", left.AverageSpeed, right.AverageSpeed);
+        yield return new BalanceMetric("Technical", left.AverageTechnicalSkills, right.AverageTechnicalSkills);
+        yield return new BalanceMetric("Stamina", left.AverageStamina, right.AverageStamina);
+    }
+
+    /// <summary>
+    /// Renders an average rating as a CSS width. The invariant culture keeps the decimal
+    /// separator a dot, which a comma locale would otherwise turn into an invalid length.
+    /// </summary>
+    private static string Percent(double value) =>
+        string.Create(
+            CultureInfo.InvariantCulture,
+            $"{Math.Clamp(value / MaxSkillRating * 100, 0, 100):F1}%");
+
+    /// <summary>
+    /// Gets the modifier class that tints a team's chrome. Teams alternate between the
+    /// accent and its sibling shade rather than taking a hue of their own.
+    /// </summary>
+    private static string TeamColorClass(int index) => index % 2 == 0 ? "team-a" : "team-b";
 
     /// <summary>
     /// Counts a team's players by primary position. Every real position is returned even when
