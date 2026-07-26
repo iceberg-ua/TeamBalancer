@@ -4,7 +4,12 @@
 @using TeamBalancer.Components.Shared
 
 <LayoutSection Section="Header">
-    <h1 class="header-title-centered">@PageTitle</h1>
+    <div class="header-with-back">
+        <button class="back-button" @onclick="Cancel" title="Back">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+        </button>
+        <h1 class="header-title-left">@PageTitle</h1>
+    </div>
 </LayoutSection>
 
 <div class="page-container-addplayer">

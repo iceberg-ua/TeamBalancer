@@ -3,7 +3,12 @@
 @using TeamBalancer.Extensions
 
 <LayoutSection Section="Header">
-    <h1 class="header-title-centered">Teams</h1>
+    <div class="header-with-back">
+        <button class="back-button" @onclick="GoHome" title="Back">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+        </button>
+        <h1 class="header-title-left">Teams</h1>
+    </div>
 </LayoutSection>
 
 @if (GeneratedTeams != null && GeneratedTeams.Any())
@@ -71,8 +76,17 @@
                     }
 
                     <div class="balance-legend">
-                        <span class="legend-tag team-a">@GeneratedTeams[0].Name</span>
-                        <span class="legend-tag team-b">@GeneratedTeams[1].Name</span>
+                        @for (var i = 0; i < 2; i++)
+                        {
+                            var team = GeneratedTeams[i];
+                            <div class="legend-slot">
+                                <span class="legend-tag @TeamColorClass(i)"
+                                      title="@team.Name overall rating: @Overall(team).ToString("F2")">
+                                    <span class="legend-name">@team.Name</span>
+                                    <span class="legend-rating">@Overall(team).ToString("F1")</span>
+                                </span>
+                            </div>
+                        }
                     </div>
                 </div>
             }
@@ -93,7 +107,7 @@
             }
             else
             {
-                <div class="team-players">
+                <div class="team-players @TeamColorClass(activeIndex)">
                     @foreach (var player in activeTeam.Players.OrderByDescending(p => p.OverallSkillLevel))
                     {
                         <PlayerItem Player="@player" IsSelected="false" ShowCheckbox="false" />

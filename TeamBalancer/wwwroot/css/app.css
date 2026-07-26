@@ -18,6 +18,14 @@
     --color-accent-tonal-bg-active: #67934f;
     --color-accent-tonal-text: #eef8ea;
     --color-accent-2: #8ab975;
+
+    /* Team identity colours. Nocturne is a mono palette - its --color-accent-2 is a
+       machine-derived near-clone of --color-accent, so teams tinted from the two would
+       read as the same colour. Team B takes a hue of its own so the sides stay
+       tellable apart in the tabs, bars, counts and rating stars. */
+    --color-team-a: #7fb069;
+    --color-team-b: #d9a441;
+
     --color-neutral-800: #3f424d;
     --color-neutral-100: #f3f5fe;
     --color-divider: rgba(233, 233, 237, 0.16);
@@ -584,6 +592,47 @@ button.menu-button:active,
 
 @media (min-width: 768px) {
     .header-title-centered {
+        font-size: 2rem;
+    }
+}
+
+/* Shared header pattern for non-Home pages: back arrow + left-aligned title */
+.header-with-back {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.back-button {
+    background: transparent;
+    border: none;
+    padding: 6px;
+    margin: -6px;
+    display: flex;
+    cursor: pointer;
+    color: var(--color-text);
+    border-radius: 8px;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.back-button:hover {
+    background: rgba(233, 233, 237, 0.08);
+}
+
+.header-title-left {
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+    font-weight: 900;
+    font-size: 1.5rem;
+    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+    .header-title-left {
         font-size: 2rem;
     }
 }

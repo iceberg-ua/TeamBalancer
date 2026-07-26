@@ -13,12 +13,11 @@
                    @onchange="OnSelectAllChanged" />
             <span class="header-name">Player (@SelectedPlayerIds.Count/@Players.Count)</span>
         </label>
-        <div class="header-actions-spacer"></div>
+        @* Column order mirrors PlayerItem: rating sits left of the kebab, not right of it. *@
         <div class="header-skills">
-            <span>Speed</span>
-            <span>Tech</span>
-            <span>Stamina</span>
+            <span>Rating</span>
         </div>
+        <div class="header-actions-spacer"></div>
     </div>
 
     <div class="player-list-scrollable">

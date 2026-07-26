@@ -30,8 +30,10 @@
     color: var(--color-divider);
 }
 
+/* Filled stars follow whatever context they sit in - the Teams screen sets
+   --rating-color to the active team's colour so a row reads as that team's. */
 .skill-icon.fa-solid {
-    color: var(--color-accent);
+    color: var(--rating-color, var(--color-accent));
 }
 
 @media (min-width: 768px) {

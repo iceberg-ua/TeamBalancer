@@ -83,6 +83,13 @@ public partial class Teams : IDisposable
     }
 
     /// <summary>
+    /// Gets a team's overall rating: the mean of its three skill averages. This is the
+    /// figure the comparison legend puts next to each team's name.
+    /// </summary>
+    private static double Overall(Team team) =>
+        (team.AverageSpeed + team.AverageTechnicalSkills + team.AverageStamina) / 3.0;
+
+    /// <summary>
     /// Renders an average rating as a CSS width. The invariant culture keeps the decimal
     /// separator a dot, which a comma locale would otherwise turn into an invalid length.
     /// </summary>

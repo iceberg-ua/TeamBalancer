@@ -9,10 +9,12 @@
     flex-shrink: 0;
 }
 
-/* Team B answers Team A in the sibling accent shade, so the two stay tellable
-   apart without introducing a second hue. */
+.team-tabs .seg-opt.team-a.is-selected {
+    background-color: var(--color-team-a);
+}
+
 .team-tabs .seg-opt.team-b.is-selected {
-    background-color: var(--color-accent-2);
+    background-color: var(--color-team-b);
 }
 
 /* ---- Balance comparison ---- */
@@ -66,38 +68,51 @@
 /* The left team's bar grows inwards from the outer edge so the pair reads as one
    scale meeting in the middle - the longer half is the stronger team. */
 .balance-fill.team-a {
-    background: var(--color-accent);
+    background: var(--color-team-a);
     margin-left: auto;
 }
 
 .balance-fill.team-b {
-    background: var(--color-accent-2);
+    background: var(--color-team-b);
 }
 
 .balance-legend {
     display: flex;
     gap: 0.375rem;
-    margin-top: 0.25rem;
+    margin-top: 0.375rem;
+}
+
+/* Each half centres its own pill, as the prototype does - the tags size to their
+   content instead of stretching the full width of the card. */
+.legend-slot {
+    flex: 1;
+    display: flex;
+    justify-content: center;
 }
 
 .legend-tag {
-    flex: 1;
     display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    align-items: baseline;
+    gap: 0.375rem;
     font-size: 0.7rem;
     font-weight: 600;
-    padding: 0.15rem 0.6rem;
+    letter-spacing: 0.02em;
+    padding: 0.2rem 0.625rem;
     border-radius: 6px;
     color: var(--color-bg);
 }
 
 .legend-tag.team-a {
-    background: var(--color-accent);
+    background: var(--color-team-a);
 }
 
 .legend-tag.team-b {
-    background: var(--color-accent-2);
+    background: var(--color-team-b);
+}
+
+.legend-rating {
+    font-size: 0.85rem;
+    font-weight: 700;
 }
 
 /* ---- Position counts ---- */
@@ -122,11 +137,11 @@
 .tile-count {
     font-size: 1.05rem;
     font-weight: 700;
-    color: var(--color-accent);
+    color: var(--color-team-a);
 }
 
 .position-tiles.team-b .tile-count {
-    color: var(--color-accent-2);
+    color: var(--color-team-b);
 }
 
 /* A zero count keeps its tile so a gap in the line-up stays visible, but drops the
@@ -148,6 +163,16 @@
     flex-direction: column;
     gap: 0.35rem;
     padding-bottom: 0.5rem;
+}
+
+/* Rating stars pick this up through SkillRatingDisplay, so a pane's rows read as
+   the team whose tab is open. Custom properties inherit through CSS isolation. */
+.team-players.team-a {
+    --rating-color: var(--color-team-a);
+}
+
+.team-players.team-b {
+    --rating-color: var(--color-team-b);
 }
 
 .no-players-hint {
