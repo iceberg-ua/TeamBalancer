@@ -1,30 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Team Balancer Splash Screen">
-  <!-- Grass -->
-  <defs>
-    <linearGradient id="grass" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#168c37"/>
-      <stop offset="100%" stop-color="#0d6226"/>
-    </linearGradient>
-
-    <!-- Clip so arcs stay OUTSIDE the penalty areas -->
-    <clipPath id="outsideLeftBox"><rect x="22" y="0" width="86" height="108"/></clipPath>
-    <clipPath id="outsideRightBox"><rect x="0"  y="0" width="86" height="108"/></clipPath>
-  </defs>
-
   <!-- Background -->
-  <rect width="108" height="108" fill="url(#grass)"/>
+  <rect width="108" height="108" fill="#161826"/>
 
-  <!-- Application Name split into two lines -->
-  <text x="50%" y="50%"
-        font-family="Arial, sans-serif"
-        font-size="22"
-        font-weight="bold"
-        fill="#c0e1f5"
-        text-anchor="middle">
-    <tspan x="50%" dy="-0.35em">Team</tspan>
-    <tspan x="50%" dy="1.1em">Balancer</tspan>
-  </text>
+  <!-- Centre circle -->
+  <circle cx="54" cy="46" r="20" fill="none" stroke="#7fb069" stroke-width="1.2" opacity="0.55"/>
+  <circle cx="54" cy="46" r="1.4" fill="#7fb069" opacity="0.7"/>
 
+  <!-- Halfway line -->
+  <line x1="54" y1="14" x2="54" y2="78" stroke="#7fb069" stroke-width="1" opacity="0.22"/>
+
+  <!-- Wordmark -->
+  <text x="54" y="78"
+        font-family="Inter, system-ui, sans-serif"
+        font-size="8.5"
+        font-weight="500"
+        text-anchor="middle"
+        letter-spacing="1.6"><tspan fill="#e9e9ed">TEAM</tspan><tspan fill="#7fb069">BALANCER</tspan></text>
 </svg>

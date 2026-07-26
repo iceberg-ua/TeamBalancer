@@ -41,13 +41,24 @@
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
         <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
     </PropertyGroup>
+	
+	<!-- Android release signing. The passwords are read from the TB_KEY_PASS and TB_STORE_PASS
+	     environment variables so they stay out of source control; set both locally before
+	     running a Release build. The keystore file itself is untracked by design. -->
+	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android' AND '$(Configuration)' == 'Release'">
+		<AndroidKeyStore>True</AndroidKeyStore>
+		<AndroidSigningKeyStore>..\team-balancer.keystore</AndroidSigningKeyStore>
+		<AndroidSigningKeyAlias>team-balancer</AndroidSigningKeyAlias>
+		<AndroidSigningKeyPass>$(TB_KEY_PASS)</AndroidSigningKeyPass>
+		<AndroidSigningStorePass>$(TB_STORE_PASS)</AndroidSigningStorePass>
+	</PropertyGroup>
 
     <ItemGroup>
         <!-- App Icon -->
         <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#2DA35B" />
 
         <!-- Splash Screen -->
-        <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#2DA35B" BaseSize="456,456" />
+        <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#161826" BaseSize="456,456" />
 
         <!-- Images -->
         <MauiImage Include="Resources\Images\*" />
