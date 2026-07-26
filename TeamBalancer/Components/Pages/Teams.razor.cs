@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using TeamBalancer.Core.Models;
 using TeamBalancer.Core.Services.Balancing;
+using TeamBalancer.Extensions;
 using TeamBalancer.Services;
 
 namespace TeamBalancer.Components.Pages;
@@ -55,6 +56,40 @@ public partial class Teams : IDisposable
 
         // Update the state service with new teams
         TeamState.SetTeams(newTeams);
+    }
+
+    /// <summary>
+    /// A single position count shown in a team's position summary.
+    /// </summary>
+    private sealed record PositionSummaryEntry(string Label, string CssClass, int Count, string Title);
+
+    /// <summary>
+    /// Counts a team's players by primary position. Every real position is returned even when
+    /// its count is zero - a missing goalkeeper is exactly what this summary should reveal.
+    /// Players without a position land in a separate "Unset" entry, which is only shown when
+    /// it is non-empty.
+    /// </summary>
+    private static IEnumerable<PositionSummaryEntry> GetPositionSummary(Team team)
+    {
+        foreach (var position in PositionExtensions.SelectablePositions)
+        {
+            var count = team.Players.Count(p => p.PrimaryPosition == position);
+            yield return new PositionSummaryEntry(
+                position.ToAbbreviation(),
+                position.ToBadgeClass(),
+                count,
+                $"{count} × {position.ToDisplayName()}");
+        }
+
+        var unsetCount = team.Players.Count(p => p.PrimaryPosition == Position.Unspecified);
+        if (unsetCount > 0)
+        {
+            yield return new PositionSummaryEntry(
+                "Unset",
+                "pos-unset",
+                unsetCount,
+                $"{unsetCount} player(s) with no position set");
+        }
     }
 
     private void GoToCreateTeams()

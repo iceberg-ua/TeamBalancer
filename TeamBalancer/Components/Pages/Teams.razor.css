@@ -85,6 +85,67 @@
     font-weight: 700;
 }
 
+.team-positions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.75rem;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.position-chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    padding: 0.15rem 0.45rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-size: 0.7rem;
+    line-height: 1.5;
+    color: white;
+}
+
+.position-chip .chip-count {
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.position-chip .chip-label {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+/* A zero count still earns a slot so gaps in the line-up stay visible. */
+.position-chip.is-empty {
+    background-color: transparent !important;
+    border-color: #ced4da;
+    color: #adb5bd;
+}
+
+.position-chip.pos-gk {
+    background-color: #f0a500;
+}
+
+.position-chip.pos-def {
+    background-color: #1b6ec2;
+}
+
+.position-chip.pos-mid {
+    background-color: #28a745;
+}
+
+.position-chip.pos-fwd {
+    background-color: #dc3545;
+}
+
+.position-chip.pos-unset {
+    background-color: #eceff1;
+    color: #78858d;
+    border: 1px dashed #b7c0c6;
+}
+
 .tabs-container {
     display: flex;
     flex-direction: column;

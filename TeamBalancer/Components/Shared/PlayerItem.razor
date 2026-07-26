@@ -1,4 +1,5 @@
 @using TeamBalancer.Core.Models
+@using TeamBalancer.Extensions
 
 <div class="player-item @(IsMenuOpen ? "menu-open" : "")" @onclick="CloseMenu">
     <label class="player-checkbox">
@@ -11,6 +12,31 @@
         }
         <div class="player-name">@Player.Name</div>
     </label>
+
+    <div class="player-positions">
+        @if (Player.PrimaryPosition == Position.Unspecified)
+        {
+            <span class="position-badge pos-unset" title="No position set for this player">
+                <i class="fas fa-circle-question"></i>
+                <span class="badge-text">Set position</span>
+            </span>
+        }
+        else
+        {
+            <span class="position-badge @Player.PrimaryPosition.ToBadgeClass()"
+                  title="Primary position: @Player.PrimaryPosition.ToDisplayName()">
+                @Player.PrimaryPosition.ToAbbreviation()
+            </span>
+
+            @if (Player.SecondaryPosition.HasValue)
+            {
+                <span class="position-badge is-secondary @Player.SecondaryPosition.Value.ToBadgeClass()"
+                      title="Secondary position: @Player.SecondaryPosition.Value.ToDisplayName()">
+                    @Player.SecondaryPosition.Value.ToAbbreviation()
+                </span>
+            }
+        }
+    </div>
 
     <div class="player-actions">
         @if (ShowEditButton || ShowDeleteButton)

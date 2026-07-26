@@ -19,7 +19,12 @@ public class CsvParser : ICsvParser
     }
     /// <summary>
     /// Parses CSV content into a collection of Player objects.
-    /// Expected format: Name,Speed,TechnicalSkills,Stamina
+    /// Expected export format: Name,Speed,TechnicalSkills,Stamina,PrimaryPosition,SecondaryPosition
+    /// Expected storage format: Name,Speed,TechnicalSkills,Stamina,PrimaryPosition,SecondaryPosition,IsSelected
+    /// Only the first four columns are required; CSVs written before position support
+    /// (Name,Speed,TechnicalSkills,Stamina[,IsSelected]) are still parsed, with positions
+    /// defaulting to Unspecified/null. Position values are parsed leniently - an unrecognised
+    /// value never causes the row to be skipped.
     /// </summary>
     public IEnumerable<Player> ParsePlayers(string csvContent)
     {
@@ -47,7 +52,7 @@ public class CsvParser : ICsvParser
             var parts = line.Split(',');
             if (parts.Length < 4)
             {
-                _logger.LogWarning("Skipping line {LineNumber}: Expected 4 columns, found {ColumnCount}. Content: {LineContent}",
+                _logger.LogWarning("Skipping line {LineNumber}: Expected at least 4 columns, found {ColumnCount}. Content: {LineContent}",
                     lineNumber, parts.Length, line);
                 skippedRows++;
                 continue;
@@ -63,10 +68,42 @@ public class CsvParser : ICsvParser
                     Stamina = int.Parse(parts[3].Trim())
                 };
 
-                // Parse optional IsSelected column (5th column, used in storage CSV)
-                if (parts.Length >= 5 && bool.TryParse(parts[4].Trim(), out var isSelected))
+                // Parse optional PrimaryPosition column (5th column).
+                // Missing, empty or unrecognised values fall back to Unspecified.
+                if (parts.Length >= 5 && TryParsePosition(parts[4], out var primaryPosition))
+                {
+                    player.PrimaryPosition = primaryPosition;
+                }
+
+                // Parse optional SecondaryPosition column (6th column). An empty value means
+                // "no secondary position"; an unrecognised one is reported but not fatal.
+                if (parts.Length >= 6)
+                {
+                    var secondaryValue = parts[5].Trim();
+                    if (secondaryValue.Length > 0)
+                    {
+                        if (TryParsePosition(secondaryValue, out var secondaryPosition))
+                        {
+                            player.SecondaryPosition = secondaryPosition;
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Line {LineNumber}: Unrecognised secondary position '{Value}' for player '{PlayerName}'. Leaving it unset.",
+                                lineNumber, secondaryValue, player.Name);
+                        }
+                    }
+                }
+
+                // Parse optional IsSelected column (7th column, used in storage CSV)
+                if (parts.Length >= 7 && bool.TryParse(parts[6].Trim(), out var isSelected))
                 {
                     player.IsSelected = isSelected;
+                }
+                else if (parts.Length == 5 && bool.TryParse(parts[4].Trim(), out var legacyIsSelected))
+                {
+                    // Storage CSV written before position support kept IsSelected in the 5th
+                    // column. A boolean there is unambiguous - no position name parses as one.
+                    player.IsSelected = legacyIsSelected;
                 }
 
                 // Validate skill levels
@@ -116,7 +153,10 @@ public class CsvParser : ICsvParser
 
     /// <summary>
     /// Serializes a collection of Player objects into CSV format.
-    /// Applies defense-in-depth by sanitizing values to prevent CSV injection.
+    /// Export format: Name,Speed,TechnicalSkills,Stamina,PrimaryPosition,SecondaryPosition
+    /// Storage format: Name,Speed,TechnicalSkills,Stamina,PrimaryPosition,SecondaryPosition,IsSelected
+    /// Positions are written as their enum names; a null secondary position is written as an
+    /// empty value. Applies defense-in-depth by sanitizing values to prevent CSV injection.
     /// </summary>
     public string SerializePlayers(IEnumerable<Player> players, bool includeSelection = false)
     {
@@ -124,20 +164,41 @@ public class CsvParser : ICsvParser
 
         // Write header
         sb.AppendLine(includeSelection
-            ? "Name,Speed,TechnicalSkills,Stamina,IsSelected"
-            : "Name,Speed,TechnicalSkills,Stamina");
+            ? "Name,Speed,TechnicalSkills,Stamina,PrimaryPosition,SecondaryPosition,IsSelected"
+            : "Name,Speed,TechnicalSkills,Stamina,PrimaryPosition,SecondaryPosition");
 
         // Write player data
         foreach (var player in players)
         {
-            // Sanitize the name to prevent CSV injection (defense-in-depth)
+            // Sanitize the name to prevent CSV injection (defense-in-depth).
+            // Positions come from a fixed enum, so they need no sanitization.
             string sanitizedName = SanitizeCsvValue(player.Name);
+            string secondaryPosition = player.SecondaryPosition?.ToString() ?? string.Empty;
             sb.AppendLine(includeSelection
-                ? $"{sanitizedName},{player.Speed},{player.TechnicalSkills},{player.Stamina},{player.IsSelected}"
-                : $"{sanitizedName},{player.Speed},{player.TechnicalSkills},{player.Stamina}");
+                ? $"{sanitizedName},{player.Speed},{player.TechnicalSkills},{player.Stamina},{player.PrimaryPosition},{secondaryPosition},{player.IsSelected}"
+                : $"{sanitizedName},{player.Speed},{player.TechnicalSkills},{player.Stamina},{player.PrimaryPosition},{secondaryPosition}");
         }
 
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Attempts to parse a CSV cell into a <see cref="Position"/>, case-insensitively.
+    /// </summary>
+    /// <param name="value">The raw cell value.</param>
+    /// <param name="position">The parsed position when successful.</param>
+    /// <returns>True if the value maps to a defined position, false otherwise.</returns>
+    private static bool TryParsePosition(string value, out Position position)
+    {
+        position = Position.Unspecified;
+
+        var trimmed = value.Trim();
+        if (trimmed.Length == 0)
+        {
+            return false;
+        }
+
+        return Enum.TryParse(trimmed, ignoreCase: true, out position) && Enum.IsDefined(position);
     }
 
     /// <summary>

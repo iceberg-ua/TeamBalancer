@@ -49,6 +49,18 @@
                                ValueChanged="@((int v) => _stamina = v)" />
                 </div>
 
+                <PositionSelector PrimaryPosition="@_primaryPosition"
+                                  PrimaryPositionChanged="@OnPrimaryPositionChanged"
+                                  SecondaryPosition="@_secondaryPosition"
+                                  SecondaryPositionChanged="@((Position? p) => _secondaryPosition = p)" />
+
+                @if (_showPositionError)
+                {
+                    <div class="invalid-feedback position-feedback">
+                        @_positionErrorMessage
+                    </div>
+                }
+
                 @if (!string.IsNullOrEmpty(_errorMessage))
                 {
                     <div class="alert alert-danger">

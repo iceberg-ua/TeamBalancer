@@ -1,0 +1,87 @@
+@using TeamBalancer.Core.Models
+@using TeamBalancer.Extensions
+
+<div class="position-selector flex-col">
+    <div class="form-group flex-col">
+        <label for="primaryPosition">Primary Position</label>
+        <select id="primaryPosition"
+                class="form-control @(PrimaryPosition == Position.Unspecified ? "is-unset" : "")"
+                value="@PrimaryPosition"
+                @onchange="OnPrimaryChanged">
+            <option value="@Position.Unspecified">Select a position...</option>
+            @foreach (var position in PositionExtensions.SelectablePositions)
+            {
+                <option value="@position">@position.ToDisplayName()</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group flex-col">
+        <label for="secondaryPosition">Secondary Position (optional)</label>
+        <select id="secondaryPosition"
+                class="form-control"
+                value="@(SecondaryPosition?.ToString() ?? string.Empty)"
+                @onchange="OnSecondaryChanged">
+            <option value="">None</option>
+            @foreach (var position in PositionExtensions.SelectablePositions.Where(p => p != PrimaryPosition))
+            {
+                <option value="@position">@position.ToDisplayName()</option>
+            }
+        </select>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Position PrimaryPosition { get; set; } = Position.Unspecified;
+
+    [Parameter]
+    public EventCallback<Position> PrimaryPositionChanged { get; set; }
+
+    [Parameter]
+    public Position? SecondaryPosition { get; set; }
+
+    [Parameter]
+    public EventCallback<Position?> SecondaryPositionChanged { get; set; }
+
+    private async Task OnPrimaryChanged(ChangeEventArgs e)
+    {
+        var primary = ParsePosition(e.Value?.ToString()) ?? Position.Unspecified;
+
+        PrimaryPosition = primary;
+        await PrimaryPositionChanged.InvokeAsync(primary);
+
+        // The secondary dropdown never offers the current primary, but an already-chosen
+        // secondary can collide with a newly picked primary. Drop it instead of leaving the
+        // form in a combination the model would reject.
+        if (SecondaryPosition.HasValue && SecondaryPosition.Value == primary)
+        {
+            SecondaryPosition = null;
+            await SecondaryPositionChanged.InvokeAsync(null);
+        }
+    }
+
+    private async Task OnSecondaryChanged(ChangeEventArgs e)
+    {
+        var secondary = ParsePosition(e.Value?.ToString());
+
+        SecondaryPosition = secondary;
+        await SecondaryPositionChanged.InvokeAsync(secondary);
+    }
+
+    /// <summary>
+    /// Parses a dropdown value into a position, treating both an empty value and
+    /// Unspecified as "nothing selected".
+    /// </summary>
+    private static Position? ParsePosition(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return null;
+        }
+
+        return Enum.TryParse<Position>(value, out var position) && position != Position.Unspecified
+            ? position
+            : null;
+    }
+}

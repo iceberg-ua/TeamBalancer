@@ -1,5 +1,6 @@
 @page "/teams"
 @using TeamBalancer.Components.Shared
+@using TeamBalancer.Extensions
 
 <LayoutSection Section="Header">
     <h1 class="header-title-centered">Teams</h1>
@@ -71,6 +72,17 @@
                                         <span class="stat-label">Stamina</span>
                                         <span class="stat-value">@team.AverageStamina.ToString("F2")</span>
                                     </div>
+                                </div>
+
+                                <div class="team-positions">
+                                    @foreach (var entry in GetPositionSummary(team))
+                                    {
+                                        <span class="position-chip @entry.CssClass @(entry.Count == 0 ? "is-empty" : "")"
+                                              title="@entry.Title">
+                                            <span class="chip-count">@entry.Count</span>
+                                            <span class="chip-label">@entry.Label</span>
+                                        </span>
+                                    }
                                 </div>
 
                                 <div class="team-players">
