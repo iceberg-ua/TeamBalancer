@@ -5,7 +5,9 @@ namespace TeamBalancer.Core.Services.Balancing;
 /// <summary>
 /// Implements an iterative swap team balancing strategy.
 /// Starts with an initial distribution and iteratively swaps players between teams
-/// to minimize the balance score (variance in team skills).
+/// to minimize the balance score (variance in team skills and outfield positions).
+/// Goalkeeper coverage is held as a hard constraint: the initial distribution deals one
+/// keeper per team, and no swap that would leave more teams without one is accepted.
 /// This approach typically produces better balance than greedy methods.
 /// </summary>
 public class IterativeSwapStrategy : BaseTeamBalancingStrategy
@@ -42,10 +44,9 @@ public class IterativeSwapStrategy : BaseTeamBalancingStrategy
             });
         }
 
-        // Initial distribution using round-robin
-        var playerList = shuffle
-            ? players.OrderBy(_ => _random.Next()).ToList()
-            : players.OrderByDescending(p => p.OverallSkillLevel).ToList();
+        // Initial distribution using round-robin, seeded goalkeepers first so the round-robin
+        // hands each team one before anyone else is placed.
+        var playerList = BuildInitialOrder(players, numberOfTeams, shuffle);
 
         for (int i = 0; i < playerList.Count; i++)
         {
@@ -54,6 +55,9 @@ public class IterativeSwapStrategy : BaseTeamBalancingStrategy
 
         // Iteratively improve balance by swapping players
         double currentScore = CalculateBalanceScore(teams);
+        // Goalkeeper coverage is a hard constraint rather than a scored term, so it is
+        // tracked separately: a swap may improve it or leave it alone, never worsen it.
+        int teamsWithoutGoalkeeper = CountTeamsWithoutGoalkeeper(teams);
         bool improved = true;
         int iterations = 0;
 
@@ -78,13 +82,16 @@ public class IterativeSwapStrategy : BaseTeamBalancingStrategy
                             teams[i].AddPlayer(player2);
                             teams[j].AddPlayer(player1);
 
-                            // Check if this improved balance
+                            // Check if this improved balance without costing goalkeeper cover
                             double newScore = CalculateBalanceScore(teams);
+                            int newTeamsWithoutGoalkeeper = CountTeamsWithoutGoalkeeper(teams);
 
-                            if (newScore < currentScore - ImprovementThreshold)
+                            if (newTeamsWithoutGoalkeeper <= teamsWithoutGoalkeeper &&
+                                newScore < currentScore - ImprovementThreshold)
                             {
                                 // Keep the swap
                                 currentScore = newScore;
+                                teamsWithoutGoalkeeper = newTeamsWithoutGoalkeeper;
                                 improved = true;
                                 break;
                             }
@@ -109,5 +116,34 @@ public class IterativeSwapStrategy : BaseTeamBalancingStrategy
         }
 
         return teams;
+    }
+
+    /// <summary>
+    /// Orders players for the initial round-robin: at most one goalkeeper per team first,
+    /// so every team is dealt one before anyone else, then everyone else. Surplus
+    /// goalkeepers are ordered with the rest and treated as ordinary players from there on.
+    /// Only PrimaryPosition is considered; SecondaryPosition is intentionally unused in this
+    /// phase.
+    /// </summary>
+    private List<Player> BuildInitialOrder(List<Player> players, int numberOfTeams, bool shuffle)
+    {
+        var keepers = Order(players.Where(p => p.PrimaryPosition == Position.Goalkeeper), shuffle)
+            .Take(numberOfTeams)
+            .ToList();
+
+        var seeded = new HashSet<Player>(keepers);
+        var rest = Order(players.Where(p => !seeded.Contains(p)), shuffle);
+
+        return [.. keepers, .. rest];
+    }
+
+    /// <summary>
+    /// Orders a set of players either randomly (for variety) or strongest first.
+    /// </summary>
+    private List<Player> Order(IEnumerable<Player> players, bool shuffle)
+    {
+        return shuffle
+            ? players.OrderBy(_ => _random.Next()).ToList()
+            : players.OrderByDescending(p => p.OverallSkillLevel).ToList();
     }
 }

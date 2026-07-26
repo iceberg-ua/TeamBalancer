@@ -21,6 +21,25 @@ public abstract class BaseTeamBalancingStrategy : ITeamBalancingStrategy
     protected const double PlayerCountWeight = 1.5;
 
     /// <summary>
+    /// Weight factor for outfield position spread in balance score calculation.
+    /// Deliberately lower than <see cref="OverallSkillWeight"/> so skill balance still
+    /// dominates, but high enough that positional coverage breaks near-ties.
+    /// </summary>
+    protected const double PositionImbalanceWeight = 1.0;
+
+    /// <summary>
+    /// The positions scored as a soft preference. Goalkeeper is excluded because it is
+    /// enforced as a hard constraint by the strategies themselves, and Unspecified is
+    /// excluded because those players are treated as fully flexible.
+    /// </summary>
+    protected static readonly Position[] OutfieldPositions =
+    [
+        Position.Defender,
+        Position.Midfielder,
+        Position.Forward
+    ];
+
+    /// <summary>
     /// Balances a list of players into the specified number of teams.
     /// Must be implemented by derived classes.
     /// </summary>
@@ -66,7 +85,47 @@ public abstract class BaseTeamBalancingStrategy : ITeamBalancingStrategy
                speedVariance +
                techVariance +
                staminaVariance +
-               (countVariance * PlayerCountWeight);
+               (countVariance * PlayerCountWeight) +
+               (CalculatePositionImbalance(teams) * PositionImbalanceWeight);
+    }
+
+    /// <summary>
+    /// Calculates how unevenly the outfield positions are spread across teams, as the sum
+    /// of the per-position variance in player counts. Returns 0 when no player has an
+    /// outfield position set, so pools without position data score exactly as before.
+    /// </summary>
+    /// <param name="teams">The teams to evaluate.</param>
+    /// <returns>A position imbalance score where lower is better.</returns>
+    protected double CalculatePositionImbalance(List<Team> teams)
+    {
+        if (teams == null || teams.Count == 0)
+        {
+            return 0;
+        }
+
+        double total = 0;
+
+        foreach (var position in OutfieldPositions)
+        {
+            var counts = teams
+                .Select(t => (double)t.Players.Count(p => p.PrimaryPosition == position))
+                .ToList();
+
+            total += CalculateVariance(counts);
+        }
+
+        return total;
+    }
+
+    /// <summary>
+    /// Counts the teams that have no goalkeeper. Used both to enforce the goalkeeper hard
+    /// constraint during balancing and to report coverage once balancing completes.
+    /// </summary>
+    /// <param name="teams">The teams to evaluate.</param>
+    /// <returns>The number of teams without a goalkeeper.</returns>
+    protected static int CountTeamsWithoutGoalkeeper(List<Team> teams)
+    {
+        return teams.Count(t => t.Players.All(p => p.PrimaryPosition != Position.Goalkeeper));
     }
 
     /// <summary>

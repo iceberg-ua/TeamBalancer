@@ -117,7 +117,8 @@ public class TeamBalancingService
             ["OverallSkillRange"] = teams.Max(t => t.OverallTeamSkill) - teams.Min(t => t.OverallTeamSkill),
             ["SpeedRange"] = teams.Max(t => t.AverageSpeed) - teams.Min(t => t.AverageSpeed),
             ["TechnicalRange"] = teams.Max(t => t.AverageTechnicalSkills) - teams.Min(t => t.AverageTechnicalSkills),
-            ["StaminaRange"] = teams.Max(t => t.AverageStamina) - teams.Min(t => t.AverageStamina)
+            ["StaminaRange"] = teams.Max(t => t.AverageStamina) - teams.Min(t => t.AverageStamina),
+            ["TeamsWithoutGoalkeeper"] = teams.Count(t => t.Players.All(p => p.PrimaryPosition != Position.Goalkeeper))
         };
 
         return stats;
