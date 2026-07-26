@@ -1,0 +1,45 @@
+.position-selector {
+    gap: 1rem;
+    width: 100%;
+}
+
+/* CSS isolation scopes AddPlayer's form styling to that page, so the shared form
+   aesthetic (label weight, control padding, focus colour) is restated here. */
+.form-group {
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.form-control {
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    background-color: white;
+    color: #333;
+    width: 100%;
+    /* Bootstrap styles selects via .form-select, so the chevron is drawn here. */
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23495057' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 14px 12px;
+    padding-right: 2.5rem;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #1b6ec2;
+    box-shadow: none;
+}
+
+/* Muted state while no primary position has been chosen yet. */
+.form-control.is-unset {
+    color: #6c757d;
+    border-color: #d6a800;
+    background-color: #fffdf5;
+}

@@ -78,3 +78,12 @@
     border-color: #dc3545 !important;
     border-width: 2px;
 }
+
+/* Bootstrap keeps .invalid-feedback hidden unless it follows an .is-invalid sibling.
+   The position message sits after a component, so it sets its own visibility. */
+.position-feedback {
+    display: block;
+    color: #e50000;
+    font-size: 0.875rem;
+    margin-top: -0.5rem;
+}

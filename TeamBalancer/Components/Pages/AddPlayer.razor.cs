@@ -41,9 +41,13 @@ public partial class AddPlayer : ComponentBase
     private int _speed = 1;
     private int _technicalSkills = 1;
     private int _stamina = 1;
+    private Position _primaryPosition = Position.Unspecified;
+    private Position? _secondaryPosition;
     private string _errorMessage = string.Empty;
     private string _nameErrorMessage = string.Empty;
     private bool _showNameError = false;
+    private string _positionErrorMessage = string.Empty;
+    private bool _showPositionError = false;
     private bool _isLoading = false;
 
     #endregion
@@ -79,6 +83,10 @@ public partial class AddPlayer : ComponentBase
             if (_showNameError)
                 return false;
 
+            // A primary position is required; the secondary one is optional
+            if (_primaryPosition == Position.Unspecified)
+                return false;
+
             // Create a temporary player to validate the name
             var tempPlayer = new Player { Name = _playerName.Trim() };
             return tempPlayer.IsNameValid();
@@ -98,6 +106,8 @@ public partial class AddPlayer : ComponentBase
         {
             await LoadPlayer();
         }
+
+        ValidatePosition();
     }
 
     /// <summary>
@@ -137,6 +147,9 @@ public partial class AddPlayer : ComponentBase
                 _speed = _existingPlayer.Speed;
                 _technicalSkills = _existingPlayer.TechnicalSkills;
                 _stamina = _existingPlayer.Stamina;
+                _primaryPosition = _existingPlayer.PrimaryPosition;
+                _secondaryPosition = _existingPlayer.SecondaryPosition;
+                ValidatePosition();
             }
             else
             {
@@ -224,6 +237,27 @@ public partial class AddPlayer : ComponentBase
     }
 
     /// <summary>
+    /// Handles a primary position change from the selector and revalidates.
+    /// </summary>
+    private void OnPrimaryPositionChanged(Position position)
+    {
+        _primaryPosition = position;
+        ValidatePosition();
+    }
+
+    /// <summary>
+    /// Validates the selected positions, explaining why the save button is disabled when
+    /// no primary position has been chosen.
+    /// </summary>
+    private void ValidatePosition()
+    {
+        _showPositionError = _primaryPosition == Position.Unspecified;
+        _positionErrorMessage = _showPositionError
+            ? "Select a primary position before saving this player."
+            : string.Empty;
+    }
+
+    /// <summary>
     /// Saves the player (adds new or updates existing).
     /// </summary>
     private async Task SavePlayer()
@@ -239,6 +273,8 @@ public partial class AddPlayer : ComponentBase
                 _existingPlayer.Speed = _speed;
                 _existingPlayer.TechnicalSkills = _technicalSkills;
                 _existingPlayer.Stamina = _stamina;
+                _existingPlayer.PrimaryPosition = _primaryPosition;
+                _existingPlayer.SecondaryPosition = _secondaryPosition;
 
                 await PlayerRepository.UpdateAsync(_existingPlayer);
                 await PlayerRepository.SaveChangesAsync();
@@ -251,7 +287,9 @@ public partial class AddPlayer : ComponentBase
                     Name = _playerName.Trim(),
                     Speed = _speed,
                     TechnicalSkills = _technicalSkills,
-                    Stamina = _stamina
+                    Stamina = _stamina,
+                    PrimaryPosition = _primaryPosition,
+                    SecondaryPosition = _secondaryPosition
                 };
 
                 await PlayerRepository.AddAsync(player);
