@@ -1,20 +1,33 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Team Balancer Splash Screen">
-  <!-- Background -->
+  <!-- Ground -->
   <rect width="108" height="108" fill="#161826"/>
 
-  <!-- Centre circle -->
-  <circle cx="54" cy="46" r="20" fill="none" stroke="#7fb069" stroke-width="1.2" opacity="0.55"/>
-  <circle cx="54" cy="46" r="1.4" fill="#7fb069" opacity="0.7"/>
+  <!-- The whole mark sits above centre on purpose. Android 12+ masks the splash icon to a
+       circle, so the usable width narrows the further content is from the vertical centre;
+       keeping the wordmark high keeps its ends inside the mask. -->
 
-  <!-- Halfway line -->
-  <line x1="54" y1="14" x2="54" y2="78" stroke="#7fb069" stroke-width="1" opacity="0.22"/>
+  <!-- Halfway line: threads the centre circle and separates the two words below -->
+  <line x1="54" y1="10" x2="54" y2="84" stroke="#7fb069" stroke-width="1" opacity="0.22"/>
 
-  <!-- Wordmark -->
-  <text x="54" y="78"
+  <!-- Centre circle and kickoff dot -->
+  <circle cx="54" cy="42" r="20" fill="none" stroke="#7fb069" stroke-width="1.2" opacity="0.55"/>
+  <circle cx="54" cy="42" r="1.4" fill="#7fb069" opacity="0.7"/>
+
+  <!-- Wordmark. Two separate <text> elements anchored to x=54, rather than tspans inside one
+       <text>: MAUI rasterizes this SVG with SkiaSharp, which centres every tspan on the same
+       anchor instead of flowing them, so a split tspan wordmark renders on top of itself.
+       Anchoring end/start also puts the halfway line exactly in the gap between the words. -->
+  <text x="53" y="78"
         font-family="Inter, system-ui, sans-serif"
-        font-size="8.5"
+        font-size="8"
         font-weight="500"
-        text-anchor="middle"
-        letter-spacing="1.6"><tspan fill="#e9e9ed">TEAM</tspan><tspan fill="#7fb069">BALANCER</tspan></text>
+        text-anchor="end"
+        fill="#e9e9ed">TEAM</text>
+  <text x="55" y="78"
+        font-family="Inter, system-ui, sans-serif"
+        font-size="8"
+        font-weight="500"
+        text-anchor="start"
+        fill="#7fb069">BALANCER</text>
 </svg>
