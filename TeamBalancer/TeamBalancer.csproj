@@ -24,9 +24,15 @@
 
         <!-- Display name -->
         <ApplicationTitle>Team Balancer</ApplicationTitle>
+        <ApplicationTitle Condition="'$(Configuration)' == 'Debug'">Team Balancer Dev</ApplicationTitle>
 
-        <!-- App Identifier -->
-        <ApplicationId>com.teambalancer.app</ApplicationId>
+        <!-- App Identifier. This must stay com.vmdev.teambalancer for Release: that is the id
+             the app is published under on Google Play, and changing it would orphan every
+             existing install. Debug builds take a .debug suffix so a test build installs side
+             by side with the published app instead of having to replace it - the two are signed
+             with different keys, so replacing it would mean uninstalling and losing its data. -->
+        <ApplicationId>com.vmdev.teambalancer</ApplicationId>
+        <ApplicationId Condition="'$(Configuration)' == 'Debug'">com.vmdev.teambalancer.debug</ApplicationId>
 
         <!-- Versions -->
         <ApplicationDisplayVersion>1.2</ApplicationDisplayVersion>
