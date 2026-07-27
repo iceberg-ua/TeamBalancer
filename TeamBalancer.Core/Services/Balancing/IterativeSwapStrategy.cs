@@ -10,6 +10,18 @@ namespace TeamBalancer.Core.Services.Balancing;
 /// keeper per team, and no swap that would leave more teams without one is accepted.
 /// This approach typically produces better balance than greedy methods.
 /// </summary>
+/// <remarks>
+/// NOT MAINTAINED. This strategy is not exposed in the app UI: MauiProgram registers only
+/// <see cref="SnakeDraftStrategy"/> as the app's <see cref="ITeamBalancingStrategy"/>, and
+/// there is no algorithm picker for end users. It is correct and tested as of version 1.2,
+/// and is kept in the codebase in case algorithm selection is ever added.
+/// <para>
+/// By decision of the project owner it is frozen: future changes to balancing behaviour are
+/// expected to land in <see cref="SnakeDraftStrategy"/> only, and this class may drift out of
+/// sync with it. Do not treat the two as equivalent. Before exposing this strategy to users,
+/// re-review it against whatever <see cref="SnakeDraftStrategy"/> has become.
+/// </para>
+/// </remarks>
 public class IterativeSwapStrategy : BaseTeamBalancingStrategy
 {
     private readonly Random _random = new();

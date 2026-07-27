@@ -22,6 +22,12 @@ public class PositionAwareBalancingTests
         public double PositionImbalance(List<Team> teams) => CalculatePositionImbalance(teams);
     }
 
+    /// <summary>
+    /// Note that <see cref="IterativeSwapStrategy"/> is frozen and no longer maintained
+    /// alongside <see cref="SnakeDraftStrategy"/> (see the remarks on that class). The shared
+    /// theories below still exercise it, so if a future balancing change makes its arm fail,
+    /// dropping it from these theories is a valid fix — it does not have to be kept in step.
+    /// </summary>
     private static ITeamBalancingStrategy CreateStrategy(BalancingAlgorithmType type) => type switch
     {
         BalancingAlgorithmType.SnakeDraft => new SnakeDraftStrategy(),
