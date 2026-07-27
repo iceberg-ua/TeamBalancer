@@ -1,6 +1,12 @@
-# Team Balancing Algorithm Approaches
+# Team Balancing Algorithm
 
-This document outlines available approaches for implementing team balancing algorithms in the TeamBalancer application.
+This document describes the balancing algorithm TeamBalancer implements, and records the
+alternatives that were considered and rejected along the way.
+
+There is one algorithm: **`DraftStrategy`**. It is registered as the app's
+`ITeamBalancingStrategy` and is the only implementation. The earlier `SnakeDraftStrategy` and
+`IterativeSwapStrategy` classes have been removed - `DraftStrategy` combines what each of them
+did into a single two-phase run.
 
 ## Data Model Context
 
@@ -10,229 +16,195 @@ Players have three skill attributes (1-3 scale):
 - Stamina
 - OverallSkillLevel (calculated as average of the three attributes)
 
+Players also carry positions:
+- **PrimaryPosition** - Goalkeeper, Defender, Midfielder, Forward, or Unspecified. Unspecified
+  exists for data that predates position support; it is not a user-facing choice.
+- **SecondaryPosition** - optional fallback position, or null.
+
 Teams track:
 - Player count
 - Average for each skill attribute
 - Overall team skill
 - Total skill points
 
-## Available Approaches
+---
 
-### 1. Greedy/Snake Draft Algorithm
+## The Algorithm
 
-**How it works**: Sort players by skill level in descending order, then alternate picking players between teams (Team A, Team B, Team B, Team A, Team A, Team B, etc.).
+`DraftStrategy.BalanceTeams` runs two phases in order. Phase A builds a whole, valid
+distribution; phase B improves it without ever breaking it.
 
-**Pros**:
-- Fast O(n log n) time complexity
-- Simple to implement and understand
-- Intuitive for users familiar with sports drafts
+### Phase A - Constructive seeding (position-grouped snake draft)
 
-**Cons**:
-- Not guaranteed optimal
-- Can miss better combinations
-- Doesn't look ahead
+**1. Goalkeepers first.** Up to `numberOfTeams` players whose *primary* position is Goalkeeper
+are taken, strongest first, and dealt one per team.
 
-**Best for**: Quick balancing, real-time drafts, small to medium player pools
+**2. Then each position group in turn** - Defenders, Midfielders, Forwards, and finally the
+leftover pool - sorted strongest first within the group and dealt in snake order
+(A, B, B, A, A, B...).
 
-**Implementation complexity**: Low
+The pick cursor **carries across groups** rather than resetting for each one. Resetting it
+would hand the first team the strongest player of every position in turn.
+
+**3. Secondary positions fill shortfalls.** A group is *short* when it has fewer primary-tagged
+players than there are teams, so it cannot give every team one. A short group tops itself up
+from the leftover pool, taking the players whose *secondary* position matches, strongest first.
+
+Two rules constrain this:
+- A primary match always outranks a secondary match **within a group**, so a fill player can
+  never take a pick away from someone who plays the position for real.
+- Fill is drawn only from the leftover pool - players with no position group of their own, plus
+  surplus goalkeepers. It never raids another outfield group, which would just move the
+  shortage somewhere else.
+
+Note the one visible side effect: promoting a leftover into an earlier group makes that group
+one pick longer, which shifts the snake cursor for the groups drafted after it. The sequence of
+picks is unchanged; who occupies the later slots can differ from a draft with no fill at all.
+
+### Phase B - Bounded refinement (hill climbing on pairwise swaps)
+
+The seeded teams are handed to `BaseTeamBalancingStrategy.ImproveByPairwiseSwaps`, which tries
+swapping single players between every pair of teams. A swap is **kept** only when both hold:
+
+1. It lowers the balance score by more than `ImprovementThreshold` (0.0001 - enough to ignore
+   floating point noise), and
+2. it does not increase the number of teams without a goalkeeper.
+
+Anything else is reverted immediately. Each accepted swap restarts the search; the pass stops
+when a full sweep finds no improvement, or after `MaxIterations` (1000) sweeps, so a
+pathological pool cannot loop forever.
+
+Because the refinement only ever accepts strict improvements, its result can never score worse
+than the plain draft it started from - a property the test suite asserts directly.
+
+### Goalkeepers: hard cap, best-effort floor
+
+Goalkeeper coverage is handled as a **constraint, not a scored term**, in both phases:
+
+- **At most one per team.** Only the first `numberOfTeams` keepers are treated as keepers;
+  surplus keepers rejoin the pool as ordinary outfield-eligible players (and can fill a short
+  group on their secondary position like any other leftover). Five- and seven-a-side sides only
+  field one keeper, and this also stops the snake handing a team a second keeper while another
+  has none.
+- **As close to one each as supply allows.** If there are fewer keepers than teams, the
+  available ones land on different teams and the rest go without. This is never an error and
+  never blocks balancing.
+- **Refinement can improve coverage but never worsen it.** A swap that would leave more teams
+  keeper-less is rejected outright, regardless of how much it improves the score.
+
+Because it is a constraint rather than a scored term, an uneven keeper spread does not on its
+own change the balance score.
+
+### Shuffle
+
+`shuffle: true` adds variety without giving up balance:
+- **Seeding** shuffles players within skill tiers before drafting, so near-equal players can
+  swap places in the pick order but a weak player never jumps ahead of a strong one.
+- **Refinement** visits team pairs and players in random order, so when several swaps are
+  equally good the choice between them varies instead of always resolving to the lowest index.
+
+With `shuffle: false` the whole run is deterministic.
 
 ---
 
-### 2. Bin Packing/First-Fit Approach
+## Balance Scoring
 
-**How it works**: Sort players by skill level descending, then assign each player to the team with the lowest current total skill level.
+`CalculateBalanceScore` returns a weighted sum of variances across the teams. **Lower is
+better**, 0 being perfect. All variances are population variances.
 
-**Pros**:
-- Fast O(n log n) time complexity
-- Usually produces good results
-- Simple logic
+| Dimension | Weight | Notes |
+|---|---|---|
+| Overall team skill variance | 2.0 | Weighted highest - overall balance dominates |
+| Average speed variance | 1.0 | |
+| Average technical skills variance | 1.0 | |
+| Average stamina variance | 1.0 | |
+| Player count variance | 1.5 | Keeps team sizes equal |
+| Position imbalance | 1.0 | Low enough that skill still dominates, high enough to break near-ties |
 
-**Cons**:
-- Greedy approach can create local optimums
-- No backtracking if better solutions exist
+**Position imbalance** is the sum, over Defender / Midfielder / Forward, of the variance in how
+many players of that position each team holds. Two positions are deliberately excluded:
 
-**Best for**: Large player pools where speed is priority, initial quick balance
+- **Goalkeeper**, because it is enforced as a hard constraint (above) rather than scored.
+- **Unspecified**, because those players are treated as fully flexible.
 
-**Implementation complexity**: Low
+A pool where nobody has a position set therefore scores exactly as it did before position
+support existed.
 
----
-
-### 3. Iterative Swapping/Hill Climbing
-
-**How it works**: Start with an initial assignment (random or from another algorithm), then repeatedly swap players between teams if the swap reduces the skill difference between teams.
-
-**Pros**:
-- Better balance than pure greedy approaches
-- Can refine results from other algorithms
-- Configurable stopping criteria (iterations, time, threshold)
-
-**Cons**:
-- Can get stuck in local optimums
-- Performance depends on initial state
-- May require many iterations
-
-**Best for**: Medium-sized pools (10-30 players), refining other algorithm results
-
-**Implementation complexity**: Medium
-
----
-
-### 4. Genetic Algorithm
-
-**How it works**: Create multiple random team configurations (population), evaluate fitness (balance quality), select best solutions, crossover and mutate to create new generations, evolve toward optimal solution.
-
-**Pros**:
-- Can find near-optimal solutions
-- Handles multiple objectives simultaneously
-- Avoids local optimums better than hill climbing
-- Can balance multiple constraints (skill balance, player count, etc.)
-
-**Cons**:
-- Slower than greedy approaches
-- More complex implementation
-- Requires tuning (population size, mutation rate, etc.)
-- Non-deterministic results
-
-**Best for**: Complex constraints, offline optimization, when quality matters more than speed
-
-**Implementation complexity**: High
-
----
-
-### 5. Constraint Programming/Integer Linear Programming
-
-**How it works**: Formulate team balancing as a mathematical optimization problem with objective function (minimize skill variance) and constraints (equal team sizes, etc.). Use solver library to find optimal solution.
-
-**Pros**:
-- Can find truly optimal solution
-- Handles complex constraints naturally
-- Proven mathematical approach
-
-**Cons**:
-- Can be slow for large player pools
-- Requires external solver library (e.g., Google OR-Tools, CPLEX)
-- More complex to set up
-- May not scale well
-
-**Best for**: Perfect balance needed, multiple complex constraints, smaller player pools (< 30)
-
-**Implementation complexity**: High (requires external dependencies)
-
----
-
-### 6. Multi-Objective Optimization
-
-**How it works**: Instead of balancing only OverallSkillLevel, balance all three skill attributes (Speed, Technical Skills, Stamina) simultaneously. Can use weighted scoring or Pareto optimization.
-
-**Approaches**:
-- **Weighted Sum**: Minimize variance across all attributes with configurable weights
-- **Pareto Optimization**: Find solutions where no attribute can be improved without worsening another
-- **Min-Max**: Minimize the maximum difference in any attribute
-
-**Pros**:
-- Creates balanced teams across all dimensions
-- More realistic for sports (different attributes matter)
-- Prevents teams from being strong in one area but weak in others
-
-**Cons**:
-- More complex scoring function
-- May not always find perfect balance across all attributes
-- Harder to explain to users
-
-**Best for**: When individual attributes matter (not just overall), creating well-rounded teams
-
-**Implementation complexity**: Medium to High (depending on approach)
-
----
-
-## Recommendations
-
-### Option A: Start Simple (Recommended for MVP)
-1. Implement **Snake Draft** or **Bin Packing** algorithm
-2. Balance based on `OverallSkillLevel`
-3. Add UI to display team statistics
-4. Allow manual adjustments after balancing
-
-**Estimated effort**: 2-4 hours
-
----
-
-### Option B: Better Quality (Recommended for Production)
-1. Implement **Iterative Swapping** with multi-objective scoring
-2. Balance all 3 attributes simultaneously
-3. Target: minimize variance across Speed, Technical Skills, and Stamina between teams
-4. Use weighted scoring to prioritize attributes if needed
-5. Allow configurable number of iterations
-
-**Estimated effort**: 4-8 hours
-
----
-
-### Option C: Best Results (Advanced)
-1. Implement **Genetic Algorithm** with weighted fitness function
-2. Consider all attributes + player count equality
-3. Generate multiple solution candidates
-4. Let user pick from top solutions or auto-select best
-5. Add configuration for algorithm parameters (population size, generations, etc.)
-
-**Estimated effort**: 8-16 hours
-
----
-
-## Hybrid Approach (Recommended)
-
-Combine multiple algorithms for best results:
-
-1. **Initial Assignment**: Use Bin Packing for fast initial distribution
-2. **Refinement**: Apply Iterative Swapping to improve balance
-3. **Multi-Objective**: Balance across all three skill attributes
-4. **User Control**: Allow manual swaps with live balance updates
-
-This approach provides:
-- Fast initial results
-- High-quality final balance
-- User control and transparency
-- Reasonable implementation complexity
-
-**Estimated effort**: 6-10 hours
+Scoring reads **primary positions only**. A player filling a group on his secondary position
+counts toward his primary position in the score, not the group he filled - secondary position
+is a seeding signal for now, and deliberately carries no scoring weight.
 
 ---
 
 ## Implementation Structure
-
-Suggested class structure:
 
 ```csharp
 namespace TeamBalancer.Core.Services.Balancing
 {
     public interface ITeamBalancingStrategy
     {
-        List<Team> BalanceTeams(List<Player> players, int numberOfTeams);
+        List<Team> BalanceTeams(List<Player> players, int numberOfTeams, bool shuffle = false);
         double CalculateBalanceScore(List<Team> teams);
     }
 
-    public class SnakeDraftStrategy : ITeamBalancingStrategy { }
-    public class BinPackingStrategy : ITeamBalancingStrategy { }
-    public class IterativeSwapStrategy : ITeamBalancingStrategy { }
-    public class GeneticAlgorithmStrategy : ITeamBalancingStrategy { }
+    // Shared scoring and the swap-refinement pass.
+    public abstract class BaseTeamBalancingStrategy : ITeamBalancingStrategy { }
+
+    // Phase A (seeding draft) + phase B (refinement). The only strategy.
+    public class DraftStrategy : BaseTeamBalancingStrategy { }
 
     public class TeamBalancingService
     {
         public List<Team> BalanceTeams(
             List<Player> players,
             int numberOfTeams,
-            ITeamBalancingStrategy strategy);
+            ITeamBalancingStrategy strategy,
+            bool shuffle = false);
     }
 }
 ```
 
+`ITeamBalancingStrategy` and the abstract base are kept as the seam for a future alternative
+algorithm, even though only one implementation exists today.
+
 ---
 
-## Next Steps
+## Considered and Rejected
 
-1. Choose an approach (or hybrid)
-2. Implement core balancing algorithm
-3. Add unit tests with sample player data
-4. Create UI for initiating balance and viewing results
-5. Add manual adjustment capabilities
-6. Implement balance metrics visualization
+Kept for the record. None of these are being pursued; the two that were actually built have
+since been folded into `DraftStrategy` and deleted.
+
+### Built, then superseded
+
+**Snake Draft (`SnakeDraftStrategy`)** - the position-grouped snake draft on its own, with no
+refinement. Fast and intuitive, but greedy: it never revisits a pick, so it settles for
+whatever the draft order happens to produce. It survives as phase A of `DraftStrategy`.
+
+**Iterative Swap (`IterativeSwapStrategy`)** - round-robin seeding followed by the same
+hill-climbing swap pass. Better balance than pure greedy, but its quality depended heavily on a
+weak initial distribution. It survives as phase B of `DraftStrategy`, now fed by a much better
+seed.
+
+Merging the two removed the need for users to choose an algorithm - a choice the UI never
+actually exposed - and removed a second implementation that was drifting out of sync.
+
+### Considered, never built
+
+**Bin Packing / First-Fit** - sort by skill descending, assign each player to the team with the
+lowest current total. Fast and simple, but it is another greedy method with no backtracking,
+and it ignores positions entirely. The snake draft covers the same ground and spreads positions.
+
+**Genetic Algorithm** - evolve a population of candidate splits against a fitness function.
+Would likely find better optima and escape local ones, but it is slow, non-deterministic,
+needs tuning (population size, mutation rate), and is hard to explain to a user staring at a
+team sheet. Disproportionate for pools of 10-30 players.
+
+**Constraint Programming / ILP** - formulate the split as a mathematical optimisation and solve
+it exactly. Genuinely optimal and handles complex constraints naturally, but it requires an
+external solver dependency (OR-Tools, CPLEX) in a MAUI app, and can be slow to scale. Not worth
+the dependency for the quality gap involved.
+
+**Multi-objective / Pareto optimisation** - balance each attribute as a separate objective
+rather than folding them into one score. Partly adopted rather than rejected: the current
+scoring is a weighted sum over all three attributes plus team size and position spread, which
+captures most of the benefit without the complexity of a Pareto front or a min-max formulation.

@@ -48,7 +48,7 @@ public static class MauiProgram
 		services.AddSingleton<ICsvImportExportService, CsvImportExportService>();
 
 		// Register team balancing services
-		services.AddSingleton<ITeamBalancingStrategy, SnakeDraftStrategy>();
+		services.AddSingleton<ITeamBalancingStrategy, DraftStrategy>();
 		services.AddSingleton<TeamBalancingService>();
 
 		// Register UI services

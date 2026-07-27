@@ -18,11 +18,14 @@ public class TeamBalancingService
     {
         _defaultStrategy = defaultStrategy ?? throw new ArgumentNullException(nameof(defaultStrategy));
 
-        // Initialize all available strategies
+        // DraftStrategy is the only strategy left - SnakeDraftStrategy and IterativeSwapStrategy
+        // have been removed in favour of it. Both algorithm types are still mapped so that
+        // callers of the BalancingAlgorithmType overload keep working; they now resolve to the
+        // same strategy. The enum itself is kept only because PlayerList still names it.
         _strategies = new Dictionary<BalancingAlgorithmType, ITeamBalancingStrategy>
         {
-            [BalancingAlgorithmType.SnakeDraft] = new SnakeDraftStrategy(),
-            [BalancingAlgorithmType.IterativeSwap] = new IterativeSwapStrategy()
+            [BalancingAlgorithmType.SnakeDraft] = new DraftStrategy(),
+            [BalancingAlgorithmType.IterativeSwap] = new DraftStrategy()
         };
     }
 

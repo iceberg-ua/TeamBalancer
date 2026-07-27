@@ -28,6 +28,18 @@ public abstract class BaseTeamBalancingStrategy : ITeamBalancingStrategy
     protected const double PositionImbalanceWeight = 1.0;
 
     /// <summary>
+    /// Maximum number of improvement passes made by <see cref="ImproveByPairwiseSwaps"/>
+    /// before it gives up, so a pathological pool cannot loop indefinitely.
+    /// </summary>
+    protected const int MaxIterations = 1000;
+
+    /// <summary>
+    /// Minimum drop in balance score required for a swap to count as an improvement.
+    /// Guards against churn from floating point noise.
+    /// </summary>
+    protected const double ImprovementThreshold = 0.0001;
+
+    /// <summary>
     /// The positions scored as a soft preference. Goalkeeper is excluded because it is
     /// enforced as a hard constraint by the strategies themselves, and Unspecified is
     /// excluded because those players are treated as fully flexible.
@@ -126,6 +138,111 @@ public abstract class BaseTeamBalancingStrategy : ITeamBalancingStrategy
     protected static int CountTeamsWithoutGoalkeeper(List<Team> teams)
     {
         return teams.Count(t => t.Players.All(p => p.PrimaryPosition != Position.Goalkeeper));
+    }
+
+    /// <summary>
+    /// Iteratively improves an existing distribution by swapping single players between
+    /// pairs of teams, in place. A swap is kept only when it lowers
+    /// <see cref="CalculateBalanceScore"/> by more than <see cref="ImprovementThreshold"/>
+    /// and leaves no more teams without a goalkeeper than before; anything else is reverted.
+    /// Goalkeeper coverage is a hard constraint rather than a scored term, so it is tracked
+    /// separately: a swap may improve it or leave it alone, never worsen it.
+    /// Each accepted swap restarts the search, which stops once a full pass finds no
+    /// improvement or after <see cref="MaxIterations"/> passes.
+    /// </summary>
+    /// <param name="teams">The teams to improve. Modified in place.</param>
+    /// <param name="random">
+    /// When supplied, the team pairs and the players within them are visited in random order,
+    /// so that equally good swaps are picked between at random instead of always resolving to
+    /// the lowest team and player index. The set of acceptable swaps is unchanged either way.
+    /// Pass null for a fully deterministic search.
+    /// </param>
+    protected void ImproveByPairwiseSwaps(List<Team> teams, Random? random = null)
+    {
+        double currentScore = CalculateBalanceScore(teams);
+        int teamsWithoutGoalkeeper = CountTeamsWithoutGoalkeeper(teams);
+        bool improved = true;
+        int iterations = 0;
+
+        while (improved && iterations < MaxIterations)
+        {
+            improved = false;
+            iterations++;
+
+            // Try swapping players between all pairs of teams
+            foreach (var (i, j) in BuildTeamPairs(teams.Count, random))
+            {
+                // Try swapping each player from team i with each player from team j
+                foreach (var player1 in SwapCandidates(teams[i], random))
+                {
+                    foreach (var player2 in SwapCandidates(teams[j], random))
+                    {
+                        // Perform swap
+                        teams[i].RemovePlayer(player1);
+                        teams[j].RemovePlayer(player2);
+                        teams[i].AddPlayer(player2);
+                        teams[j].AddPlayer(player1);
+
+                        // Check if this improved balance without costing goalkeeper cover
+                        double newScore = CalculateBalanceScore(teams);
+                        int newTeamsWithoutGoalkeeper = CountTeamsWithoutGoalkeeper(teams);
+
+                        if (newTeamsWithoutGoalkeeper <= teamsWithoutGoalkeeper &&
+                            newScore < currentScore - ImprovementThreshold)
+                        {
+                            // Keep the swap
+                            currentScore = newScore;
+                            teamsWithoutGoalkeeper = newTeamsWithoutGoalkeeper;
+                            improved = true;
+                            break;
+                        }
+                        else
+                        {
+                            // Revert swap
+                            teams[i].RemovePlayer(player2);
+                            teams[j].RemovePlayer(player1);
+                            teams[i].AddPlayer(player1);
+                            teams[j].AddPlayer(player2);
+                        }
+                    }
+
+                    if (improved) break;
+                }
+
+                if (improved) break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Builds every unordered pair of team indices. Without a <paramref name="random"/> the
+    /// pairs come back in ascending order - (0,1), (0,2), (1,2)... - which is the order the
+    /// nested loops used to visit them in.
+    /// </summary>
+    private static List<(int First, int Second)> BuildTeamPairs(int numberOfTeams, Random? random)
+    {
+        var pairs = new List<(int, int)>();
+
+        for (int i = 0; i < numberOfTeams - 1; i++)
+        {
+            for (int j = i + 1; j < numberOfTeams; j++)
+            {
+                pairs.Add((i, j));
+            }
+        }
+
+        return random is null ? pairs : pairs.OrderBy(_ => random.Next()).ToList();
+    }
+
+    /// <summary>
+    /// Snapshots a team's players for swap testing, so the list can be mutated while it is
+    /// being walked. Without a <paramref name="random"/> the snapshot keeps the team's own order.
+    /// </summary>
+    private static List<Player> SwapCandidates(Team team, Random? random)
+    {
+        return random is null
+            ? team.Players.ToList()
+            : team.Players.OrderBy(_ => random.Next()).ToList();
     }
 
     /// <summary>

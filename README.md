@@ -17,14 +17,27 @@ A cross-platform application that automatically divides football (soccer) player
 - 📊 Overall skill level automatically calculated from attributes
 - 💾 Persistent storage with CSV file format
 
-### Team Balancing Algorithms
-- 🐍 **Snake Draft Strategy** - Greedy algorithm with optional tier-based shuffling
-- 🔄 **Iterative Swap Strategy** - Advanced optimization through player swapping
+### Team Balancing
+- 🐍 **Draft Strategy** - the single balancing algorithm, run in two phases:
+  - **Seed** - a position-grouped snake draft (goalkeepers, defenders, midfielders, forwards,
+    then everyone else), strongest first within each group, with the pick order carried across
+    groups instead of restarting
+  - **Refine** - a bounded pass of pairwise player swaps that keeps only the swaps which
+    measurably improve the balance score
+- 🥅 Goalkeeper handling - one keeper per team is a hard cap and a best-effort floor: surplus
+  keepers are drafted as outfield players, and if there are fewer keepers than teams the extra
+  teams simply go without one rather than the balancer failing
+- 🔀 Secondary positions - used as fallback fill when a position group cannot cover every team;
+  a player's primary position always takes precedence
 - 📈 Balance scoring based on:
   - Overall team skill variance
   - Individual attribute distribution (Speed, Technical, Stamina)
   - Team size equality
+  - Position imbalance across teams
 - 🎲 Optional shuffle mode for variety while maintaining balance
+
+See [TeamBalancingAlgorithms.md](TeamBalancer.Core/TeamBalancingAlgorithms.md) for the full
+description of the algorithm and the alternatives that were considered.
 
 ### Data Management
 - 📥 **CSV Import** - Bulk import players from CSV files
@@ -41,10 +54,9 @@ TeamBalancer/
 ├── TeamBalancer.Core/              # Business logic (platform-agnostic)
 │   ├── Models/                     # Domain models (Player, Team)
 │   ├── Services/
-│   │   ├── Balancing/             # Team balancing strategies
-│   │   │   ├── BaseTeamBalancingStrategy.cs
-│   │   │   ├── SnakeDraftStrategy.cs
-│   │   │   └── IterativeSwapStrategy.cs
+│   │   ├── Balancing/             # Team balancing
+│   │   │   ├── BaseTeamBalancingStrategy.cs   # Scoring + swap refinement
+│   │   │   └── DraftStrategy.cs               # Seeding draft + refinement
 │   │   ├── Csv/                   # CSV parsing and persistence
 │   │   └── Interfaces/            # Service abstractions
 │   └── Exceptions/                # Custom exception types
@@ -57,7 +69,8 @@ TeamBalancer/
 ```
 
 ### Key Design Patterns
-- **Strategy Pattern** - Pluggable team balancing algorithms
+- **Strategy Pattern** - `ITeamBalancingStrategy` keeps the balancing algorithm swappable
+  (currently one implementation, `DraftStrategy`)
 - **Repository Pattern** - Abstract data persistence
 - **Dependency Injection** - Loose coupling and testability
 - **Clean Architecture** - Domain logic independent of UI and infrastructure
