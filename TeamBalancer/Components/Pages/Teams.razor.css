@@ -170,6 +170,25 @@
     text-transform: uppercase;
 }
 
+/* ---- Panes ---- */
+/* The pane no longer scrolls as a whole. It splits into a fixed summary block and a
+   scrolling roster, so the team tabs, comparison card and position counts hold their
+   place however long the squad gets. */
+.teams-pane {
+    overflow: hidden;
+}
+
+.teams-summary {
+    flex-shrink: 0;
+}
+
+.team-players-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
 /* ---- Players ---- */
 .team-players {
     display: flex;

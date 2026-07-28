@@ -75,18 +75,34 @@ public abstract class BaseTeamBalancingStrategy : ITeamBalancingStrategy
             return 0;
         }
 
-        // Calculate variance in overall skill
-        var overallSkills = teams.Select(t => t.OverallTeamSkill).ToList();
+        // Skill is compared as the strength a team actually puts on the pitch - its total,
+        // divided by the average squad size so the numbers stay on a per-player scale.
+        //
+        // Where every team is the same size this is identical to the plain per-player average
+        // (total / n / (n / n) == total / n), so evenly split pools score exactly as before.
+        // It only differs when sizes are forced apart, and there the average is actively wrong:
+        // across three players it rates a lone weak player against a strong-plus-weak pair
+        // (1.0 vs 2.0) as closer than a lone strong player against two weak ones (3.0 vs 1.0),
+        // even though the first is a 1-against-4 mismatch and the second is 3-against-2. Totals
+        // rank those the right way round.
+        double meanTeamSize = teams.Average(t => (double)t.PlayerCount);
+
+        if (meanTeamSize <= 0)
+        {
+            return 0;
+        }
+
+        var overallSkills = teams.Select(t => t.TotalSkillPoints / meanTeamSize).ToList();
         double overallVariance = CalculateVariance(overallSkills);
 
-        // Calculate variance in individual attributes
-        var speedAvgs = teams.Select(t => t.AverageSpeed).ToList();
-        var techAvgs = teams.Select(t => t.AverageTechnicalSkills).ToList();
-        var staminaAvgs = teams.Select(t => t.AverageStamina).ToList();
+        // Calculate variance in individual attributes, on the same per-roster-slot scale
+        var speedTotals = teams.Select(t => t.Players.Sum(p => (double)p.Speed) / meanTeamSize).ToList();
+        var techTotals = teams.Select(t => t.Players.Sum(p => (double)p.TechnicalSkills) / meanTeamSize).ToList();
+        var staminaTotals = teams.Select(t => t.Players.Sum(p => (double)p.Stamina) / meanTeamSize).ToList();
 
-        double speedVariance = CalculateVariance(speedAvgs);
-        double techVariance = CalculateVariance(techAvgs);
-        double staminaVariance = CalculateVariance(staminaAvgs);
+        double speedVariance = CalculateVariance(speedTotals);
+        double techVariance = CalculateVariance(techTotals);
+        double staminaVariance = CalculateVariance(staminaTotals);
 
         // Calculate variance in player counts
         var playerCounts = teams.Select(t => (double)t.PlayerCount).ToList();

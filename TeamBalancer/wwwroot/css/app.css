@@ -103,6 +103,73 @@ a, .btn-link {
     overflow: hidden;
 }
 
+/* Edge shadows for a scrolling list: content fades out at the bottom while there is more
+   below it, and at the top once you have scrolled past the start. Goes on the element that
+   actually scrolls. Both fades are driven by the scroll position itself - no script.
+
+   The pseudo-elements sit inside the scroller so scroll(nearest block) resolves to it, and
+   are sticky with a cancelling negative margin so they hover over the rows without taking
+   up any room of their own.
+
+   Three things here are load-bearing and easy to undo by accident:
+   - z-index clears the player rows, which are position:relative at z-index 1 and would
+     otherwise paint straight over the fades.
+   - The animation longhands leave animation-duration at `auto`. The `animation` shorthand
+     would set it to 0s, which snaps each animation to its end state rather than stretching
+     it over the scroll range.
+   - A list too short to scroll has no scroll range, so the timelines are inactive and the
+     base opacities below apply: the bottom fade lands on empty background where it cannot
+     be seen, and the top one is off. That is also the fallback anywhere scroll-driven
+     animations are unsupported - the bottom fade simply stays on. */
+.scroll-shadows::before,
+.scroll-shadows::after {
+    content: "";
+    display: block;
+    position: sticky;
+    height: 2.75rem;
+    pointer-events: none;
+    z-index: 6;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: scroll(nearest block);
+}
+
+.scroll-shadows::before {
+    top: 0;
+    margin-bottom: -2.75rem;
+    background: linear-gradient(to top, transparent, var(--color-bg));
+    opacity: 0;
+    animation-name: scroll-shadow-top;
+}
+
+.scroll-shadows::after {
+    bottom: 0;
+    margin-top: -2.75rem;
+    background: linear-gradient(to bottom, transparent, var(--color-bg));
+    opacity: 1;
+    animation-name: scroll-shadow-bottom;
+}
+
+@keyframes scroll-shadow-top {
+    0% {
+        opacity: 0;
+    }
+
+    10%, 100% {
+        opacity: 1;
+    }
+}
+
+@keyframes scroll-shadow-bottom {
+    0%, 90% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
 .page-title {
     text-align: center;
     margin-bottom: 2rem;

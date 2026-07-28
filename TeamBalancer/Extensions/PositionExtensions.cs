@@ -49,6 +49,22 @@ public static class PositionExtensions
     };
 
     /// <summary>
+    /// Gets the rank that orders players down the pitch - goalkeeper, defender, midfielder,
+    /// forward - with unset positions last. <see cref="Position.Unspecified"/> is zero in the
+    /// enum, so casting to int would sort it first instead; hence the explicit ranks.
+    /// </summary>
+    /// <param name="position">The position to rank.</param>
+    /// <returns>A sort key, lowest first.</returns>
+    public static int ToSortOrder(this Position position) => position switch
+    {
+        Position.Goalkeeper => 0,
+        Position.Defender => 1,
+        Position.Midfielder => 2,
+        Position.Forward => 3,
+        _ => 4
+    };
+
+    /// <summary>
     /// Gets the CSS modifier class that colours a badge or chip for this position.
     /// </summary>
     /// <param name="position">The position to style.</param>
