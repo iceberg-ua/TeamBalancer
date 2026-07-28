@@ -117,10 +117,13 @@ a, .btn-link {
    - The animation longhands leave animation-duration at `auto`. The `animation` shorthand
      would set it to 0s, which snaps each animation to its end state rather than stretching
      it over the scroll range.
-   - A list too short to scroll has no scroll range, so the timelines are inactive and the
-     base opacities below apply: the bottom fade lands on empty background where it cannot
-     be seen, and the top one is off. That is also the fallback anywhere scroll-driven
-     animations are unsupported - the bottom fade simply stays on. */
+   - Both base opacities are 0, and that is what a list too short to scroll gets: no scroll
+     range means the timelines are inactive, the animations never apply, and neither fade is
+     drawn. It has to be 0 rather than a "fade always on" fallback, because with short
+     content the sticky box never reaches the scrollport edge - it sits directly over the
+     last rows and shades them for no reason. Browsers without scroll-driven animation
+     support land on that same base and lose the hint entirely, which is the right way to
+     fail here. */
 .scroll-shadows::before,
 .scroll-shadows::after {
     content: "";
@@ -146,7 +149,7 @@ a, .btn-link {
     bottom: 0;
     margin-top: -2.75rem;
     background: linear-gradient(to bottom, transparent, var(--color-bg));
-    opacity: 1;
+    opacity: 0;
     animation-name: scroll-shadow-bottom;
 }
 

@@ -33,9 +33,14 @@
     color: var(--color-accent);
 }
 
-.rating-icon:hover {
-    color: var(--color-accent) !important;
-    opacity: 0.75;
+/* Hover preview only where a pointer can actually hover. On a touchscreen :hover latches
+   onto the last element tapped and stays there, which left the star you just pressed
+   dimmed while the others beside it were not - reading as a stuck focus ring. */
+@media (hover: hover) {
+    .rating-icon:hover {
+        color: var(--color-accent) !important;
+        opacity: 0.75;
+    }
 }
 
 @media (min-width: 768px) {
