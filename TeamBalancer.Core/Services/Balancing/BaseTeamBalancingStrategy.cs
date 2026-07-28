@@ -9,8 +9,10 @@ namespace TeamBalancer.Core.Services.Balancing;
 public abstract class BaseTeamBalancingStrategy : ITeamBalancingStrategy
 {
     /// <summary>
-    /// Weight factor for overall skill variance in balance score calculation.
-    /// Higher weight means overall skill balance is more important.
+    /// Weight factor for overall team strength variance in balance score calculation.
+    /// Higher weight means strength parity between the teams is more important. Strength is
+    /// scored in attribute points, the same units as the three per-attribute terms, so this
+    /// reads directly as "strength parity counts double any single attribute's spread".
     /// </summary>
     protected const double OverallSkillWeight = 2.0;
 
@@ -92,13 +94,25 @@ public abstract class BaseTeamBalancingStrategy : ITeamBalancingStrategy
             return 0;
         }
 
-        var overallSkills = teams.Select(t => t.TotalSkillPoints / meanTeamSize).ToList();
-        double overallVariance = CalculateVariance(overallSkills);
-
         // Calculate variance in individual attributes, on the same per-roster-slot scale
         var speedTotals = teams.Select(t => t.Players.Sum(p => (double)p.Speed) / meanTeamSize).ToList();
         var techTotals = teams.Select(t => t.Players.Sum(p => (double)p.TechnicalSkills) / meanTeamSize).ToList();
         var staminaTotals = teams.Select(t => t.Players.Sum(p => (double)p.Stamina) / meanTeamSize).ToList();
+
+        // Overall strength is scored as the sum of those same three attribute totals, not as
+        // the mean of them. The two differ only by a factor of three per team - Player's
+        // OverallSkillLevel averages the attributes - but that factor squares into a ninth once
+        // it reaches the variance, and the three attribute terms below are then *summed*
+        // against it. Scoring the mean therefore left strength worth roughly a twentieth of the
+        // spread terms it is supposed to outrank, and splits with identical team totals lost to
+        // splits that merely spread stamina more evenly. Summing puts strength in the same
+        // units as the terms it competes with, so OverallSkillWeight expresses priority instead
+        // of silently absorbing a unit mismatch.
+        var strengths = teams
+            .Select((_, i) => speedTotals[i] + techTotals[i] + staminaTotals[i])
+            .ToList();
+
+        double overallVariance = CalculateVariance(strengths);
 
         double speedVariance = CalculateVariance(speedTotals);
         double techVariance = CalculateVariance(techTotals);

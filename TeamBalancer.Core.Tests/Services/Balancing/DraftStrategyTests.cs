@@ -360,6 +360,181 @@ public class DraftStrategyTests
     }
 
     // ---------------------------------------------------------------------
+    // Uneven team sizes: the short-handed side carries the stronger players
+    //
+    // Balancing on team totals means a side that is a player down has to make the difference
+    // up in quality. These pin that down, because the scoring is easy to break in a way that
+    // still passes every test above: strength competes against three attribute-spread terms,
+    // and if it is measured on a different scale from them it quietly stops winning.
+    // ---------------------------------------------------------------------
+
+    /// <summary>
+    /// Seven players over two teams forces a 3 v 4. The pool splits exactly - A+B+C and
+    /// D+E+F+G are both worth 7.0 - so equal totals are reachable and must be reached, which
+    /// leaves the three-man side ahead on quality by a wide margin.
+    /// </summary>
+    [Fact]
+    public void UnevenSizes_ShortHandedTeamGetsTheStrongerPlayers()
+    {
+        List<Player> players =
+        [
+            TestPlayers.Create("A", speed: 3, technical: 3, stamina: 3),
+            TestPlayers.Create("B", speed: 3, technical: 3, stamina: 2),
+            TestPlayers.Create("C", speed: 3, technical: 2, stamina: 2),
+            TestPlayers.Create("D", speed: 2, technical: 2, stamina: 2),
+            TestPlayers.Create("E", speed: 2, technical: 2, stamina: 1),
+            TestPlayers.Create("F", speed: 1, technical: 2, stamina: 1),
+            TestPlayers.Create("G", speed: 1, technical: 1, stamina: 1)
+        ];
+
+        var teams = new DraftStrategy().BalanceTeams(players, 2);
+
+        var shortHanded = teams.MinBy(t => t.PlayerCount)!;
+        var fullStrength = teams.MaxBy(t => t.PlayerCount)!;
+
+        Assert.Equal(3, shortHanded.PlayerCount);
+        Assert.Equal(4, fullStrength.PlayerCount);
+
+        Assert.Equal(fullStrength.TotalSkillPoints, shortHanded.TotalSkillPoints, 4);
+
+        Assert.True(shortHanded.OverallTeamSkill > fullStrength.OverallTeamSkill,
+            $"The short-handed side should hold the better players, but averaged " +
+            $"{shortHanded.OverallTeamSkill:F2} against {fullStrength.OverallTeamSkill:F2}.");
+
+        AssertPlayersConserved(players, teams);
+    }
+
+    /// <summary>
+    /// The regression that motivated scoring strength in attribute points rather than as the
+    /// mean of them. This pool has an exact 3-way split at 7.33 apiece, but reaching it costs
+    /// some stamina spread. Scored as a mean, strength was worth about a twentieth of the
+    /// spread terms and the even-stamina, uneven-strength split won instead - leaving the
+    /// three-man side behind on total as well as a player down.
+    /// </summary>
+    [Fact]
+    public void UnevenSizes_StrengthParityOutranksAttributeSpread()
+    {
+        List<Player> players =
+        [
+            TestPlayers.Create("A", speed: 3, technical: 3, stamina: 3),
+            TestPlayers.Create("B", speed: 3, technical: 3, stamina: 2),
+            TestPlayers.Create("C", speed: 3, technical: 2, stamina: 2),
+            TestPlayers.Create("D", speed: 2, technical: 2, stamina: 2),
+            TestPlayers.Create("E", speed: 2, technical: 2, stamina: 1),
+            TestPlayers.Create("F", speed: 1, technical: 2, stamina: 1),
+            TestPlayers.Create("G", speed: 1, technical: 1, stamina: 1),
+            TestPlayers.Create("H", speed: 3, technical: 1, stamina: 2),
+            TestPlayers.Create("I", speed: 2, technical: 3, stamina: 2),
+            TestPlayers.Create("J", speed: 1, technical: 2, stamina: 2),
+            TestPlayers.Create("K", speed: 2, technical: 1, stamina: 3)
+        ];
+
+        var teams = new DraftStrategy().BalanceTeams(players, 3);
+
+        Assert.Equal([3, 4, 4], teams.Select(t => t.PlayerCount).Order());
+
+        double spread = teams.Max(t => t.TotalSkillPoints) - teams.Min(t => t.TotalSkillPoints);
+
+        Assert.True(spread < 0.0001,
+            "The pool splits exactly 7.33 / 7.33 / 7.33, so no team should be left behind on " +
+            $"strength. Totals came out {string.Join(" / ", teams.Select(t => t.TotalSkillPoints.ToString("F2")))}.");
+
+        AssertPlayersConserved(players, teams);
+    }
+
+    /// <summary>
+    /// The property the two cases above are specimens of, asserted across a spread of awkward
+    /// pool sizes: whatever else the scoring trades off, a team that is short a player must
+    /// never also be the weaker team per player - and the teams must finish close on total
+    /// strength, which is what forces the short-handed side to hold the better players.
+    /// </summary>
+    /// <param name="poolSize">How many players to draft.</param>
+    /// <param name="numberOfTeams">How many teams to split them into.</param>
+    /// <param name="maxMeanSpread">
+    /// Ceiling on the mean gap between the strongest and weakest team's totals over the sweep.
+    /// These are empirical, measured with roughly 15% headroom over what the strategy achieves,
+    /// and every one of them sits below what the pre-existing scoring managed - a 5 v 2 pool
+    /// averaged 0.83 against the 0.70 allowed here, an 8-player three-way 1.11 against 0.97.
+    /// They are quality ratchets, so a change that loosens strength parity trips them; a change
+    /// that tightens it should lower the numbers rather than leave slack.
+    /// </param>
+    [Theory]
+    [InlineData(5, 2, 0.70)]
+    [InlineData(7, 2, 0.60)]
+    [InlineData(9, 2, 0.40)]
+    [InlineData(11, 2, 0.31)]
+    [InlineData(13, 2, 0.25)]
+    [InlineData(15, 2, 0.22)]
+    [InlineData(7, 3, 0.75)]
+    [InlineData(8, 3, 0.97)]
+    [InlineData(11, 3, 0.56)]
+    [InlineData(13, 3, 0.47)]
+    [InlineData(14, 3, 0.46)]
+    public void UnevenSizes_ShortHandedTeamIsNeverWeakerPerPlayer(
+        int poolSize,
+        int numberOfTeams,
+        double maxMeanSpread)
+    {
+        // One pool is not enough to catch this: the property held for all but a handful of
+        // pools even under the old scoring, so a single fixed case would pass either way and
+        // guard nothing. Each size combination therefore sweeps a run of pools off one seed,
+        // which stays reproducible while covering enough skill spreads to bite. Positions are
+        // dealt out too - the position term competes with strength for the same swaps, and the
+        // pools that used to come out short-handed and outclassed were all position-bearing.
+        Position[] positions =
+        [
+            Position.Goalkeeper, Position.Defender, Position.Midfielder, Position.Forward
+        ];
+
+        var rng = new Random(poolSize * 100 + numberOfTeams);
+        var strategy = new DraftStrategy();
+        double spreadSum = 0;
+
+        for (int trial = 0; trial < 40; trial++)
+        {
+            var players = Enumerable.Range(1, poolSize)
+                .Select(n => TestPlayers.Create(
+                    $"P{n}",
+                    positions[rng.Next(positions.Length)],
+                    speed: rng.Next(1, 4),
+                    technical: rng.Next(1, 4),
+                    stamina: rng.Next(1, 4)))
+                .ToList();
+
+            var teams = strategy.BalanceTeams(players, numberOfTeams);
+
+            spreadSum += teams.Max(t => t.TotalSkillPoints) - teams.Min(t => t.TotalSkillPoints);
+
+            int smallest = teams.Min(t => t.PlayerCount);
+            int largest = teams.Max(t => t.PlayerCount);
+
+            // Sizes stay as even as the pool allows either way - that is the count term's job.
+            Assert.True(largest - smallest <= 1,
+                $"Trial {trial}: team sizes should differ by at most one, got " +
+                $"{string.Join("/", teams.Select(t => t.PlayerCount))}.");
+
+            if (smallest == largest)
+            {
+                continue;
+            }
+
+            double weakestShortHanded = teams.Where(t => t.PlayerCount == smallest).Min(t => t.OverallTeamSkill);
+            double strongestFull = teams.Where(t => t.PlayerCount == largest).Max(t => t.OverallTeamSkill);
+
+            Assert.True(weakestShortHanded >= strongestFull - 0.0001,
+                $"Trial {trial}: a {smallest}-player team averaged {weakestShortHanded:F2} against a " +
+                $"{largest}-player team's {strongestFull:F2} - short-handed and outclassed.");
+        }
+
+        double meanSpread = spreadSum / 40;
+
+        Assert.True(meanSpread <= maxMeanSpread,
+            $"Teams finished {meanSpread:F3} apart on total strength on average across " +
+            $"{poolSize} players in {numberOfTeams} teams, over a ceiling of {maxMeanSpread:F2}. " +
+            "Strength parity has been traded away for one of the other scoring terms.");
+    }
+
+    // ---------------------------------------------------------------------
     // Shuffle
     //
     // The unshuffled arms of these degenerate pools live in PositionAwareBalancingTests; what

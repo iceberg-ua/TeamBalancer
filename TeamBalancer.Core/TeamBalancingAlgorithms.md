@@ -114,12 +114,25 @@ better**, 0 being perfect. All variances are population variances.
 
 | Dimension | Weight | Notes |
 |---|---|---|
-| Overall team skill variance | 2.0 | Weighted highest - overall balance dominates |
-| Average speed variance | 1.0 | |
-| Average technical skills variance | 1.0 | |
-| Average stamina variance | 1.0 | |
+| Team strength variance | 2.0 | Weighted highest - strength parity dominates |
+| Speed variance | 1.0 | |
+| Technical skills variance | 1.0 | |
+| Stamina variance | 1.0 | |
 | Player count variance | 1.5 | Keeps team sizes equal |
 | Position imbalance | 1.0 | Low enough that skill still dominates, high enough to break near-ties |
+
+All four skill terms are measured per roster slot - a team's total divided by the *mean* squad
+size, not its own - so that a team fielding fewer players is not flattered by the division. See
+[Uneven team sizes](#uneven-team-sizes) for why that matters.
+
+**Strength is counted in attribute points**, the sum of a team's speed, technical and stamina
+totals - not the mean of them, which is what `Player.OverallSkillLevel` returns. The two differ
+only by a factor of three per team, but that factor squares into a ninth once it reaches the
+variance, and the three attribute terms are then *summed* against it. Measured as a mean,
+strength was worth roughly a twentieth of the spread terms it is supposed to outrank, and splits
+with identical team totals lost to splits that merely spread stamina more evenly. Counting
+attribute points puts strength in the same units as the terms it competes with, so the 2.0 reads
+as what it claims: strength parity counts double any single attribute's spread.
 
 **Position imbalance** is the sum, over Defender / Midfielder / Forward, of the variance in how
 many players of that position each team holds. Two positions are deliberately excluded:
@@ -129,6 +142,36 @@ many players of that position each team holds. Two positions are deliberately ex
 
 A pool where nobody has a position set therefore scores exactly as it did before position
 support existed.
+
+### Uneven team sizes
+
+An odd pool cannot be split evenly, and the count term keeps the sizes within one of each other
+rather than papering over the gap. The side that ends up a player down is compensated in
+quality: because strength is scored on team **totals**, a three-man side has to match a four-man
+side's total, which it can only do by holding better players.
+
+Seven players of ratings 3, 3, 2, 2, 2, 1, 1 split 3 v 4 as:
+
+```
+3-man team:  3  2  2   total 7.0   rating 2.33
+4-man team:  3  2  1 1  total 7.0   rating 1.75
+```
+
+Equal totals is the target, not a starting point to be tilted further. A short-handed side is
+not given a handicap on top - it is not owed *more* than parity - and the extra body is not
+scored as strength in its own right. The rule is simply that the sum on each side matches, and
+the smaller squad reaches that sum with fewer, better players.
+
+Where the arithmetic allows no exact match - fifteen players might split no closer than 14.67
+against 15.00, since a total moves in thirds - the score treats both ways of assigning the last
+third as equal and either may come out. A tie-break biasing that third toward the short-handed
+side was tried and dropped: it decided 8 pools in 520 at a weight small enough to be safe, and
+at a weight large enough to matter it started overshooting parity into the handicap above.
+
+The measured effect across 520 uneven-size pools of 5 to 15 players: no short-handed team is
+weaker per player than a fuller one, and the mean gap between the strongest and weakest team's
+totals fell by a quarter to a half depending on pool size. `DraftStrategyTests` pins both, the
+latter as per-configuration ceilings.
 
 Scoring reads **primary positions only**. A player filling a group on his secondary position
 counts toward his primary position in the score, not the group he filled - secondary position
