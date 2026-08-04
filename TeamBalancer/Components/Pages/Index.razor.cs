@@ -28,6 +28,7 @@ public partial class Index
     private string _message = string.Empty;
     private bool _isError = false;
     private bool _showMenu = false;
+    private bool _showLanguageMenu = false;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -68,7 +69,7 @@ public partial class Index
         }
         catch (Exception ex)
         {
-            _message = $"Error exporting players: {ex.Message}";
+            _message = Loc["home.exportError", ex.Message];
             _isError = true;
         }
     }
@@ -93,13 +94,13 @@ public partial class Index
 
             if (importedCount > 0)
             {
-                _message = $"Successfully imported {importedCount} player(s)!";
+                _message = Loc["home.importSuccess", importedCount];
                 _isError = false;
                 await LoadPlayers();
             }
             else
             {
-                _message = "No valid players found in the CSV file.";
+                _message = Loc["home.importEmpty"];
                 _isError = true;
             }
 
@@ -107,7 +108,7 @@ public partial class Index
         }
         catch (Exception ex)
         {
-            _message = $"Error importing players: {ex.Message}";
+            _message = Loc["home.importError", ex.Message];
             _isError = true;
         }
     }
@@ -115,5 +116,33 @@ public partial class Index
     private void ToggleMenu()
     {
         _showMenu = !_showMenu;
+        _showLanguageMenu = false;
+    }
+
+    private void ToggleLanguageMenu()
+    {
+        _showLanguageMenu = !_showLanguageMenu;
+        _showMenu = false;
+    }
+
+    /// <summary>
+    /// Switches the app to another language and closes the switcher. The service raises its
+    /// change event from here, which is what repaints the rest of the screen.
+    /// </summary>
+    private async Task SelectLanguage(string code)
+    {
+        _showLanguageMenu = false;
+
+        await Loc.SetLanguageAsync(code);
+    }
+
+    /// <inheritdoc />
+    protected override void OnLanguageChanged()
+    {
+        base.OnLanguageChanged();
+
+        // The header and footer belong to the layout, not to this page, so re-rendering the
+        // page alone would leave the title and buttons in the old language.
+        Layout?.Refresh();
     }
 }

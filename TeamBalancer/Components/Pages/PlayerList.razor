@@ -1,14 +1,15 @@
 @page "/create-teams"
+@inherits LocalizedComponentBase
 @using TeamBalancer.Core.Models
 @using TeamBalancer.Core.Services.Balancing
 @using TeamBalancer.Components.Shared
 
 <LayoutSection Section="Header">
     <div class="header-with-back">
-        <button class="back-button" @onclick="Cancel" title="Back">
+        <button class="back-button" @onclick="Cancel" title="@(Loc["common.back"])">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
         </button>
-        <h1 class="header-title-left">Select Players</h1>
+        <h1 class="header-title-left">@Loc["playerList.title"]</h1>
     </div>
 </LayoutSection>
 
@@ -17,21 +18,21 @@
         <button class="btn btn-secondary btn-icon" @onclick="GoToAddPlayer"><i class="fas fa-plus"></i></button>
         @if (_players.Any() && !_isLoading)
         {
-            <button class="btn btn-success" @onclick="CreateTeams" disabled="@NoPlayersSelected">Create</button>
+            <button class="btn btn-success" @onclick="CreateTeams" disabled="@NoPlayersSelected">@Loc["playerList.create"]</button>
         }
-        <button class="btn btn-secondary" @onclick="Cancel">Home</button>
+        <button class="btn btn-secondary" @onclick="Cancel">@Loc["common.home"]</button>
     </div>
 </LayoutSection>
 
 <div class="page-container-playerlist">
     @if (_isLoading)
     {
-        <div class="loading text-center text-muted card-padding">Loading players...</div>
+        <div class="loading text-center text-muted card-padding">@Loc["playerList.loading"]</div>
     }
     else if (!_players.Any())
     {
         <div class="no-players text-center card-padding">
-            <p class="mb-2">No players available. Please add players first.</p>
+            <p class="mb-2">@Loc["playerList.empty"]</p>
         </div>
     }
     else
@@ -47,18 +48,23 @@
 
 @if (_showDeleteConfirm)
 {
+    @* The question puts the player's name in bold, so the translated sentence is split
+       around its placeholder instead of being formatted: a player name is user data and
+       must never reach the page as markup. *@
+    var question = Loc["playerList.deleteConfirm"].Split("{0}");
+
     <div class="confirm-overlay" @onclick="CancelDelete">
         <div class="confirm-dialog" @onclick:stopPropagation="true">
             <div class="confirm-header">
-                <h3>Team Balancer</h3>
+                <h3>@Loc["app.title"]</h3>
             </div>
             <div class="confirm-body">
-                <p>Are you sure you want to delete <strong>@_playerToDelete?.Name</strong>?</p>
-                <p class="confirm-warning">This action cannot be undone.</p>
+                <p>@question[0]<strong>@_playerToDelete?.Name</strong>@(question.Length > 1 ? question[1] : string.Empty)</p>
+                <p class="confirm-warning">@Loc["common.actionCannotBeUndone"]</p>
             </div>
             <div class="confirm-footer">
-                <button class="btn btn-secondary" @onclick="CancelDelete">Cancel</button>
-                <button class="btn btn-danger" @onclick="ConfirmDeletePlayer">Delete</button>
+                <button class="btn btn-secondary" @onclick="CancelDelete">@Loc["common.cancel"]</button>
+                <button class="btn btn-danger" @onclick="ConfirmDeletePlayer">@Loc["common.delete"]</button>
             </div>
         </div>
     </div>

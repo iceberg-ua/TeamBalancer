@@ -1,11 +1,12 @@
 @page "/add-player"
 @page "/add-player/{PlayerId:guid}"
+@inherits LocalizedComponentBase
 @using TeamBalancer.Core.Models
 @using TeamBalancer.Components.Shared
 
 <LayoutSection Section="Header">
     <div class="header-with-back">
-        <button class="back-button" @onclick="Cancel" title="Back">
+        <button class="back-button" @onclick="Cancel" title="@(Loc["common.back"])">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
         </button>
         <h1 class="header-title-left">@PageTitle</h1>
@@ -17,13 +18,13 @@
 
         @if (_isLoading)
         {
-            <div class="loading text-center text-muted card-padding">Loading player...</div>
+            <div class="loading text-center text-muted card-padding">@Loc["addPlayer.loading"]</div>
         }
         else
         {
             <div class="form-container flex-col gap-2">
                 <div class="form-group flex-col">
-                    <label for="playerName">Player Name</label>
+                    <label for="playerName">@Loc["addPlayer.nameLabel"]</label>
                     <input id="playerName"
                            type="text"
                            class="form-control @(_showNameError ? "is-invalid" : "")"
@@ -31,7 +32,7 @@
                            @bind:event="oninput"
                            @bind:after="ValidateName"
                            maxlength="15"
-                           placeholder="Enter player name" />
+                           placeholder="@(Loc["addPlayer.namePlaceholder"])" />
                     @if (_showNameError)
                     {
                         <div class="invalid-feedback">
@@ -41,15 +42,15 @@
                 </div>
 
                 <div class="skills-section flex-col">
-                    <StarRating Label="Speed"
+                    <StarRating Label="@(Loc["skill.speed"])"
                                Value="@_speed"
                                ValueChanged="@((int v) => _speed = v)" />
 
-                    <StarRating Label="Technical Skills"
+                    <StarRating Label="@(Loc["skill.technicalSkills"])"
                                Value="@_technicalSkills"
                                ValueChanged="@((int v) => _technicalSkills = v)" />
 
-                    <StarRating Label="Stamina"
+                    <StarRating Label="@(Loc["skill.stamina"])"
                                Value="@_stamina"
                                ValueChanged="@((int v) => _stamina = v)" />
                 </div>
@@ -84,7 +85,7 @@
                     @SaveButtonText
                 </button>
                 <button class="btn btn-secondary" @onclick="Cancel">
-                    Cancel
+                    @Loc["common.cancel"]
                 </button>
             </div>
         </div>

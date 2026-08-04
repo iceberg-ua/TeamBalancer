@@ -74,6 +74,11 @@
 
         <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
         <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+
+        <!-- Translations, read at runtime by LocalizationService. They keep their folder in
+             the package so the language files stay grouped and cannot collide with a raw
+             asset of the same name. -->
+        <MauiAsset Include="Resources\Languages\**" LogicalName="Languages\%(RecursiveDir)%(Filename)%(Extension)" />
     </ItemGroup>
 
     <ItemGroup>
