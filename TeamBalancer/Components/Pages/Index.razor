@@ -1,10 +1,15 @@
 @page "/"
+@inherits LocalizedComponentBase
 
 <LayoutSection Section="Header">
     <div class="header-with-menu">
-        <div class="header-spacer"></div>
-        <h1 class="header-title-centered">Team Balancer</h1>
-        <button class="menu-button" @onclick="ToggleMenu" title="Menu">
+        @* The language button takes the place the spacer used to hold, so the title stays
+           centred between it and the menu button. *@
+        <button class="menu-button" @onclick="ToggleLanguageMenu" title="@(Loc["language.title"])" aria-label="@(Loc["language.title"])">
+            <i class="fas fa-globe"></i>
+        </button>
+        <h1 class="header-title-centered">@Loc["app.title"]</h1>
+        <button class="menu-button" @onclick="ToggleMenu" title="@(Loc["common.menu"])">
             <i class="fas fa-ellipsis-v"></i>
         </button>
     </div>
@@ -12,19 +17,46 @@
 
 <LayoutSection Section="Footer">
     <div class="footer-buttons">
-        <button class="btn btn-icon btn-secondary" @onclick="AddPlayer" title="Add Player" aria-label="Add Player">
+        <button class="btn btn-icon btn-secondary" @onclick="AddPlayer" title="@(Loc["home.addPlayer"])" aria-label="@(Loc["home.addPlayer"])">
             <i class="fas fa-plus"></i>
         </button>
-        <button class="btn btn-success" @onclick="CreateTeams" disabled="@(!CanCreateTeams)">Create Teams</button>
+        <button class="btn btn-success" @onclick="CreateTeams" disabled="@(!CanCreateTeams)">@Loc["common.createTeams"]</button>
     </div>
 </LayoutSection>
+
+@if (_showLanguageMenu)
+{
+    <div class="menu-overlay menu-overlay-start" @onclick="ToggleLanguageMenu">
+        <div class="menu-popup" @onclick:stopPropagation="true">
+            <div class="menu-header">
+                <h3>@Loc["language.title"]</h3>
+                <button class="close-button" @onclick="ToggleLanguageMenu">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="menu-items">
+                @foreach (var language in Loc.SupportedLanguages)
+                {
+                    var option = language;
+                    var isCurrent = option.Code == Loc.CurrentLanguage;
+                    <button class="menu-item @(isCurrent ? "is-selected" : "")" @onclick="() => SelectLanguage(option.Code)">
+                        @* The tick shares the icon column with the other menus, so the rows
+                           line up whether or not this is the active language. *@
+                        <i class="fas @(isCurrent ? "fa-check" : "")"></i>
+                        <span>@option.NativeName</span>
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+}
 
 @if (_showMenu)
 {
     <div class="menu-overlay" @onclick="ToggleMenu">
         <div class="menu-popup" @onclick:stopPropagation="true">
             <div class="menu-header">
-                <h3>Menu</h3>
+                <h3>@Loc["common.menu"]</h3>
                 <button class="close-button" @onclick="ToggleMenu">
                     <i class="fas fa-times"></i>
                 </button>
@@ -32,11 +64,11 @@
             <div class="menu-items">
                 <button class="menu-item" @onclick="ExportPlayers">
                     <i class="fas fa-upload"></i>
-                    <span>Export Players</span>
+                    <span>@Loc["home.exportPlayers"]</span>
                 </button>
                 <label class="menu-item">
                     <i class="fas fa-download"></i>
-                    <span>Import Players</span>
+                    <span>@Loc["home.importPlayers"]</span>
                     <InputFile OnChange="ImportPlayers" accept=".csv,text/csv,text/comma-separated-values,application/csv" style="display: none;" />
                 </label>
             </div>

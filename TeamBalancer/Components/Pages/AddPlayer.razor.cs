@@ -9,7 +9,7 @@ namespace TeamBalancer.Components.Pages;
 /// Code-behind for AddPlayer component.
 /// Handles both adding new players and editing existing players.
 /// </summary>
-public partial class AddPlayer : ComponentBase
+public partial class AddPlayer
 {
     #region Injected Dependencies
 
@@ -62,12 +62,12 @@ public partial class AddPlayer : ComponentBase
     /// <summary>
     /// Gets the page title based on the mode.
     /// </summary>
-    private string PageTitle => IsEditMode ? "Edit Player" : "Add Player";
+    private string PageTitle => IsEditMode ? Loc["addPlayer.editTitle"] : Loc["addPlayer.addTitle"];
 
     /// <summary>
     /// Gets the save button text based on the mode.
     /// </summary>
-    private string SaveButtonText => IsEditMode ? "Save Changes" : "Save Player";
+    private string SaveButtonText => IsEditMode ? Loc["addPlayer.saveChanges"] : Loc["addPlayer.savePlayer"];
 
     /// <summary>
     /// Gets whether the form is valid and can be submitted.
@@ -153,12 +153,12 @@ public partial class AddPlayer : ComponentBase
             }
             else
             {
-                _errorMessage = "Player not found.";
+                _errorMessage = Loc["addPlayer.notFound"];
             }
         }
         catch (Exception ex)
         {
-            _errorMessage = $"Error loading player: {ex.Message}";
+            _errorMessage = Loc["addPlayer.loadError", ex.Message];
         }
         finally
         {
@@ -187,29 +187,29 @@ public partial class AddPlayer : ComponentBase
             // Provide specific error message based on validation failure
             if (_playerName != _playerName.Trim())
             {
-                _nameErrorMessage = "Player name cannot have leading or trailing spaces.";
+                _nameErrorMessage = Loc["validation.nameLeadingTrailingSpaces"];
             }
             else if (_playerName.Contains(','))
             {
-                _nameErrorMessage = "Player name cannot contain commas.";
+                _nameErrorMessage = Loc["validation.nameCommas"];
             }
             else if (_playerName.Contains('"'))
             {
-                _nameErrorMessage = "Player name cannot contain quotes.";
+                _nameErrorMessage = Loc["validation.nameQuotes"];
             }
             else if (_playerName.Length > 15)
             {
-                _nameErrorMessage = "Player name cannot exceed 15 characters.";
+                _nameErrorMessage = Loc["validation.nameTooLong"];
             }
             else if (_playerName.Length > 0 &&
                      (_playerName[0] == '=' || _playerName[0] == '+' ||
                       _playerName[0] == '-' || _playerName[0] == '@'))
             {
-                _nameErrorMessage = "Player name cannot start with =, +, -, or @ characters.";
+                _nameErrorMessage = Loc["validation.nameLeadingSymbol"];
             }
             else
             {
-                _nameErrorMessage = "Player name is invalid.";
+                _nameErrorMessage = Loc["validation.nameInvalid"];
             }
         }
         else
@@ -222,7 +222,7 @@ public partial class AddPlayer : ComponentBase
                 if (existingPlayer != null)
                 {
                     _showNameError = true;
-                    _nameErrorMessage = "A player with this name already exists.";
+                    _nameErrorMessage = Loc["validation.nameDuplicate"];
                 }
                 else
                 {
@@ -253,7 +253,7 @@ public partial class AddPlayer : ComponentBase
     {
         _showPositionError = _primaryPosition == Position.Unspecified;
         _positionErrorMessage = _showPositionError
-            ? "Select a primary position before saving this player."
+            ? Loc["validation.primaryPositionRequired"]
             : string.Empty;
     }
 
@@ -301,7 +301,7 @@ public partial class AddPlayer : ComponentBase
         }
         catch (Exception ex)
         {
-            _errorMessage = $"Error saving player: {ex.Message}";
+            _errorMessage = Loc["addPlayer.saveError", ex.Message];
         }
     }
 

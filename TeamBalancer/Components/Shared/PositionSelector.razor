@@ -1,9 +1,11 @@
+@using TeamBalancer.Core.Localization
 @using TeamBalancer.Core.Models
 @using TeamBalancer.Extensions
+@inject ILocalizationService Loc
 
 <div class="position-selector flex-col">
     <div class="form-group flex-col">
-        <label id="primaryPositionLabel">Primary Position</label>
+        <label id="primaryPositionLabel">@Loc["position.primaryLabel"]</label>
         <div class="seg @(PrimaryPosition == Position.Unspecified ? "is-unset" : "")"
              role="group"
              aria-labelledby="primaryPositionLabel">
@@ -12,7 +14,7 @@
                 var option = position;
                 <button type="button"
                         class="seg-opt @(PrimaryPosition == option ? "is-selected" : "")"
-                        title="@option.ToDisplayName()"
+                        title="@option.ToDisplayName(Loc)"
                         aria-pressed="@(PrimaryPosition == option)"
                         @onclick="() => TogglePrimary(option)">
                     @option.ToAbbreviation()
@@ -22,14 +24,14 @@
     </div>
 
     <div class="form-group flex-col">
-        <label id="secondaryPositionLabel">Secondary Position (optional)</label>
+        <label id="secondaryPositionLabel">@Loc["position.secondaryLabel"]</label>
         <div class="seg" role="group" aria-labelledby="secondaryPositionLabel">
             @foreach (var position in PositionExtensions.SelectablePositions.Where(p => p != PrimaryPosition))
             {
                 var option = position;
                 <button type="button"
                         class="seg-opt @(SecondaryPosition == option ? "is-selected" : "")"
-                        title="@option.ToDisplayName()"
+                        title="@option.ToDisplayName(Loc)"
                         aria-pressed="@(SecondaryPosition == option)"
                         @onclick="() => ToggleSecondary(option)">
                     @option.ToAbbreviation()

@@ -1,5 +1,6 @@
 namespace TeamBalancer.Extensions;
 
+using TeamBalancer.Core.Localization;
 using TeamBalancer.Core.Models;
 
 /// <summary>
@@ -21,7 +22,9 @@ public static class PositionExtensions
 
     /// <summary>
     /// Gets the compact abbreviation used where horizontal space is tight, such as list
-    /// items and team summaries.
+    /// items and team summaries. These stay untranslated deliberately: GK/DEF/MID/FWD are
+    /// the abbreviations football uses whatever language it is watched in, and they have to
+    /// fit a badge that is only a few characters wide.
     /// </summary>
     /// <param name="position">The position to abbreviate.</param>
     /// <returns>A short abbreviation, or "?" when no position is set.</returns>
@@ -35,17 +38,20 @@ public static class PositionExtensions
     };
 
     /// <summary>
-    /// Gets the full, human-readable name used in form controls.
+    /// Gets the full, human-readable name used in form controls, in the app's current
+    /// language. The service is a parameter rather than an injected dependency because an
+    /// extension method has nowhere for a container to inject one.
     /// </summary>
     /// <param name="position">The position to name.</param>
-    /// <returns>The display name, or "Not set" when no position is set.</returns>
-    public static string ToDisplayName(this Position position) => position switch
+    /// <param name="loc">The localization service to read the name from.</param>
+    /// <returns>The display name, or the "not set" wording when no position is set.</returns>
+    public static string ToDisplayName(this Position position, ILocalizationService loc) => position switch
     {
-        Position.Goalkeeper => "Goalkeeper",
-        Position.Defender => "Defender",
-        Position.Midfielder => "Midfielder",
-        Position.Forward => "Forward",
-        _ => "Not set"
+        Position.Goalkeeper => loc["position.goalkeeper"],
+        Position.Defender => loc["position.defender"],
+        Position.Midfielder => loc["position.midfielder"],
+        Position.Forward => loc["position.forward"],
+        _ => loc["position.notSet"]
     };
 
     /// <summary>

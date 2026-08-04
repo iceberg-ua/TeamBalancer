@@ -27,6 +27,12 @@
     <Content Include="TestData\players-legacy.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+
+    <!-- The translation files the app ships, linked rather than copied so the key-parity
+         tests check the real ones and cannot drift from them. -->
+    <Content Include="..\TeamBalancer\Resources\Languages\*.json" Link="Languages\%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

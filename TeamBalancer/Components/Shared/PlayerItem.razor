@@ -1,5 +1,7 @@
+@using TeamBalancer.Core.Localization
 @using TeamBalancer.Core.Models
 @using TeamBalancer.Extensions
+@inject ILocalizationService Loc
 
 <div class="player-item @(IsMenuOpen ? "menu-open" : "")" @onclick="CloseMenu">
     <label class="player-checkbox">
@@ -16,22 +18,22 @@
     <div class="player-positions">
         @if (Player.PrimaryPosition == Position.Unspecified)
         {
-            <span class="position-badge pos-unset" title="No position set for this player">
+            <span class="position-badge pos-unset" title="@(Loc["playerItem.noPositionTitle"])">
                 <i class="fas fa-circle-question"></i>
-                <span class="badge-text">Set position</span>
+                <span class="badge-text">@Loc["playerItem.setPosition"]</span>
             </span>
         }
         else
         {
             <span class="position-badge"
-                  title="Primary position: @Player.PrimaryPosition.ToDisplayName()">
+                  title="@(Loc["playerItem.primaryPositionTitle", Player.PrimaryPosition.ToDisplayName(Loc)])">
                 @Player.PrimaryPosition.ToAbbreviation()
             </span>
 
             @if (Player.SecondaryPosition.HasValue)
             {
                 <span class="position-badge is-secondary"
-                      title="Secondary position: @Player.SecondaryPosition.Value.ToDisplayName()">
+                      title="@(Loc["playerItem.secondaryPositionTitle", Player.SecondaryPosition.Value.ToDisplayName(Loc)])">
                     @Player.SecondaryPosition.Value.ToAbbreviation()
                 </span>
             }
@@ -41,7 +43,7 @@
     @* One overall cluster stands in for the three skills the row used to list. The
        exact breakdown stays reachable as a tooltip. *@
     <div class="player-skills"
-         title="Speed @Player.Speed, Technical @Player.TechnicalSkills, Stamina @Player.Stamina">
+         title="@(Loc["playerItem.skillsTitle", Player.Speed, Player.TechnicalSkills, Player.Stamina])">
         <SkillRatingDisplay Rating="@((int)Math.Round(Player.OverallSkillLevel, MidpointRounding.AwayFromZero))" />
     </div>
 
@@ -51,7 +53,7 @@
             <button class="actions-menu-button"
                     @onclick="ToggleMenu"
                     @onclick:stopPropagation="true"
-                    title="Player actions">
+                    title="@(Loc["playerItem.actionsTitle"])">
                 <i class="fas fa-ellipsis-v"></i>
             </button>
 
@@ -64,7 +66,7 @@
                                 @onclick="HandleEdit"
                                 @onclick:stopPropagation="true">
                             <i class="fas fa-edit"></i>
-                            <span>Edit Player</span>
+                            <span>@Loc["playerItem.edit"]</span>
                         </button>
                     }
                     @if (ShowDeleteButton)
@@ -73,7 +75,7 @@
                                 @onclick="HandleDelete"
                                 @onclick:stopPropagation="true">
                             <i class="fas fa-trash"></i>
-                            <span>Delete Player</span>
+                            <span>@Loc["playerItem.delete"]</span>
                         </button>
                     }
                 </div>

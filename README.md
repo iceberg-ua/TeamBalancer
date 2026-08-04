@@ -45,6 +45,13 @@ description of the algorithm and the alternatives that were considered.
 - 🔒 **CSV Injection Prevention** - Comprehensive security validation
 - ✅ Input validation with detailed error messages
 
+### Languages
+- 🌍 English, German and Ukrainian, switchable from the home screen without restarting
+- 📱 Starts in the device's language when it is one of the three, and falls back to English
+  otherwise; the choice is remembered on the device
+- 📝 Translations live in plain JSON files under `TeamBalancer/Resources/Languages/`, one per
+  language, keyed by flat dot-notation strings such as `playerList.title`
+
 ## 🏗️ Architecture
 
 TeamBalancer follows **Clean Architecture** principles with clear separation of concerns:
@@ -53,6 +60,7 @@ TeamBalancer follows **Clean Architecture** principles with clear separation of 
 TeamBalancer/
 ├── TeamBalancer.Core/              # Business logic (platform-agnostic)
 │   ├── Models/                     # Domain models (Player, Team)
+│   ├── Localization/              # Translation lookup and fallback
 │   ├── Services/
 │   │   ├── Balancing/             # Team balancing
 │   │   │   ├── BaseTeamBalancingStrategy.cs   # Scoring + swap refinement
@@ -65,6 +73,8 @@ TeamBalancer/
     ├── Components/
     │   ├── Pages/                 # Main application pages
     │   └── Shared/                # Reusable UI components
+    ├── Localization/              # Platform side of localization
+    ├── Resources/Languages/       # en.json, de.json, uk.json
     └── Services/                  # UI-specific services
 ```
 

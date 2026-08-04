@@ -727,6 +727,15 @@ div.menu-overlay,
     margin: 0 !important;
 }
 
+/* The language switcher drops from the left of the header, under the button that opens it,
+   mirroring the menu on the right. */
+div.menu-overlay.menu-overlay-start,
+.menu-overlay.menu-overlay-start {
+    justify-content: flex-start !important;
+    padding-left: 1rem;
+    padding-right: 0;
+}
+
 div.menu-popup,
 .menu-popup {
     background: var(--color-surface) !important;
@@ -822,6 +831,12 @@ label.menu-item:hover,
 .menu-item span {
     color: var(--color-text);
     font-weight: 500;
+}
+
+/* The row the language switcher is currently on. */
+.menu-item.is-selected span {
+    color: var(--color-accent);
+    font-weight: 700;
 }
 
 /* Index page centered layout */

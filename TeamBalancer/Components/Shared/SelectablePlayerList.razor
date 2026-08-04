@@ -1,4 +1,6 @@
+@using TeamBalancer.Core.Localization
 @using TeamBalancer.Core.Models
+@inject ILocalizationService Loc
 
 @if (_openMenuPlayerId != null)
 {
@@ -11,11 +13,11 @@
             <input type="checkbox"
                    checked="@IsAllSelected"
                    @onchange="OnSelectAllChanged" />
-            <span class="header-name">Player (@SelectedPlayerIds.Count/@Players.Count)</span>
+            <span class="header-name">@(Loc["playerList.headerPlayer", SelectedPlayerIds.Count, Players.Count])</span>
         </label>
         @* Column order mirrors PlayerItem: rating sits left of the kebab, not right of it. *@
         <div class="header-skills">
-            <span>Rating</span>
+            <span>@Loc["playerList.headerRating"]</span>
         </div>
         <div class="header-actions-spacer"></div>
     </div>

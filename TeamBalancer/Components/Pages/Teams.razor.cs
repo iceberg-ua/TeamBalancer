@@ -7,7 +7,7 @@ using TeamBalancer.Services;
 
 namespace TeamBalancer.Components.Pages;
 
-public partial class Teams : IDisposable
+public partial class Teams
 {
     [Inject]
     private NavigationManager Navigation { get; set; } = default!;
@@ -24,6 +24,8 @@ public partial class Teams : IDisposable
 
     protected override void OnInitialized()
     {
+        base.OnInitialized();
+
         // Load teams from state service
         GeneratedTeams = TeamState.CurrentTeams;
 
@@ -75,12 +77,21 @@ public partial class Teams : IDisposable
     /// <summary>
     /// Gets the three skills the comparison card puts head to head.
     /// </summary>
-    private static IEnumerable<BalanceMetric> GetBalanceMetrics(Team left, Team right)
+    private IEnumerable<BalanceMetric> GetBalanceMetrics(Team left, Team right)
     {
-        yield return new BalanceMetric("Speed", left.AverageSpeed, right.AverageSpeed);
-        yield return new BalanceMetric("Technical", left.AverageTechnicalSkills, right.AverageTechnicalSkills);
-        yield return new BalanceMetric("Stamina", left.AverageStamina, right.AverageStamina);
+        yield return new BalanceMetric(Loc["skill.speed"], left.AverageSpeed, right.AverageSpeed);
+        yield return new BalanceMetric(Loc["skill.technical"], left.AverageTechnicalSkills, right.AverageTechnicalSkills);
+        yield return new BalanceMetric(Loc["skill.stamina"], left.AverageStamina, right.AverageStamina);
     }
+
+    /// <summary>
+    /// Gets the name shown for the team at a position in the list. The strategies name teams
+    /// "Team A", "Team B", ... by that same position, and rebuilding the label here is what
+    /// lets it be translated - the stored name is generated in Core, which has no
+    /// localization of its own.
+    /// </summary>
+    /// <param name="index">The team's index in <see cref="GeneratedTeams"/>.</param>
+    private string TeamName(int index) => Loc["teams.name", (char)('A' + index)];
 
     /// <summary>
     /// Gets a team's overall rating: the mean of its three skill averages. This is the
@@ -110,7 +121,7 @@ public partial class Teams : IDisposable
     /// Players without a position land in a separate "Unset" entry, which is only shown when
     /// it is non-empty.
     /// </summary>
-    private static IEnumerable<PositionSummaryEntry> GetPositionSummary(Team team)
+    private IEnumerable<PositionSummaryEntry> GetPositionSummary(Team team)
     {
         foreach (var position in PositionExtensions.SelectablePositions)
         {
@@ -119,17 +130,17 @@ public partial class Teams : IDisposable
                 position.ToAbbreviation(),
                 position.ToBadgeClass(),
                 count,
-                $"{count} × {position.ToDisplayName()}");
+                Loc["teams.positionCountTitle", count, position.ToDisplayName(Loc)]);
         }
 
         var unsetCount = team.Players.Count(p => p.PrimaryPosition == Position.Unspecified);
         if (unsetCount > 0)
         {
             yield return new PositionSummaryEntry(
-                "Unset",
+                Loc["position.unset"],
                 "pos-unset",
                 unsetCount,
-                $"{unsetCount} player(s) with no position set");
+                Loc["teams.unsetCountTitle", unsetCount]);
         }
     }
 
@@ -143,8 +154,10 @@ public partial class Teams : IDisposable
         Navigation.NavigateTo("/");
     }
 
-    public void Dispose()
+    public override void Dispose()
     {
         TeamState.OnTeamsChanged -= OnTeamsChanged;
+
+        base.Dispose();
     }
 }

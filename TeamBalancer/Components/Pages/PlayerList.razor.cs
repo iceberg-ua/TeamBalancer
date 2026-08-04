@@ -12,7 +12,7 @@ namespace TeamBalancer.Components.Pages;
 /// Code-behind for PlayerList component.
 /// Handles player selection, team creation, and player deletion.
 /// </summary>
-public partial class PlayerList : ComponentBase
+public partial class PlayerList
 {
     #region Injected Dependencies
 
