@@ -1,0 +1,103 @@
+.loading {
+    font-size: 1.2rem;
+}
+
+.list-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.list-row {
+    display: flex;
+    align-items: stretch;
+    border: 2px solid var(--color-divider);
+    border-radius: 8px;
+    background-color: var(--color-surface);
+    overflow: hidden;
+}
+
+.list-row.is-active {
+    border-color: var(--color-accent);
+    background-color: rgba(127, 176, 105, 0.1);
+}
+
+/* The whole name area is the switch target, so reaching a list takes one tap anywhere along
+   the row rather than a hit on a small control. */
+.list-row-main {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 0;
+    padding: 1rem;
+    border: none;
+    background: transparent;
+    color: var(--color-text);
+    font-size: 1rem;
+    text-align: left;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.list-row-main:hover:not(:disabled) {
+    background-color: rgba(233, 233, 237, 0.06);
+}
+
+/* The active row's button is disabled - there is nowhere to switch to - but it is still the
+   row the eye goes to, so it keeps full contrast instead of the usual dimmed look. */
+.list-row-main:disabled {
+    cursor: default;
+    opacity: 1;
+}
+
+.list-row-main i {
+    width: 20px;
+    flex-shrink: 0;
+    text-align: center;
+    color: var(--color-accent);
+}
+
+.list-row-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.list-row.is-active .list-row-name {
+    font-weight: 700;
+    color: var(--color-accent);
+}
+
+.list-row-actions {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    padding-right: 0.5rem;
+}
+
+.list-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-size: 1rem;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.list-action:hover {
+    background-color: rgba(233, 233, 237, 0.08);
+    color: var(--color-text);
+}
+
+.list-action-danger:hover {
+    color: #d16b72;
+}

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using TeamBalancer.Components.Layout;
+using TeamBalancer.Core.Models;
 using TeamBalancer.Core.Services.Interfaces;
 using TeamBalancer.Services;
 
@@ -10,6 +11,12 @@ public partial class Index
 {
     [Inject]
     private IPlayerRepository PlayerRepository { get; set; } = default!;
+
+    [Inject]
+    private IActivePlayerRepository ActivePlayerRepository { get; set; } = default!;
+
+    [Inject]
+    private IPlayerListRepository PlayerListRepository { get; set; } = default!;
 
     [Inject]
     private ICsvImportExportService CsvImportExportService { get; set; } = default!;
@@ -29,16 +36,52 @@ public partial class Index
     private bool _isError = false;
     private bool _showMenu = false;
     private bool _showLanguageMenu = false;
+    private bool _showListMenu = false;
+    private List<PlayerListInfo> _lists = new();
+    private string _activeListName = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        ActivePlayerRepository.ListChanged += HandleListChanged;
+    }
 
     protected override async Task OnParametersSetAsync()
     {
+        // Players first: reading them is what makes the repository resolve which list is
+        // active, and the header cannot name the active list until it has. Both run on every
+        // navigation back here, so a list renamed or deleted on the manage screen shows up.
         await LoadPlayers();
+        await LoadLists();
+    }
+
+    public override void Dispose()
+    {
+        ActivePlayerRepository.ListChanged -= HandleListChanged;
+
+        base.Dispose();
     }
 
     private async Task LoadPlayers()
     {
         var players = await PlayerRepository.GetAllAsync();
         _playerCount = players.Count();
+        Layout?.Refresh();
+    }
+
+    /// <summary>
+    /// Loads the lists behind the switcher, and the name of the active one for the header.
+    /// </summary>
+    private async Task LoadLists()
+    {
+        _lists = (await PlayerListRepository.GetAllAsync()).ToList();
+
+        var active = _lists.FirstOrDefault(l => l.Id == ActivePlayerRepository.CurrentListId);
+        _activeListName = active?.Name ?? string.Empty;
+
+        // The switcher is part of the header, which belongs to the layout rather than to this
+        // page, so re-rendering the page alone would leave the old name on screen.
         Layout?.Refresh();
     }
 
@@ -117,13 +160,53 @@ public partial class Index
     {
         _showMenu = !_showMenu;
         _showLanguageMenu = false;
+        _showListMenu = false;
     }
 
     private void ToggleLanguageMenu()
     {
         _showLanguageMenu = !_showLanguageMenu;
         _showMenu = false;
+        _showListMenu = false;
     }
+
+    private void ToggleListMenu()
+    {
+        _showListMenu = !_showListMenu;
+        _showMenu = false;
+        _showLanguageMenu = false;
+    }
+
+    /// <summary>
+    /// Switches to another player list and closes the switcher. The repository raises
+    /// ListChanged from here, which is what reloads this screen's player count.
+    /// </summary>
+    private async Task SelectList(Guid listId)
+    {
+        _showListMenu = false;
+
+        await ActivePlayerRepository.SwitchListAsync(listId);
+    }
+
+    private void GoToPlayerLists()
+    {
+        _showListMenu = false;
+
+        Navigation.NavigateTo("/player-lists");
+    }
+
+    /// <summary>
+    /// Reloads the header and the player count after the active list changed - which can
+    /// happen from this screen's own switcher, or from the manage screen deleting the list
+    /// that was active.
+    /// </summary>
+    private void HandleListChanged() => InvokeAsync(async () =>
+    {
+        await LoadPlayers();
+        await LoadLists();
+
+        StateHasChanged();
+    });
 
     /// <summary>
     /// Switches the app to another language and closes the switcher. The service raises its

@@ -300,6 +300,38 @@ a, .btn-link {
     font-weight: 600;
 }
 
+/* Form field styles, shared by the Add Player form and the list name dialog. They are global
+   rather than scoped to either, so a text box looks the same wherever one is typed into. */
+.form-group {
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--color-text);
+}
+
+.form-control {
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 2px solid var(--color-divider);
+    border-radius: 4px;
+    background-color: var(--color-surface);
+    color: var(--color-text);
+}
+
+.invalid-feedback {
+    color: #d16b72;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.is-invalid {
+    border-color: #a13a42 !important;
+    border-width: 2px;
+}
+
 /* Global Button Styles */
 .btn {
     padding: 1.125rem 1.5rem;
@@ -392,6 +424,15 @@ a, .btn-link {
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
     outline: none;
     box-shadow: 0 0 0 2px var(--color-accent);
+}
+
+/* A focused text box takes an accent border rather than the ring above, which on a field the
+   width of the screen reads as a glow. Ordered after that rule deliberately - the two have
+   the same specificity, so this only wins by coming last. */
+.form-control:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: none;
 }
 
 @media (min-width: 768px) {
@@ -837,6 +878,137 @@ label.menu-item:hover,
 .menu-item.is-selected span {
     color: var(--color-accent);
     font-weight: 700;
+}
+
+/* The player list switcher hangs from the middle of the header, under the name it opens on,
+   rather than from either edge. */
+div.menu-overlay.menu-overlay-center,
+.menu-overlay.menu-overlay-center {
+    justify-content: center !important;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+/* A menu row that leaves the menu rather than choosing from it - "Manage lists" - reads as
+   the footer of the list it follows. */
+.menu-item.menu-item-action span {
+    color: var(--color-text-muted);
+}
+
+/* Header title stacked over the active player list's name. */
+.header-title-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+}
+
+.header-title-block .header-title-centered {
+    flex: 0 0 auto;
+}
+
+button.list-switcher,
+.list-switcher {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    max-width: 100%;
+    padding: 0.15rem 0.4rem;
+    border: none !important;
+    border-radius: 6px;
+    background: transparent !important;
+    color: var(--color-text-muted) !important;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-tap-highlight-color: transparent;
+}
+
+button.list-switcher:hover,
+.list-switcher:hover {
+    background: rgba(127, 176, 105, 0.15) !important;
+    color: var(--color-text) !important;
+}
+
+.list-switcher-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.list-switcher i {
+    font-size: 0.7rem;
+    flex-shrink: 0;
+}
+
+/* Confirmation dialog, shared by the screens that ask before deleting something. It started
+   out scoped to the player list and moved here once the list manager needed the same one. */
+.confirm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 1rem;
+}
+
+.confirm-dialog {
+    background: var(--color-surface);
+    border-radius: 12px;
+    box-shadow: 0 0 0 1px var(--color-divider), 0 16px 40px rgba(0, 0, 0, 0.5);
+    max-width: 320px;
+    width: 100%;
+    overflow: hidden;
+}
+
+.confirm-header {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    padding: 1rem;
+    border-bottom: 1px solid var(--color-divider);
+}
+
+.confirm-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.confirm-body {
+    padding: 1.25rem;
+}
+
+.confirm-body p {
+    margin: 0 0 0.5rem 0;
+    color: var(--color-text);
+}
+
+.confirm-body .confirm-warning {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+.confirm-footer {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--color-divider);
+    justify-content: flex-end;
+}
+
+.confirm-footer .btn {
+    min-width: auto;
+    height: auto;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
 }
 
 /* Index page centered layout */

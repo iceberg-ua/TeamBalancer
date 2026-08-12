@@ -28,31 +28,6 @@
     flex-direction: column;
 }
 
-.form-group {
-    gap: 0.5rem;
-}
-
-.form-group label {
-    font-weight: 600;
-    font-size: 1rem;
-    color: var(--color-text);
-}
-
-.form-control {
-    padding: 0.75rem;
-    font-size: 1rem;
-    border: 2px solid var(--color-divider);
-    border-radius: 4px;
-    background-color: var(--color-surface);
-    color: var(--color-text);
-}
-
-.form-control:focus {
-    outline: none;
-    border-color: var(--color-accent);
-    box-shadow: none;
-}
-
 .skills-section {
     gap: 1.25rem;
     padding: 1rem 0;
@@ -69,17 +44,6 @@
     background-color: rgba(161, 58, 66, 0.18);
     color: #e5a7ab;
     border: 1px solid rgba(161, 58, 66, 0.4);
-}
-
-.invalid-feedback {
-    color: #d16b72;
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
-}
-
-.is-invalid {
-    border-color: #a13a42 !important;
-    border-width: 2px;
 }
 
 /* Bootstrap keeps .invalid-feedback hidden unless it follows an .is-invalid sibling.

@@ -20,6 +20,9 @@ public partial class PlayerList
     private IPlayerRepository PlayerRepository { get; set; } = default!;
 
     [Inject]
+    private IActivePlayerRepository ActivePlayerRepository { get; set; } = default!;
+
+    [Inject]
     private TeamBalancingService TeamBalancingService { get; set; } = default!;
 
     [Inject]
@@ -63,7 +66,17 @@ public partial class PlayerList
     /// </summary>
     protected override async Task OnInitializedAsync()
     {
+        ActivePlayerRepository.ListChanged += HandleListChanged;
+
         await LoadPlayers();
+    }
+
+    /// <inheritdoc />
+    public override void Dispose()
+    {
+        ActivePlayerRepository.ListChanged -= HandleListChanged;
+
+        base.Dispose();
     }
 
     #endregion
@@ -84,6 +97,17 @@ public partial class PlayerList
         _isLoading = false;
         StateHasChanged();
     }
+
+    /// <summary>
+    /// Reloads the screen after the active list changed underneath it. The players and their
+    /// ticks both come from the new list's file, so a plain reload is the whole of it.
+    /// </summary>
+    private void HandleListChanged() => InvokeAsync(async () =>
+    {
+        await LoadPlayers();
+
+        Layout?.Refresh();
+    });
 
     /// <summary>
     /// Handles individual player selection changes.

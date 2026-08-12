@@ -115,45 +115,11 @@ public class Player
 
     /// <summary>
     /// Validates that the player name doesn't contain invalid characters that would break CSV format
-    /// or allow CSV injection attacks.
+    /// or allow CSV injection attacks. The rules themselves live in <see cref="CsvSafeName"/>,
+    /// which player list names are held to as well.
     /// </summary>
     /// <returns>True if the name is valid, false otherwise.</returns>
-    public bool IsNameValid()
-    {
-        if (string.IsNullOrWhiteSpace(Name))
-        {
-            return false;
-        }
-
-        // Trim to check for leading/trailing whitespace
-        if (Name != Name.Trim())
-        {
-            return false;
-        }
-
-        // Check for CSV special characters that would break parsing
-        if (Name.Contains(',') || Name.Contains('"') || Name.Contains('\n') || Name.Contains('\r'))
-        {
-            return false;
-        }
-
-        // Check for CSV injection characters (formula injection attack prevention)
-        // These characters at the start of a cell can cause Excel/Sheets to execute formulas
-        char firstChar = Name[0];
-        if (firstChar == '=' || firstChar == '+' || firstChar == '-' || firstChar == '@' ||
-            firstChar == '\t' || firstChar == '\r')
-        {
-            return false;
-        }
-
-        // Reasonable length limit for UI display
-        if (Name.Length > 15)
-        {
-            return false;
-        }
-
-        return true;
-    }
+    public bool IsNameValid() => CsvSafeName.IsValid(Name);
 
     /// <summary>
     /// Returns a string representation of the player.

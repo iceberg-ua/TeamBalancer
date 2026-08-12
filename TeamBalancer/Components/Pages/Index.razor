@@ -8,7 +8,15 @@
         <button class="menu-button" @onclick="ToggleLanguageMenu" title="@(Loc["language.title"])" aria-label="@(Loc["language.title"])">
             <i class="fas fa-globe"></i>
         </button>
-        <h1 class="header-title-centered">@Loc["app.title"]</h1>
+        @* The active list's name sits under the title rather than replacing it: which squad
+           is loaded is the second thing you need to know about this screen, not the first. *@
+        <div class="header-title-block">
+            <h1 class="header-title-centered">@Loc["app.title"]</h1>
+            <button class="list-switcher" @onclick="ToggleListMenu" title="@(Loc["playerLists.switcher"])" aria-label="@(Loc["playerLists.switcher"])">
+                <span class="list-switcher-name">@_activeListName</span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
         <button class="menu-button" @onclick="ToggleMenu" title="@(Loc["common.menu"])">
             <i class="fas fa-ellipsis-v"></i>
         </button>
@@ -46,6 +54,37 @@
                         <span>@option.NativeName</span>
                     </button>
                 }
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showListMenu)
+{
+    <div class="menu-overlay menu-overlay-center" @onclick="ToggleListMenu">
+        <div class="menu-popup" @onclick:stopPropagation="true">
+            <div class="menu-header">
+                <h3>@Loc["playerLists.title"]</h3>
+                <button class="close-button" @onclick="ToggleListMenu">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="menu-items">
+                @foreach (var list in _lists)
+                {
+                    var option = list;
+                    var isCurrent = option.Id == ActivePlayerRepository.CurrentListId;
+                    <button class="menu-item @(isCurrent ? "is-selected" : "")" @onclick="() => SelectList(option.Id)">
+                        @* The tick shares the icon column with the other menus, so the rows
+                           line up whether or not this is the active list. *@
+                        <i class="fas @(isCurrent ? "fa-check" : "")"></i>
+                        <span>@option.Name</span>
+                    </button>
+                }
+                <button class="menu-item menu-item-action" @onclick="GoToPlayerLists">
+                    <i class="fas fa-sliders-h"></i>
+                    <span>@Loc["playerLists.manage"]</span>
+                </button>
             </div>
         </div>
     </div>

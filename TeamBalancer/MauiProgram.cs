@@ -57,13 +57,25 @@ public static class MauiProgram
 		// Register CSV parser
 		services.AddSingleton<ICsvParser, CsvParser>();
 
-		// Register player repository with CSV file path
-		var dataFilePath = Path.Combine(FileSystem.AppDataDirectory, "players.csv");
-		services.AddSingleton<IPlayerRepository>(sp =>
+		// Register the player list store and the active-list preference. The list repository
+		// also performs the one-time upgrade from single-list storage the first time it reads.
+		var dataDirectory = FileSystem.AppDataDirectory;
+		services.AddSingleton<IPlayerListRepository>(sp =>
 		{
 			var csvParser = sp.GetRequiredService<ICsvParser>();
-			return new CsvPlayerRepository(csvParser, dataFilePath);
+			return new CsvPlayerListRepository(csvParser, dataDirectory);
 		});
+		services.AddSingleton<ICurrentListPreference, MauiCurrentListPreference>();
+
+		// Register the player repository. It is one object registered under two interfaces:
+		// the list switcher asks for IActivePlayerRepository, every screen that only deals in
+		// players keeps asking for IPlayerRepository and gets the active list's players.
+		services.AddSingleton<IActivePlayerRepository>(sp => new ActivePlayerRepository(
+			sp.GetRequiredService<ICsvParser>(),
+			sp.GetRequiredService<IPlayerListRepository>(),
+			sp.GetRequiredService<ICurrentListPreference>(),
+			dataDirectory));
+		services.AddSingleton<IPlayerRepository>(sp => sp.GetRequiredService<IActivePlayerRepository>());
 
 		// Register CSV import/export service
 		services.AddSingleton<ICsvImportExportService, CsvImportExportService>();

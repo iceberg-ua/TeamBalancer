@@ -1,0 +1,133 @@
+@page "/player-lists"
+@inherits LocalizedComponentBase
+@using TeamBalancer.Core.Models
+
+<LayoutSection Section="Header">
+    <div class="header-with-back">
+        <button class="back-button" @onclick="GoHome" title="@(Loc["common.back"])">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+        </button>
+        <h1 class="header-title-left">@Loc["playerLists.title"]</h1>
+    </div>
+</LayoutSection>
+
+<LayoutSection Section="Footer">
+    <div class="button-group">
+        <button class="btn btn-secondary btn-icon" @onclick="StartCreate" title="@(Loc["playerLists.newList"])" aria-label="@(Loc["playerLists.newList"])">
+            <i class="fas fa-plus"></i>
+        </button>
+        <button class="btn btn-secondary" @onclick="GoHome">@Loc["common.home"]</button>
+    </div>
+</LayoutSection>
+
+<div class="page-container-playerlist">
+    @if (!string.IsNullOrEmpty(_message))
+    {
+        <div class="alert alert-danger">@_message</div>
+    }
+
+    @if (_isLoading)
+    {
+        <div class="loading text-center text-muted card-padding">@Loc["playerLists.loading"]</div>
+    }
+    else if (_lists.Count == 0)
+    {
+        <div class="text-center card-padding">
+            <p class="mb-2">@Loc["playerLists.empty"]</p>
+        </div>
+    }
+    else
+    {
+        <div class="list-rows">
+            @foreach (var list in _lists)
+            {
+                var item = list;
+                var isActive = item.Id == ActivePlayerRepository.CurrentListId;
+
+                <div class="list-row @(isActive ? "is-active" : "")">
+                    <button class="list-row-main" @onclick="() => SwitchTo(item.Id)" disabled="@isActive"
+                            title="@(isActive ? string.Empty : Loc["playerLists.switchTo"])">
+                        @* The tick keeps its column on every row so the names stay aligned
+                           whether or not the row is the active list. *@
+                        <i class="fas @(isActive ? "fa-check" : "")"></i>
+                        <span class="list-row-name">@item.Name</span>
+                    </button>
+                    <div class="list-row-actions">
+                        <button class="list-action" @onclick="() => StartRename(item)"
+                                title="@(Loc["playerLists.renameTitle"])" aria-label="@(Loc["playerLists.renameTitle"])">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        @* The last list cannot be deleted, so its delete action is not offered
+                           at all rather than offered and then refused. *@
+                        @if (CanDelete)
+                        {
+                            <button class="list-action list-action-danger" @onclick="() => StartDelete(item)"
+                                    title="@(Loc["playerLists.deleteTitle"])" aria-label="@(Loc["playerLists.deleteTitle"])">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@if (_showNameDialog)
+{
+    <div class="confirm-overlay" @onclick="CancelNameDialog">
+        <div class="confirm-dialog" @onclick:stopPropagation="true">
+            <div class="confirm-header">
+                <h3>@(_listBeingRenamed is null ? Loc["playerLists.newList"] : Loc["playerLists.renameList"])</h3>
+            </div>
+            <div class="confirm-body">
+                <div class="form-group flex-col">
+                    <label for="listName">@Loc["playerLists.nameLabel"]</label>
+                    <input id="listName"
+                           type="text"
+                           class="form-control @(_showNameError ? "is-invalid" : "")"
+                           @bind="_listName"
+                           @bind:event="oninput"
+                           @bind:after="ValidateName"
+                           maxlength="@CsvSafeName.MaxLength"
+                           placeholder="@(Loc["playerLists.namePlaceholder"])" />
+                    @if (_showNameError)
+                    {
+                        <div class="invalid-feedback">
+                            @Loc["playerLists.nameInvalid"]
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="confirm-footer">
+                <button class="btn btn-secondary" @onclick="CancelNameDialog">@Loc["common.cancel"]</button>
+                <button class="btn btn-primary" @onclick="SaveName" disabled="@(!IsNameValid)">@Loc["common.save"]</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showDeleteConfirm)
+{
+    @* The question puts the list's name in bold, so the translated sentence is split around
+       its placeholder instead of being formatted: a list name is user data and must never
+       reach the page as markup. *@
+    var question = Loc["playerLists.deleteConfirm"].Split("{0}");
+
+    <div class="confirm-overlay" @onclick="CancelDelete">
+        <div class="confirm-dialog" @onclick:stopPropagation="true">
+            <div class="confirm-header">
+                <h3>@Loc["playerLists.title"]</h3>
+            </div>
+            <div class="confirm-body">
+                <p>@question[0]<strong>@_listToDelete?.Name</strong>@(question.Length > 1 ? question[1] : string.Empty)</p>
+                <p>@Loc["playerLists.deleteWarning"]</p>
+                <p class="confirm-warning">@Loc["common.actionCannotBeUndone"]</p>
+            </div>
+            <div class="confirm-footer">
+                <button class="btn btn-secondary" @onclick="CancelDelete">@Loc["common.cancel"]</button>
+                <button class="btn btn-danger" @onclick="ConfirmDelete">@Loc["common.delete"]</button>
+            </div>
+        </div>
+    </div>
+}
