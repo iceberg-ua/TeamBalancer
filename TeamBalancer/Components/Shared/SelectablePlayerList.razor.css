@@ -87,11 +87,13 @@
     overflow-x: hidden;
 }
 
+/* The 2px inset is what keeps a row's outline whole - see the note on .home-roster. The
+   scroller clips at its padding box, so full-width rows lose the ring down their sides. */
 .player-list {
     display: flex;
     flex-direction: column;
     gap: 0.45rem;
-    padding-bottom: 0.5rem;
+    padding: 2px 2px 0.5rem;
 }
 
 /* A picked player reads as a raised card; an unpicked one recedes to the background with
@@ -128,62 +130,6 @@
 /* The open menu has to clear the rows below it. */
 .player-row.menu-open {
     z-index: 9999;
-}
-
-/* ---- Positions ---- */
-/* A fixed slot whatever it holds: one chip fills it, two split it evenly. */
-.row-positions {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: center;
-    gap: 3px;
-    width: 2.375rem;
-    height: 2.5rem;
-    flex-shrink: 0;
-}
-
-.pos-chip {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-    min-height: 0;
-    border: 1px solid transparent;
-    border-radius: 5px;
-    font-size: 0.6rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    line-height: 1;
-}
-
-.pos-chip.is-primary {
-    background-color: var(--color-accent-tonal-bg-hover);
-    color: var(--color-neutral-100);
-}
-
-.player-row.is-selected .pos-chip.is-primary {
-    background-color: var(--color-accent);
-}
-
-/* The fallback position is the same colour as the primary but hollow, so the pair reads as
-   one column ranked top to bottom. */
-.pos-chip.is-secondary {
-    background-color: transparent;
-    border-color: rgba(127, 176, 105, 0.5);
-    color: #6f9159;
-    font-weight: 600;
-}
-
-.player-row.is-selected .pos-chip.is-secondary {
-    border-color: var(--color-accent);
-    color: var(--color-accent);
-}
-
-.pos-chip.is-unset {
-    background-color: transparent;
-    border: 1px dashed rgba(233, 233, 237, 0.22);
-    color: var(--color-text-muted);
 }
 
 /* ---- Identity ---- */

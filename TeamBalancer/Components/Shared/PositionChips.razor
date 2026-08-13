@@ -1,0 +1,40 @@
+@using TeamBalancer.Core.Localization
+@using TeamBalancer.Core.Models
+@using TeamBalancer.Extensions
+@inject ILocalizationService Loc
+
+@* A span rather than a div: the home roster makes each of its rows a button, and a div is
+   not valid inside one. It is display:flex either way. *@
+<span class="position-chips @(Dimmed ? "is-dimmed" : "")">
+    <span class="pos-chip @(HasPosition ? "is-primary" : "is-unset")" title="@PrimaryTitle">
+        @Player.PrimaryPosition.ToAbbreviation()
+    </span>
+    @if (Player.SecondaryPosition.HasValue)
+    {
+        <span class="pos-chip is-secondary"
+              title="@(Loc["playerItem.secondaryPositionTitle", Player.SecondaryPosition.Value.ToDisplayName(Loc)])">
+            @Player.SecondaryPosition.Value.ToAbbreviation()
+        </span>
+    }
+</span>
+
+@code {
+    /// <summary>
+    /// Gets or sets the player whose positions are shown.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public Player Player { get; set; } = null!;
+
+    /// <summary>
+    /// Gets or sets whether the chips are shown at reduced strength. The Select Players
+    /// screen dims the rows it has not picked; screens with no such state leave this off.
+    /// </summary>
+    [Parameter]
+    public bool Dimmed { get; set; }
+
+    private bool HasPosition => Player.PrimaryPosition != Position.Unspecified;
+
+    private string PrimaryTitle => HasPosition
+        ? Loc["playerItem.primaryPositionTitle", Player.PrimaryPosition.ToDisplayName(Loc)]
+        : Loc["playerItem.noPositionTitle"];
+}

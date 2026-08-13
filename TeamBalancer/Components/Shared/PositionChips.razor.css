@@ -1,0 +1,57 @@
+/* A slot of fixed size whatever it holds: a lone primary fills it, a primary and its
+   fallback split it evenly. That is what keeps the names beside it starting at the same
+   place down the whole list. */
+.position-chips {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 3px;
+    width: 2.375rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+}
+
+.pos-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-height: 0;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 1;
+}
+
+.pos-chip.is-primary {
+    background-color: var(--color-accent);
+    color: var(--color-neutral-100);
+}
+
+/* The fallback position is the same colour as the primary but hollow, so the pair reads as
+   one column ranked top to bottom. */
+.pos-chip.is-secondary {
+    background-color: transparent;
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    font-weight: 600;
+}
+
+.pos-chip.is-unset {
+    background-color: transparent;
+    border: 1px dashed rgba(233, 233, 237, 0.22);
+    color: var(--color-text-muted);
+}
+
+/* Dimmed: the row is not picked, so its chips step back without changing shape. */
+.position-chips.is-dimmed .pos-chip.is-primary {
+    background-color: var(--color-accent-tonal-bg-hover);
+}
+
+.position-chips.is-dimmed .pos-chip.is-secondary {
+    border-color: rgba(127, 176, 105, 0.5);
+    color: #6f9159;
+}

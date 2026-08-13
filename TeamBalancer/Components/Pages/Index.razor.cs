@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Components.Forms;
 using TeamBalancer.Components.Layout;
 using TeamBalancer.Core.Models;
 using TeamBalancer.Core.Services.Interfaces;
-using TeamBalancer.Extensions;
 using TeamBalancer.Services;
 
 namespace TeamBalancer.Components.Pages;
@@ -76,26 +75,6 @@ public partial class Index
         // Create Teams lives in the footer, which belongs to the layout, so whether it is
         // enabled cannot follow from re-rendering this page alone.
         Layout?.Refresh();
-    }
-
-    /// <summary>
-    /// Gets the line under a player's name in the roster: their position, followed by the
-    /// secondary one when they have it, or the prompt to set one when they have none.
-    /// </summary>
-    /// <param name="player">The player being listed.</param>
-    /// <returns>The text of the subline.</returns>
-    private string PositionLine(Player player)
-    {
-        if (player.PrimaryPosition == Position.Unspecified)
-        {
-            return Loc["playerItem.setPosition"];
-        }
-
-        var primary = player.PrimaryPosition.ToDisplayName(Loc);
-
-        return player.SecondaryPosition.HasValue
-            ? $"{primary} · {player.SecondaryPosition.Value.ToDisplayName(Loc)}"
-            : primary;
     }
 
     /// <summary>

@@ -31,29 +31,13 @@
             {
                 var isSelected = SelectedPlayerIds.Contains(player.Id);
                 var hasPosition = player.PrimaryPosition != Position.Unspecified;
-                var positionTitle = hasPosition
-                    ? Loc["playerItem.primaryPositionTitle", player.PrimaryPosition.ToDisplayName(Loc)]
-                    : Loc["playerItem.noPositionTitle"];
 
                 @* Tapping anywhere on the row includes or excludes the player. The check on
                    the right reports that state rather than being the only thing that sets it. *@
                 <div class="player-row @(isSelected ? "is-selected" : "") @(_openMenuPlayerId == player.Id ? "menu-open" : "")"
                      @onclick="() => OnSelectionChanged(player.Id, !isSelected)">
 
-                    @* Primary over secondary in one fixed-width slot, so the names beside them
-                       start at the same place whether or not a player has a fallback position. *@
-                    <div class="row-positions">
-                        <span class="pos-chip @(hasPosition ? "is-primary" : "is-unset")" title="@positionTitle">
-                            @player.PrimaryPosition.ToAbbreviation()
-                        </span>
-                        @if (player.SecondaryPosition.HasValue)
-                        {
-                            <span class="pos-chip is-secondary"
-                                  title="@(Loc["playerItem.secondaryPositionTitle", player.SecondaryPosition.Value.ToDisplayName(Loc)])">
-                                @player.SecondaryPosition.Value.ToAbbreviation()
-                            </span>
-                        }
-                    </div>
+                    <PositionChips Player="player" Dimmed="@(!isSelected)" />
 
                     <div class="row-identity">
                         <span class="row-name">@player.Name</span>

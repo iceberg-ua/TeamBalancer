@@ -13,11 +13,14 @@
     overflow-x: hidden;
 }
 
+/* The 2px inset is what keeps a row's outline whole. The scroller clips at its padding box,
+   and a row's ring is painted outside its border box, so full-width rows would have their
+   left and right edges cut off - leaving an outline with only its corners drawn. */
 .home-roster {
     display: flex;
     flex-direction: column;
     gap: 0.45rem;
-    padding-bottom: 0.5rem;
+    padding: 2px 2px 0.5rem;
 }
 
 /* A row is a button - tapping one opens that player for editing - so it resets the button
@@ -51,29 +54,6 @@
 .roster-row:focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: -2px;
-}
-
-/* The position leads the row as a square tile rather than the small badge the other
-   screens use - here it is the thing the eye scans the list by. */
-.roster-pos {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.375rem;
-    height: 2.375rem;
-    flex-shrink: 0;
-    border-radius: 10px;
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    background-color: var(--color-neutral-800);
-    color: var(--color-neutral-100);
-}
-
-.roster-pos.is-unset {
-    background-color: transparent;
-    border: 1px dashed rgba(233, 233, 237, 0.22);
-    color: var(--color-text-muted);
 }
 
 .roster-identity {

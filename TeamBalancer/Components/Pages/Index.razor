@@ -149,9 +149,6 @@
                     @foreach (var player in _players)
                     {
                         var hasPosition = player.PrimaryPosition != Position.Unspecified;
-                        var positionTitle = hasPosition
-                            ? Loc["playerItem.primaryPositionTitle", player.PrimaryPosition.ToDisplayName(Loc)]
-                            : Loc["playerItem.noPositionTitle"];
 
                         @* The whole row is the tap target: from here a player is opened to be
                            edited, which is the only thing there is to do with one on this
@@ -159,13 +156,13 @@
                         <button type="button" class="roster-row"
                                 @onclick="() => EditPlayer(player)"
                                 title="@(Loc["playerItem.edit"])">
-                            <span class="roster-pos @(hasPosition ? "" : "is-unset")" title="@positionTitle">
-                                @player.PrimaryPosition.ToAbbreviation()
-                            </span>
+                            <PositionChips Player="player" />
 
                             <span class="roster-identity">
                                 <span class="roster-name">@player.Name</span>
-                                <span class="roster-subline @(hasPosition ? "" : "is-unset")">@PositionLine(player)</span>
+                                <span class="roster-subline @(hasPosition ? "" : "is-unset")">
+                                    @(hasPosition ? player.PrimaryPosition.ToDisplayName(Loc) : Loc["playerItem.setPosition"])
+                                </span>
                             </span>
 
                             @* One overall cluster stands in for the three skills, with the
