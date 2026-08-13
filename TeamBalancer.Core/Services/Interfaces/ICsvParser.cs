@@ -17,6 +17,15 @@ public interface ICsvParser
     IEnumerable<Player> ParsePlayers(string csvContent);
 
     /// <summary>
+    /// Parses CSV content the same way <see cref="ParsePlayers"/> does, additionally reporting
+    /// how many rows were dropped as unreadable. Import uses this so it can account for every
+    /// row of the user's file; storage loading does not care and uses the simpler overload.
+    /// </summary>
+    /// <param name="csvContent">The CSV content as a string.</param>
+    /// <returns>The players parsed, and the number of rows that could not be read.</returns>
+    CsvParseResult ParsePlayersWithDiagnostics(string csvContent);
+
+    /// <summary>
     /// Serializes a collection of Player objects into CSV format:
     /// Name,Speed,TechnicalSkills,Stamina,PrimaryPosition,SecondaryPosition[,IsSelected]
     /// </summary>

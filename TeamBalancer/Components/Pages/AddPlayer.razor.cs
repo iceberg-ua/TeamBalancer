@@ -197,9 +197,9 @@ public partial class AddPlayer
             {
                 _nameErrorMessage = Loc["validation.nameQuotes"];
             }
-            else if (_playerName.Length > 15)
+            else if (_playerName.Length > CsvSafeName.MaxLength)
             {
-                _nameErrorMessage = Loc["validation.nameTooLong"];
+                _nameErrorMessage = Loc["validation.nameTooLong", CsvSafeName.MaxLength];
             }
             else if (_playerName.Length > 0 &&
                      (_playerName[0] == '=' || _playerName[0] == '+' ||

@@ -94,7 +94,7 @@
                     @if (_showNameError)
                     {
                         <div class="invalid-feedback">
-                            @Loc["playerLists.nameInvalid"]
+                            @Loc["playerLists.nameInvalid", CsvSafeName.MaxLength]
                         </div>
                     }
                 </div>

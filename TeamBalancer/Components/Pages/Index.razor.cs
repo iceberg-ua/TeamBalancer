@@ -132,19 +132,25 @@ public partial class Index
             using var reader = new StreamReader(stream);
             var csvContent = await reader.ReadToEndAsync();
 
-            // Import players
-            var importedCount = await CsvImportExportService.ImportPlayersAsync(csvContent);
-
-            if (importedCount > 0)
-            {
-                _message = Loc["home.importSuccess", importedCount];
-                _isError = false;
-                await LoadPlayers();
-            }
-            else
+            // An empty file makes the import service throw, which would surface its exception
+            // text on screen. It is an ordinary thing to pick by mistake, so answer it here.
+            if (string.IsNullOrWhiteSpace(csvContent))
             {
                 _message = Loc["home.importEmpty"];
                 _isError = true;
+                _showMenu = false;
+                return;
+            }
+
+            // Import players
+            var result = await CsvImportExportService.ImportPlayersAsync(csvContent);
+
+            _message = DescribeImport(result);
+            _isError = result.ImportedCount == 0 && !result.IsEntirelyDuplicates;
+
+            if (result.ImportedCount > 0)
+            {
+                await LoadPlayers();
             }
 
             _showMenu = false;
@@ -154,6 +160,75 @@ public partial class Index
             _message = Loc["home.importError", ex.Message];
             _isError = true;
         }
+    }
+
+    /// <summary>
+    /// Turns an import outcome into the sentence shown on the screen: what came in, followed by
+    /// what did not and why. The reasons are listed separately rather than rolled into a single
+    /// skipped count, because "already in this list" and "name too long" call for very different
+    /// things from the user.
+    /// </summary>
+    /// <param name="result">The outcome of the import.</param>
+    /// <returns>The message to display.</returns>
+    private string DescribeImport(PlayerImportResult result)
+    {
+        // Nothing in the file at all - no rows, or none the parser could even look at.
+        if (result.TotalRows == 0)
+        {
+            return Loc["home.importEmpty"];
+        }
+
+        // Re-importing a file whose players are all present is a no-op, not a failure, and
+        // used to be reported as "no valid players found".
+        if (result.IsEntirelyDuplicates)
+        {
+            return Loc["home.importAllDuplicates", result.DuplicateCount];
+        }
+
+        var reasons = new List<string>();
+
+        if (result.DuplicateCount > 0)
+            reasons.Add(Loc["home.importSkippedDuplicate", result.DuplicateCount]);
+
+        if (result.InvalidNameCount > 0)
+            reasons.Add(Loc["home.importSkippedName", result.InvalidNameCount, CsvSafeName.MaxLength]);
+
+        if (result.InvalidSkillsCount > 0)
+            reasons.Add(Loc["home.importSkippedSkills", result.InvalidSkillsCount]);
+
+        if (result.UnreadableCount > 0)
+            reasons.Add(Loc["home.importSkippedUnreadable", result.UnreadableCount]);
+
+        if (result.ErrorCount > 0)
+            reasons.Add(Loc["home.importSkippedError", result.ErrorCount]);
+
+        // Shortening a name is not a skip - the player is in the list - but it changed their
+        // data, so it is always mentioned, including when nothing else went wrong.
+        if (result.TruncatedCount > 0)
+        {
+            reasons.Add(Loc["home.importTruncated", result.TruncatedCount, CsvSafeName.MaxLength]);
+        }
+
+        // Appending a digit changes the name beyond merely shortening it, so it is called out
+        // separately - these are the players whose names no longer read as the file wrote them.
+        if (result.NumberedCount > 0)
+        {
+            reasons.Add(Loc["home.importNumbered", result.NumberedCount]);
+        }
+
+        if (reasons.Count == 0)
+        {
+            // Every row landed untouched, so the count on its own is the whole story.
+            return Loc["home.importSuccess", result.ImportedCount];
+        }
+
+        var headline = result.SkippedCount == 0
+            ? Loc["home.importSuccess", result.ImportedCount]
+            : result.ImportedCount > 0
+                ? Loc["home.importPartial", result.ImportedCount, result.TotalRows]
+                : Loc["home.importNone", result.TotalRows];
+
+        return $"{headline} {string.Join(" ", reasons)}";
     }
 
     private void ToggleMenu()

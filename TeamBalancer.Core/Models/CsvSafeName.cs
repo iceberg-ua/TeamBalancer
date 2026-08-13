@@ -12,7 +12,35 @@ public static class CsvSafeName
     /// The longest name accepted. This is a display limit - names are shown in full on narrow
     /// phone rows - rather than anything the CSV format imposes.
     /// </summary>
-    public const int MaxLength = 15;
+    public const int MaxLength = 20;
+
+    /// <summary>
+    /// Shortens a name to <see cref="MaxLength"/>, trimming whitespace the cut may have left
+    /// exposed at the end. Only length is addressed: a name that is also invalid for another
+    /// reason stays invalid, so callers must still validate the result rather than assume a
+    /// truncated name is usable.
+    /// </summary>
+    /// <param name="name">The name to shorten.</param>
+    /// <returns>The name, no longer than <see cref="MaxLength"/>.</returns>
+    public static string Truncate(string name) => Truncate(name, MaxLength);
+
+    /// <summary>
+    /// Shortens a name to a given length, trimming whitespace the cut may have left exposed at
+    /// the end. Import uses a length one short of <see cref="MaxLength"/> to leave room for a
+    /// digit when two shortened names would otherwise be the same.
+    /// </summary>
+    /// <param name="name">The name to shorten.</param>
+    /// <param name="maxLength">The length to shorten it to.</param>
+    /// <returns>The name, no longer than <paramref name="maxLength"/>.</returns>
+    public static string Truncate(string name, int maxLength)
+    {
+        if (string.IsNullOrEmpty(name) || name.Length <= maxLength)
+        {
+            return name;
+        }
+
+        return name[..maxLength].TrimEnd();
+    }
 
     /// <summary>
     /// Validates that a name neither breaks the CSV format nor carries a formula a spreadsheet

@@ -34,28 +34,49 @@ public class CsvImportExportService : ICsvImportExportService
     }
 
     /// <summary>
-    /// Imports players from CSV content, adding new players to the repository.
+    /// Imports players from CSV content, adding new players to the repository. Rows that cannot
+    /// be imported are counted by reason rather than merely dropped, so the caller can tell the
+    /// user what happened to the rest of their file.
     /// </summary>
-    public async Task<int> ImportPlayersAsync(string csvContent)
+    public async Task<PlayerImportResult> ImportPlayersAsync(string csvContent)
     {
         if (string.IsNullOrWhiteSpace(csvContent))
             throw new ArgumentException("CSV content cannot be empty.", nameof(csvContent));
 
         _logger.LogInformation("Starting player import from CSV");
 
-        var players = _csvParser.ParsePlayers(csvContent);
+        var parsed = _csvParser.ParsePlayersWithDiagnostics(csvContent);
         int importedCount = 0;
-        int skippedCount = 0;
+        int invalidNameCount = 0;
+        int invalidSkillsCount = 0;
+        int duplicateCount = 0;
+        int errorCount = 0;
+        int truncatedCount = 0;
+        int numberedCount = 0;
 
-        foreach (var player in players)
+        foreach (var player in parsed.Players)
         {
             try
             {
+                // A name that is merely too long is shortened rather than dropped: losing the
+                // player entirely is a worse answer than losing the tail of their name, which
+                // they can edit afterwards. Re-validating is what keeps this narrow - a name
+                // rejected for anything else is still rejected once shortened.
+                var wasTruncated = false;
+                var wasNumbered = false;
+                if (!player.IsNameValid() && CsvSafeName.IsValid(CsvSafeName.Truncate(player.Name)))
+                {
+                    _logger.LogInformation("Shortening player name '{OriginalName}' to fit the {MaxLength} character limit",
+                        player.Name, CsvSafeName.MaxLength);
+                    player.Name = CsvSafeName.Truncate(player.Name);
+                    wasTruncated = true;
+                }
+
                 // Validate player before adding
                 if (!player.IsNameValid())
                 {
                     _logger.LogWarning("Skipping player with invalid name: '{PlayerName}'", player.Name);
-                    skippedCount++;
+                    invalidNameCount++;
                     continue;
                 }
 
@@ -63,7 +84,7 @@ public class CsvImportExportService : ICsvImportExportService
                 {
                     _logger.LogWarning("Skipping player '{PlayerName}' with invalid skill levels: Speed={Speed}, Technical={Technical}, Stamina={Stamina}",
                         player.Name, player.Speed, player.TechnicalSkills, player.Stamina);
-                    skippedCount++;
+                    invalidSkillsCount++;
                     continue;
                 }
 
@@ -71,9 +92,25 @@ public class CsvImportExportService : ICsvImportExportService
                 var existingPlayer = await _playerRepository.GetByNameAsync(player.Name);
                 if (existingPlayer != null)
                 {
-                    _logger.LogWarning("Skipping player '{PlayerName}' - a player with this name already exists", player.Name);
-                    skippedCount++;
-                    continue;
+                    // Two long names sharing their opening characters shorten to the same thing,
+                    // so the collision is one this import created rather than a player the file
+                    // genuinely repeats. Numbering them keeps both. A name that was not
+                    // shortened is a real duplicate and is still skipped.
+                    var distinctName = wasTruncated
+                        ? await FindDistinctNameAsync(player.Name)
+                        : null;
+
+                    if (distinctName is null)
+                    {
+                        _logger.LogWarning("Skipping player '{PlayerName}' - a player with this name already exists", player.Name);
+                        duplicateCount++;
+                        continue;
+                    }
+
+                    _logger.LogInformation("Numbering shortened name '{PlayerName}' as '{DistinctName}' to keep it apart from the player already in the list",
+                        player.Name, distinctName);
+                    player.Name = distinctName;
+                    wasNumbered = true;
                 }
 
                 // Imported players default to deselected
@@ -81,40 +118,101 @@ public class CsvImportExportService : ICsvImportExportService
                 await _playerRepository.AddAsync(player);
                 _logger.LogDebug("Successfully imported player '{PlayerName}'", player.Name);
                 importedCount++;
+
+                // Counted only now: a shortened name that then collided with an existing player
+                // was skipped as a duplicate, and reporting it as shortened would overstate what
+                // actually changed in the list.
+                if (wasTruncated)
+                {
+                    truncatedCount++;
+                }
+
+                if (wasNumbered)
+                {
+                    numberedCount++;
+                }
             }
             catch (ArgumentException ex)
             {
                 _logger.LogWarning(ex, "Validation error for player '{PlayerName}': {ErrorMessage}",
                     player.Name, ex.Message);
-                skippedCount++;
+                errorCount++;
             }
             catch (InvalidOperationException ex)
             {
                 _logger.LogWarning(ex, "Player '{PlayerName}' already exists or operation invalid: {ErrorMessage}",
                     player.Name, ex.Message);
-                skippedCount++;
+                errorCount++;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error importing player '{PlayerName}': {ErrorMessage}",
                     player.Name, ex.Message);
-                skippedCount++;
+                errorCount++;
             }
         }
+
+        var result = new PlayerImportResult
+        {
+            ImportedCount = importedCount,
+            UnreadableCount = parsed.UnreadableRowCount,
+            InvalidNameCount = invalidNameCount,
+            // The parser rejects out-of-range skills before a player ever reaches the loop
+            // above, so both counts have to be added up to account for every such row.
+            InvalidSkillsCount = parsed.InvalidSkillRowCount + invalidSkillsCount,
+            DuplicateCount = duplicateCount,
+            ErrorCount = errorCount,
+            TruncatedCount = truncatedCount,
+            NumberedCount = numberedCount
+        };
 
         // Save all changes at once
         if (importedCount > 0)
         {
             await _playerRepository.SaveChangesAsync();
             _logger.LogInformation("Player import completed: {ImportedCount} players imported, {SkippedCount} skipped",
-                importedCount, skippedCount);
+                result.ImportedCount, result.SkippedCount);
         }
         else
         {
             _logger.LogWarning("Player import completed: No players were imported, {SkippedCount} skipped",
-                skippedCount);
+                result.SkippedCount);
         }
 
-        return importedCount;
+        return result;
+    }
+
+    /// <summary>
+    /// Finds a free variant of a shortened name by replacing its last character with a digit,
+    /// so two players whose full names differ only past the length limit can both be kept.
+    /// </summary>
+    /// <param name="truncatedName">The shortened name that is already taken.</param>
+    /// <returns>
+    /// A name no player holds yet, or null when every digit is taken - at which point the row
+    /// really is indistinguishable from one already in the list and is better skipped than
+    /// imported under a name that says nothing about who it is.
+    /// </returns>
+    private async Task<string?> FindDistinctNameAsync(string truncatedName)
+    {
+        // One character shorter, leaving exactly the room the digit needs.
+        var stem = CsvSafeName.Truncate(truncatedName, CsvSafeName.MaxLength - 1);
+
+        // Starts at 2: the player already holding the plain shortened name is the first one.
+        for (var suffix = 2; suffix <= 9; suffix++)
+        {
+            var candidate = stem + suffix;
+
+            if (!CsvSafeName.IsValid(candidate))
+            {
+                continue;
+            }
+
+            if (await _playerRepository.GetByNameAsync(candidate) is null)
+            {
+                return candidate;
+            }
+        }
+
+        return null;
     }
 }

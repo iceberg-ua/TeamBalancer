@@ -4,7 +4,7 @@ using TeamBalancer.Core.Models;
 
 /// <summary>
 /// Factory helpers for building players in tests. Names are kept short because
-/// <see cref="Player.IsNameValid"/> caps them at 15 characters.
+/// <see cref="Player.IsNameValid"/> caps them at <see cref="CsvSafeName.MaxLength"/> characters.
 /// </summary>
 internal static class TestPlayers
 {

@@ -25,20 +25,32 @@ public class CsvParser : ICsvParser
     /// (Name,Speed,TechnicalSkills,Stamina[,IsSelected]) are still parsed, with positions
     /// defaulting to Unspecified/null. Position values are parsed leniently - an unrecognised
     /// value never causes the row to be skipped.
+    /// The header row is optional: a file that begins with a player is read from its first
+    /// line, so an imported CSV written without titles keeps all of its players.
     /// </summary>
-    public IEnumerable<Player> ParsePlayers(string csvContent)
+    public IEnumerable<Player> ParsePlayers(string csvContent) =>
+        ParsePlayersWithDiagnostics(csvContent).Players;
+
+    /// <inheritdoc />
+    public CsvParseResult ParsePlayersWithDiagnostics(string csvContent)
     {
         if (string.IsNullOrWhiteSpace(csvContent))
         {
-            return [];
+            return new CsvParseResult([], 0, 0);
         }
 
         var players = new List<Player>();
         var lines = csvContent.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
-        int skippedRows = 0;
+        int unreadableRows = 0;
+        int invalidSkillRows = 0;
 
-        // Skip header row
-        for (int i = 1; i < lines.Length; i++)
+        // Every file the app writes starts with a header, but an imported one need not: a CSV
+        // typed by hand or saved out of a spreadsheet can begin straight in with a player.
+        // Skipping the first line unconditionally silently cost such a file its first player,
+        // so it is only skipped when it does not itself read as a player row.
+        int firstDataRow = lines.Length > 0 && LooksLikePlayerRow(lines[0]) ? 0 : 1;
+
+        for (int i = firstDataRow; i < lines.Length; i++)
         {
             var lineNumber = i + 1; // +1 for human-readable line numbers
             var line = lines[i].Trim();
@@ -54,7 +66,7 @@ public class CsvParser : ICsvParser
             {
                 _logger.LogWarning("Skipping line {LineNumber}: Expected at least 4 columns, found {ColumnCount}. Content: {LineContent}",
                     lineNumber, parts.Length, line);
-                skippedRows++;
+                unreadableRows++;
                 continue;
             }
 
@@ -111,7 +123,7 @@ public class CsvParser : ICsvParser
                 {
                     _logger.LogWarning("Skipping line {LineNumber}: Invalid skill levels for player '{PlayerName}'. Speed={Speed}, Technical={Technical}, Stamina={Stamina}",
                         lineNumber, player.Name, player.Speed, player.TechnicalSkills, player.Stamina);
-                    skippedRows++;
+                    invalidSkillRows++;
                     continue;
                 }
 
@@ -121,22 +133,23 @@ public class CsvParser : ICsvParser
             {
                 _logger.LogError(ex, "Skipping line {LineNumber}: Failed to parse numeric value. Content: {LineContent}",
                     lineNumber, line);
-                skippedRows++;
+                unreadableRows++;
             }
             catch (OverflowException ex)
             {
                 _logger.LogError(ex, "Skipping line {LineNumber}: Numeric value out of range. Content: {LineContent}",
                     lineNumber, line);
-                skippedRows++;
+                unreadableRows++;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Skipping line {LineNumber}: Unexpected error parsing line. Content: {LineContent}",
                     lineNumber, line);
-                skippedRows++;
+                unreadableRows++;
             }
         }
 
+        var skippedRows = unreadableRows + invalidSkillRows;
         if (skippedRows > 0)
         {
             _logger.LogInformation("CSV parsing completed: {ValidPlayers} players loaded, {SkippedRows} rows skipped",
@@ -148,7 +161,7 @@ public class CsvParser : ICsvParser
                 players.Count);
         }
 
-        return players;
+        return new CsvParseResult(players, unreadableRows, invalidSkillRows);
     }
 
     /// <summary>
@@ -180,6 +193,27 @@ public class CsvParser : ICsvParser
         }
 
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Decides whether a line carries player data rather than column titles. The three skill
+    /// columns settle it: a header spells them out, a player row has numbers in them. Testing
+    /// the data rather than matching the header text means a file whose columns are titled in
+    /// another language is still recognised as having a header.
+    /// </summary>
+    /// <param name="line">The raw first line of the file.</param>
+    /// <returns>True if the line reads as a player, false if it reads as a header.</returns>
+    private static bool LooksLikePlayerRow(string line)
+    {
+        var parts = line.Trim().Split(',');
+        if (parts.Length < 4)
+        {
+            return false;
+        }
+
+        return int.TryParse(parts[1].Trim(), out _)
+            && int.TryParse(parts[2].Trim(), out _)
+            && int.TryParse(parts[3].Trim(), out _);
     }
 
     /// <summary>

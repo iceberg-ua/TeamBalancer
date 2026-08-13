@@ -50,7 +50,8 @@ public class CsvBackwardCompatibilityTests
 
         var imported = await service.ImportPlayersAsync(legacyCsv);
 
-        Assert.Equal(5, imported);
+        Assert.Equal(5, imported.ImportedCount);
+        Assert.Equal(0, imported.SkippedCount);
 
         var players = (await repository.GetAllAsync()).ToList();
         Assert.Equal(5, players.Count);
@@ -109,7 +110,7 @@ public class CsvBackwardCompatibilityTests
         var (targetService, targetRepository) = CreateStack(targetFile.Path_);
 
         var importedCount = await targetService.ImportPlayersAsync(exported);
-        Assert.Equal(seeded.Count, importedCount);
+        Assert.Equal(seeded.Count, importedCount.ImportedCount);
 
         var result = (await targetRepository.GetAllAsync()).ToList();
         Assert.Equal(seeded.Count, result.Count);
@@ -169,7 +170,7 @@ public class CsvBackwardCompatibilityTests
 
         var imported = await service.ImportPlayersAsync(mixed);
 
-        Assert.Equal(2, imported);
+        Assert.Equal(2, imported.ImportedCount);
 
         var players = (await repository.GetAllAsync()).ToList();
         var withPosition = Assert.Single(players, p => p.Name == "WithPos");

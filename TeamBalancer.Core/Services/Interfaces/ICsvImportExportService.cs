@@ -17,6 +17,9 @@ public interface ICsvImportExportService
     /// Imports players from CSV content.
     /// </summary>
     /// <param name="csvContent">The CSV content to import.</param>
-    /// <returns>Number of players imported successfully.</returns>
-    Task<int> ImportPlayersAsync(string csvContent);
+    /// <returns>
+    /// What became of every row: how many players were added, and how many were skipped for
+    /// each of the reasons a row can be skipped.
+    /// </returns>
+    Task<PlayerImportResult> ImportPlayersAsync(string csvContent);
 }

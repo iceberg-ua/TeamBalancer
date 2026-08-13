@@ -73,7 +73,7 @@ public class CsvPlayerListRepositoryTests
     [InlineData("Has\"Quote")]
     [InlineData("=Formula")]
     [InlineData(" Leading")]
-    [InlineData("Sixteen chars!!!!")]
+    [InlineData("Twenty one characters")]
     public async Task AddAsync_InvalidName_Throws(string name)
     {
         using var directory = new TempDataDirectory();

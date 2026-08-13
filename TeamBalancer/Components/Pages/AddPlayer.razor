@@ -31,7 +31,7 @@
                            @bind="_playerName"
                            @bind:event="oninput"
                            @bind:after="ValidateName"
-                           maxlength="15"
+                           maxlength="@CsvSafeName.MaxLength"
                            placeholder="@(Loc["addPlayer.namePlaceholder"])" />
                     @if (_showNameError)
                     {
