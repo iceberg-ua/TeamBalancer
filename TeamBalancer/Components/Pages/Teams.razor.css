@@ -128,48 +128,6 @@
     color: var(--color-team-b);
 }
 
-/* ---- Position counts ---- */
-.position-tiles {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 0.75rem;
-    flex-shrink: 0;
-}
-
-.position-tile {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.125rem;
-    padding: 0.5rem 0.25rem;
-    border-radius: 8px;
-    background: var(--color-surface);
-}
-
-.tile-count {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--color-team-a);
-}
-
-.position-tiles.team-b .tile-count {
-    color: var(--color-team-b);
-}
-
-/* A zero count keeps its tile so a gap in the line-up stays visible, but drops the
-   accent - nothing to celebrate there. */
-.position-tile.is-empty .tile-count {
-    color: var(--color-text-muted);
-}
-
-.tile-label {
-    font-size: 0.625rem;
-    color: var(--color-text-muted);
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-}
-
 /* ---- Panes ---- */
 /* The pane no longer scrolls as a whole. It splits into a fixed summary block and a
    scrolling roster, so the team tabs, comparison card and position counts hold their

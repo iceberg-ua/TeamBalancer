@@ -1,5 +1,6 @@
 @using TeamBalancer.Core.Localization
 @using TeamBalancer.Core.Models
+@using TeamBalancer.Extensions
 @inject ILocalizationService Loc
 
 @if (_openMenuPlayerId != null)
@@ -8,33 +9,101 @@
 }
 
 <div class="player-list-container" @onclick="CloseAllMenus">
-    <div class="player-list-header" @onclick:stopPropagation="true">
-        <label class="header-label">
-            <input type="checkbox"
-                   checked="@IsAllSelected"
-                   @onchange="OnSelectAllChanged" />
-            <span class="header-name">@(Loc["playerList.headerPlayer", SelectedPlayerIds.Count, Players.Count])</span>
-        </label>
-        @* Column order mirrors PlayerItem: rating sits left of the kebab, not right of it. *@
-        <div class="header-skills">
-            <span>@Loc["playerList.headerRating"]</span>
-        </div>
-        <div class="header-actions-spacer"></div>
+    @* The toolbar sits above the scroller rather than inside it: "Rating" is a heading for
+       the column below it, so it has to hold its place while the rows move. *@
+    <div class="list-toolbar" @onclick:stopPropagation="true">
+        <button class="select-all" @onclick="ToggleSelectAll">
+            <i class="fas fa-check-double"></i>
+            <span>@(IsAllSelected ? Loc["playerList.deselectAll"] : Loc["playerList.selectAll"])</span>
+        </button>
+        <span class="toolbar-gap"></span>
+        <span class="toolbar-rating">@Loc["playerList.headerRating"]</span>
+        <span class="toolbar-check-spacer"></span>
+        @if (ShowEditButton || ShowDeleteButton)
+        {
+            <span class="toolbar-actions-spacer"></span>
+        }
     </div>
 
     <div class="player-list-scrollable scroll-shadows">
         <div class="player-list">
             @foreach (var player in Players)
             {
-                <PlayerItem Player="@player"
-                           IsSelected="@SelectedPlayerIds.Contains(player.Id)"
-                           ShowEditButton="@ShowEditButton"
-                           ShowDeleteButton="@ShowDeleteButton"
-                           IsMenuOpen="@(_openMenuPlayerId == player.Id)"
-                           OnMenuToggle="@((isOpen) => HandleMenuToggle(player.Id, isOpen))"
-                           OnSelectionChanged="@((isSelected) => OnSelectionChanged(player.Id, isSelected))"
-                           OnEdit="@OnPlayerEdit"
-                           OnDelete="@OnPlayerDelete" />
+                var isSelected = SelectedPlayerIds.Contains(player.Id);
+                var hasPosition = player.PrimaryPosition != Position.Unspecified;
+                var positionTitle = hasPosition
+                    ? Loc["playerItem.primaryPositionTitle", player.PrimaryPosition.ToDisplayName(Loc)]
+                    : Loc["playerItem.noPositionTitle"];
+
+                @* Tapping anywhere on the row includes or excludes the player. The check on
+                   the right reports that state rather than being the only thing that sets it. *@
+                <div class="player-row @(isSelected ? "is-selected" : "") @(_openMenuPlayerId == player.Id ? "menu-open" : "")"
+                     @onclick="() => OnSelectionChanged(player.Id, !isSelected)">
+
+                    @* Primary over secondary in one fixed-width slot, so the names beside them
+                       start at the same place whether or not a player has a fallback position. *@
+                    <div class="row-positions">
+                        <span class="pos-chip @(hasPosition ? "is-primary" : "is-unset")" title="@positionTitle">
+                            @player.PrimaryPosition.ToAbbreviation()
+                        </span>
+                        @if (player.SecondaryPosition.HasValue)
+                        {
+                            <span class="pos-chip is-secondary"
+                                  title="@(Loc["playerItem.secondaryPositionTitle", player.SecondaryPosition.Value.ToDisplayName(Loc)])">
+                                @player.SecondaryPosition.Value.ToAbbreviation()
+                            </span>
+                        }
+                    </div>
+
+                    <div class="row-identity">
+                        <span class="row-name">@player.Name</span>
+                        <span class="row-subline @(hasPosition ? "" : "is-unset")">
+                            @(hasPosition ? player.PrimaryPosition.ToDisplayName(Loc) : Loc["playerItem.setPosition"])
+                        </span>
+                    </div>
+
+                    <span class="row-rating"
+                          title="@(Loc["playerItem.skillsTitle", player.Speed, player.TechnicalSkills, player.Stamina])">
+                        <SkillRatingDisplay Rating="@((int)Math.Round(player.OverallSkillLevel, MidpointRounding.AwayFromZero))" />
+                    </span>
+
+                    <span class="row-check"><i class="fas fa-check"></i></span>
+
+                    @if (ShowEditButton || ShowDeleteButton)
+                    {
+                        @* Editing and deleting a player live here because this is the only
+                           screen that offers them. The menu swallows its own clicks so
+                           reaching for it does not also toggle the row. *@
+                        <div class="row-actions" @onclick:stopPropagation="true">
+                            <button class="actions-menu-button"
+                                    @onclick="() => HandleMenuToggle(player.Id, _openMenuPlayerId != player.Id)"
+                                    title="@(Loc["playerItem.actionsTitle"])"
+                                    aria-label="@(Loc["playerItem.actionsTitle"])">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+
+                            @if (_openMenuPlayerId == player.Id)
+                            {
+                                <div class="actions-menu">
+                                    @if (ShowEditButton)
+                                    {
+                                        <button class="row-menu-item edit-item" @onclick="() => HandleEdit(player)">
+                                            <i class="fas fa-edit"></i>
+                                            <span>@Loc["playerItem.edit"]</span>
+                                        </button>
+                                    }
+                                    @if (ShowDeleteButton)
+                                    {
+                                        <button class="row-menu-item delete-item" @onclick="() => HandleDelete(player)">
+                                            <i class="fas fa-trash"></i>
+                                            <span>@Loc["playerItem.delete"]</span>
+                                        </button>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
             }
         </div>
     </div>
@@ -89,10 +158,25 @@
         await OnPlayerSelectionChanged.InvokeAsync((playerId, isSelected));
     }
 
-    private async Task OnSelectAllChanged(ChangeEventArgs e)
+    /// <summary>
+    /// Selects every player, or clears the selection when they are already all picked. The
+    /// button reports which of the two it will do, so the one control covers both.
+    /// </summary>
+    private async Task ToggleSelectAll()
     {
-        bool selectAll = (bool)e.Value!;
-        await OnSelectAllPlayersChanged.InvokeAsync(selectAll);
+        await OnSelectAllPlayersChanged.InvokeAsync(!IsAllSelected);
+    }
+
+    private async Task HandleEdit(Player player)
+    {
+        _openMenuPlayerId = null;
+        await OnPlayerEdit.InvokeAsync(player);
+    }
+
+    private async Task HandleDelete(Player player)
+    {
+        _openMenuPlayerId = null;
+        await OnPlayerDelete.InvokeAsync(player);
     }
 
     public void SelectAll()

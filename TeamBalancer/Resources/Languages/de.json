@@ -20,6 +20,8 @@
   "position.unset": "Ohne",
   "position.primaryLabel": "Hauptposition",
   "position.secondaryLabel": "Nebenposition (optional)",
+  "position.countTitle": "{0} × {1}",
+  "position.unsetCountTitle": "{0} Spieler ohne festgelegte Position",
 
   "skill.speed": "Schnelligkeit",
   "skill.technicalSkills": "Technische Fähigkeiten",
@@ -27,6 +29,7 @@
   "skill.stamina": "Ausdauer",
 
   "home.addPlayer": "Spieler hinzufügen",
+  "home.empty": "Noch keine Spieler in dieser Liste. Bitte zuerst einen Spieler hinzufügen.",
   "home.exportPlayers": "Spieler exportieren",
   "home.importPlayers": "Spieler importieren",
   "home.exportError": "Fehler beim Exportieren der Spieler: {0}",
@@ -65,8 +68,10 @@
   "playerList.title": "Spieler auswählen",
   "playerList.loading": "Spieler werden geladen...",
   "playerList.empty": "Keine Spieler vorhanden. Bitte zuerst Spieler hinzufügen.",
-  "playerList.create": "Erstellen",
-  "playerList.headerPlayer": "Spieler ({0}/{1})",
+  "playerList.playerCount": "{0} Spieler",
+  "playerList.picked": "{0} ausgewählt",
+  "playerList.selectAll": "Alle auswählen",
+  "playerList.deselectAll": "Auswahl aufheben",
   "playerList.headerRating": "Bewertung",
   "playerList.deleteConfirm": "Möchtest du {0} wirklich löschen?",
 
@@ -106,7 +111,5 @@
   "teams.balanceComparison": "Ausgewogenheit im Vergleich",
   "teams.metricTitle": "{0} {1}: {2}",
   "teams.overallRatingTitle": "{0} Gesamtbewertung: {1}",
-  "teams.noPlayersOnTeam": "Keine Spieler in diesem Team.",
-  "teams.positionCountTitle": "{0} × {1}",
-  "teams.unsetCountTitle": "{0} Spieler ohne festgelegte Position"
+  "teams.noPlayersOnTeam": "Keine Spieler in diesem Team."
 }

@@ -2,7 +2,6 @@ using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using TeamBalancer.Core.Models;
 using TeamBalancer.Core.Services.Balancing;
-using TeamBalancer.Extensions;
 using TeamBalancer.Services;
 
 namespace TeamBalancer.Components.Pages;
@@ -65,11 +64,6 @@ public partial class Teams
     private const double MaxSkillRating = 3;
 
     /// <summary>
-    /// A single position count shown in a team's position summary.
-    /// </summary>
-    private sealed record PositionSummaryEntry(string Label, string CssClass, int Count, string Title);
-
-    /// <summary>
     /// One skill compared across the two teams, rendered as a mirrored pair of bars.
     /// </summary>
     private sealed record BalanceMetric(string Label, double LeftValue, double RightValue);
@@ -114,35 +108,6 @@ public partial class Teams
     /// accent and its sibling shade rather than taking a hue of their own.
     /// </summary>
     private static string TeamColorClass(int index) => index % 2 == 0 ? "team-a" : "team-b";
-
-    /// <summary>
-    /// Counts a team's players by primary position. Every real position is returned even when
-    /// its count is zero - a missing goalkeeper is exactly what this summary should reveal.
-    /// Players without a position land in a separate "Unset" entry, which is only shown when
-    /// it is non-empty.
-    /// </summary>
-    private IEnumerable<PositionSummaryEntry> GetPositionSummary(Team team)
-    {
-        foreach (var position in PositionExtensions.SelectablePositions)
-        {
-            var count = team.Players.Count(p => p.PrimaryPosition == position);
-            yield return new PositionSummaryEntry(
-                position.ToAbbreviation(),
-                position.ToBadgeClass(),
-                count,
-                Loc["teams.positionCountTitle", count, position.ToDisplayName(Loc)]);
-        }
-
-        var unsetCount = team.Players.Count(p => p.PrimaryPosition == Position.Unspecified);
-        if (unsetCount > 0)
-        {
-            yield return new PositionSummaryEntry(
-                Loc["position.unset"],
-                "pos-unset",
-                unsetCount,
-                Loc["teams.unsetCountTitle", unsetCount]);
-        }
-    }
 
     private void GoToCreateTeams()
     {

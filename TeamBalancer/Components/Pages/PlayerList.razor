@@ -9,18 +9,31 @@
         <button class="back-button" @onclick="Cancel" title="@(Loc["common.back"])">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
         </button>
-        <h1 class="header-title-left">@Loc["playerList.title"]</h1>
+        @* Which list is being picked from, and how big it is, sit under the title - the same
+           question the home header answers, asked again where the picking happens. *@
+        <div class="header-title-block-left">
+            <h1 class="header-title-left">@Loc["playerList.title"]</h1>
+            <span class="header-subline">@HeaderSubline</span>
+        </div>
+        @* The running count of what is picked, which is what the footer button acts on. *@
+        <span class="picked-pill">@Loc["playerList.picked", _selectedPlayerIds.Count]</span>
     </div>
 </LayoutSection>
 
 <LayoutSection Section="Footer">
     <div class="button-group">
-        <button class="btn btn-secondary btn-icon" @onclick="GoToAddPlayer"><i class="fas fa-plus"></i></button>
-        @if (_players.Any() && !_isLoading)
-        {
-            <button class="btn btn-success" @onclick="CreateTeams" disabled="@NoPlayersSelected">@Loc["playerList.create"]</button>
-        }
-        <button class="btn btn-secondary" @onclick="Cancel">@Loc["common.home"]</button>
+        <button class="btn btn-secondary btn-icon" @onclick="GoToAddPlayer"
+                title="@(Loc["home.addPlayer"])" aria-label="@(Loc["home.addPlayer"])">
+            <i class="fas fa-plus"></i>
+        </button>
+        <button class="btn btn-success" @onclick="CreateTeams" disabled="@NoPlayersSelected">
+            <i class="fas fa-shuffle create-icon"></i>
+            @Loc["common.createTeams"]
+        </button>
+        <button class="btn btn-secondary btn-icon footer-home" @onclick="Cancel"
+                title="@(Loc["common.home"])" aria-label="@(Loc["common.home"])">
+            <i class="fas fa-house"></i>
+        </button>
     </div>
 </LayoutSection>
 

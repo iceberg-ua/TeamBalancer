@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Forms;
 using TeamBalancer.Components.Layout;
 using TeamBalancer.Core.Models;
 using TeamBalancer.Core.Services.Interfaces;
+using TeamBalancer.Extensions;
 using TeamBalancer.Services;
 
 namespace TeamBalancer.Components.Pages;
@@ -30,8 +31,8 @@ public partial class Index
     [CascadingParameter]
     private MainLayout? Layout { get; set; }
 
-    private int _playerCount = 0;
-    private bool CanCreateTeams => _playerCount >= 2;
+    private List<Player> _players = new();
+    private bool CanCreateTeams => _players.Count >= 2;
     private string _message = string.Empty;
     private bool _isError = false;
     private bool _showMenu = false;
@@ -63,11 +64,38 @@ public partial class Index
         base.Dispose();
     }
 
+    /// <summary>
+    /// Loads the active list's squad, which this screen both counts by position and lists in
+    /// full. The players stay in the order the list stores them rather than being sorted here,
+    /// so a player is where the user last saw them on the Select Players screen.
+    /// </summary>
     private async Task LoadPlayers()
     {
-        var players = await PlayerRepository.GetAllAsync();
-        _playerCount = players.Count();
+        _players = (await PlayerRepository.GetAllAsync()).ToList();
+
+        // Create Teams lives in the footer, which belongs to the layout, so whether it is
+        // enabled cannot follow from re-rendering this page alone.
         Layout?.Refresh();
+    }
+
+    /// <summary>
+    /// Gets the line under a player's name in the roster: their position, followed by the
+    /// secondary one when they have it, or the prompt to set one when they have none.
+    /// </summary>
+    /// <param name="player">The player being listed.</param>
+    /// <returns>The text of the subline.</returns>
+    private string PositionLine(Player player)
+    {
+        if (player.PrimaryPosition == Position.Unspecified)
+        {
+            return Loc["playerItem.setPosition"];
+        }
+
+        var primary = player.PrimaryPosition.ToDisplayName(Loc);
+
+        return player.SecondaryPosition.HasValue
+            ? $"{primary} · {player.SecondaryPosition.Value.ToDisplayName(Loc)}"
+            : primary;
     }
 
     /// <summary>
@@ -88,6 +116,17 @@ public partial class Index
     private void AddPlayer()
     {
         Navigation.NavigateTo("/add-player");
+    }
+
+    /// <summary>
+    /// Opens a player from the roster for editing. The Add Player screen doubles as the
+    /// editor when it is handed an id, which is the same route the Select Players screen
+    /// sends its edit action to.
+    /// </summary>
+    /// <param name="player">The player whose row was tapped.</param>
+    private void EditPlayer(Player player)
+    {
+        Navigation.NavigateTo($"/add-player/{player.Id}");
     }
 
     private void CreateTeams()

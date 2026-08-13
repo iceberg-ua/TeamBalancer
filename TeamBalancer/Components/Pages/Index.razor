@@ -1,5 +1,8 @@
 @page "/"
 @inherits LocalizedComponentBase
+@using TeamBalancer.Core.Models
+@using TeamBalancer.Components.Shared
+@using TeamBalancer.Extensions
 
 <LayoutSection Section="Header">
     <div class="header-with-menu">
@@ -28,7 +31,10 @@
         <button class="btn btn-icon btn-secondary" @onclick="AddPlayer" title="@(Loc["home.addPlayer"])" aria-label="@(Loc["home.addPlayer"])">
             <i class="fas fa-plus"></i>
         </button>
-        <button class="btn btn-success" @onclick="CreateTeams" disabled="@(!CanCreateTeams)">@Loc["common.createTeams"]</button>
+        <button class="btn btn-success" @onclick="CreateTeams" disabled="@(!CanCreateTeams)">
+            <i class="fas fa-shuffle create-icon"></i>
+            @Loc["common.createTeams"]
+        </button>
     </div>
 </LayoutSection>
 
@@ -124,33 +130,55 @@
             </div>
         }
 
-        <div class="field-image">
-            <svg class="pitch-graphic" viewBox="0 0 18 28" preserveAspectRatio="xMidYMid meet" fill="none" stroke="#ffffff" stroke-width="0.4" stroke-linejoin="round" stroke-linecap="round">
-                <rect x="1" y="1" width="16" height="26" rx="0.6" fill="#2e8b3d"></rect>
-                <line x1="1" y1="14" x2="17" y2="14"></line>
-                <circle cx="9" cy="14" r="3.2"></circle>
-                <circle cx="9" cy="14" r="0.5" fill="#ffffff" stroke="none"></circle>
-                <rect x="4" y="1" width="10" height="5"></rect>
-                <rect x="6.5" y="1" width="5" height="2"></rect>
-                <rect x="4" y="22" width="10" height="5"></rect>
-                <rect x="6.5" y="25" width="5" height="2"></rect>
-                <circle cx="9" cy="2.2" r="0.55" fill="#3b82f6" stroke="none"></circle>
-                <circle cx="4.3" cy="5.5" r="0.55" fill="#3b82f6" stroke="none"></circle>
-                <circle cx="9" cy="5.5" r="0.55" fill="#3b82f6" stroke="none"></circle>
-                <circle cx="13.7" cy="5.5" r="0.55" fill="#3b82f6" stroke="none"></circle>
-                <circle cx="5" cy="9" r="0.55" fill="#3b82f6" stroke="none"></circle>
-                <circle cx="9" cy="9" r="0.55" fill="#3b82f6" stroke="none"></circle>
-                <circle cx="13" cy="9" r="0.55" fill="#3b82f6" stroke="none"></circle>
-                <circle cx="9" cy="12" r="0.55" fill="#3b82f6" stroke="none"></circle>
-                <circle cx="9" cy="25.8" r="0.55" fill="#ef4444" stroke="none"></circle>
-                <circle cx="3.3" cy="22" r="0.55" fill="#ef4444" stroke="none"></circle>
-                <circle cx="7.2" cy="22.6" r="0.55" fill="#ef4444" stroke="none"></circle>
-                <circle cx="10.8" cy="22.6" r="0.55" fill="#ef4444" stroke="none"></circle>
-                <circle cx="14.7" cy="22" r="0.55" fill="#ef4444" stroke="none"></circle>
-                <circle cx="6.5" cy="18.3" r="0.55" fill="#ef4444" stroke="none"></circle>
-                <circle cx="11.5" cy="18.3" r="0.55" fill="#ef4444" stroke="none"></circle>
-                <circle cx="9" cy="15.3" r="0.55" fill="#ef4444" stroke="none"></circle>
-            </svg>
-        </div>
+        @* The squad the active list holds, summarised by position and then named player by
+           player. It replaces the decorative pitch that used to fill this screen: what you
+           want to know before pressing Create Teams is who is in the list. *@
+        <PositionCounts Players="_players" ShowUnset="false" />
+
+        @if (_players.Count == 0)
+        {
+            <div class="home-empty">
+                <i class="fas fa-user-plus"></i>
+                <p>@Loc["home.empty"]</p>
+            </div>
+        }
+        else
+        {
+            <div class="home-roster-scroll scroll-shadows">
+                <div class="home-roster">
+                    @foreach (var player in _players)
+                    {
+                        var hasPosition = player.PrimaryPosition != Position.Unspecified;
+                        var positionTitle = hasPosition
+                            ? Loc["playerItem.primaryPositionTitle", player.PrimaryPosition.ToDisplayName(Loc)]
+                            : Loc["playerItem.noPositionTitle"];
+
+                        @* The whole row is the tap target: from here a player is opened to be
+                           edited, which is the only thing there is to do with one on this
+                           screen. *@
+                        <button type="button" class="roster-row"
+                                @onclick="() => EditPlayer(player)"
+                                title="@(Loc["playerItem.edit"])">
+                            <span class="roster-pos @(hasPosition ? "" : "is-unset")" title="@positionTitle">
+                                @player.PrimaryPosition.ToAbbreviation()
+                            </span>
+
+                            <span class="roster-identity">
+                                <span class="roster-name">@player.Name</span>
+                                <span class="roster-subline @(hasPosition ? "" : "is-unset")">@PositionLine(player)</span>
+                            </span>
+
+                            @* One overall cluster stands in for the three skills, with the
+                               breakdown on the tooltip - the same rating the player rows on
+                               the other screens show. *@
+                            <span class="roster-rating"
+                                  title="@(Loc["playerItem.skillsTitle", player.Speed, player.TechnicalSkills, player.Stamina])">
+                                <SkillRatingDisplay Rating="@((int)Math.Round(player.OverallSkillLevel, MidpointRounding.AwayFromZero))" />
+                            </span>
+                        </button>
+                    }
+                </div>
+            </div>
+        }
     </div>
 </div>

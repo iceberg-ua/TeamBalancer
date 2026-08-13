@@ -1,4 +1,6 @@
-<div class="skill-item">
+@* A span rather than a div so the cluster stays valid inside a button - the home roster
+   makes each of its rows one. It is display:flex either way. *@
+<span class="skill-item">
     <span class="skill-icons">
         @for (int i = 1; i <= MaxRating; i++)
         {
@@ -8,7 +10,7 @@
                style="--star-index: @zIndex; --star-color: hsl(45, 100%, @(lightness)%);"></i>
         }
     </span>
-</div>
+</span>
 
 @code {
     [Parameter, EditorRequired]

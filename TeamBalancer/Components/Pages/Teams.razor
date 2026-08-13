@@ -101,15 +101,7 @@
                 </div>
             }
 
-            <div class="position-tiles @TeamColorClass(activeIndex)">
-                @foreach (var entry in GetPositionSummary(activeTeam))
-                {
-                    <div class="position-tile @(entry.Count == 0 ? "is-empty" : "")" title="@entry.Title">
-                        <span class="tile-count">@entry.Count</span>
-                        <span class="tile-label">@entry.Label</span>
-                    </div>
-                }
-            </div>
+            <PositionCounts Players="activeTeam.Players" ColorClass="@TeamColorClass(activeIndex)" />
             </div>
 
             @if (activeTeam.Players.Count == 0)

@@ -1,0 +1,149 @@
+/* The import/export result sits above the summary rather than floating over it. */
+.alert {
+    margin-bottom: 0.75rem;
+}
+
+/* ---- Roster ---- */
+/* Only the roster scrolls; the position counts above it hold their place however long the
+   squad gets, the same split the Teams screen uses. */
+.home-roster-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.home-roster {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding-bottom: 0.5rem;
+}
+
+/* A row is a button - tapping one opens that player for editing - so it resets the button
+   chrome and keeps the tint-and-outline hover the player rows on the other screens use. */
+.roster-row {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    width: 100%;
+    padding: 0.5rem 0.625rem;
+    border: none;
+    border-radius: 10px;
+    background: var(--color-surface);
+    box-shadow: 0 0 0 1px rgba(233, 233, 237, 0.07);
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.roster-row:hover {
+    background-color: rgba(127, 176, 105, 0.08);
+    box-shadow: 0 0 0 1px var(--color-accent);
+}
+
+.roster-row:active {
+    background-color: rgba(127, 176, 105, 0.14);
+}
+
+.roster-row:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+}
+
+/* The position leads the row as a square tile rather than the small badge the other
+   screens use - here it is the thing the eye scans the list by. */
+.roster-pos {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.375rem;
+    height: 2.375rem;
+    flex-shrink: 0;
+    border-radius: 10px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    background-color: var(--color-neutral-800);
+    color: var(--color-neutral-100);
+}
+
+.roster-pos.is-unset {
+    background-color: transparent;
+    border: 1px dashed rgba(233, 233, 237, 0.22);
+    color: var(--color-text-muted);
+}
+
+.roster-identity {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.0625rem;
+}
+
+.roster-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.roster-subline {
+    font-size: 0.625rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* A player with no position is the one thing on this screen the user has to go and fix
+   before the teams come out right, so the prompt is coloured rather than muted. */
+.roster-subline.is-unset {
+    color: var(--color-warning);
+}
+
+.roster-rating {
+    display: flex;
+    flex-shrink: 0;
+}
+
+/* ---- Empty list ---- */
+.home-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    text-align: center;
+    padding: 1.5rem;
+}
+
+.home-empty i {
+    font-size: 1.875rem;
+    color: var(--color-neutral-800);
+}
+
+.home-empty p {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--color-text-muted);
+    max-width: 16rem;
+}
+
+@media (min-width: 768px) {
+    .roster-name {
+        font-size: 1.05rem;
+    }
+
+    .roster-subline {
+        font-size: 0.7rem;
+    }
+}

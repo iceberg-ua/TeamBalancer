@@ -20,6 +20,8 @@
   "position.unset": "Немає",
   "position.primaryLabel": "Основна позиція",
   "position.secondaryLabel": "Додаткова позиція (необов'язково)",
+  "position.countTitle": "{0} × {1}",
+  "position.unsetCountTitle": "Гравців без вказаної позиції: {0}",
 
   "skill.speed": "Швидкість",
   "skill.technicalSkills": "Технічні навички",
@@ -27,6 +29,7 @@
   "skill.stamina": "Витривалість",
 
   "home.addPlayer": "Додати гравця",
+  "home.empty": "У цьому списку ще немає гравців. Додайте першого гравця, щоб почати.",
   "home.exportPlayers": "Експортувати гравців",
   "home.importPlayers": "Імпортувати гравців",
   "home.exportError": "Помилка експорту гравців: {0}",
@@ -65,8 +68,10 @@
   "playerList.title": "Вибір гравців",
   "playerList.loading": "Завантаження гравців...",
   "playerList.empty": "Гравців немає. Спочатку додайте гравців.",
-  "playerList.create": "Створити",
-  "playerList.headerPlayer": "Гравець ({0}/{1})",
+  "playerList.playerCount": "гравців: {0}",
+  "playerList.picked": "обрано: {0}",
+  "playerList.selectAll": "Вибрати всіх",
+  "playerList.deselectAll": "Зняти вибір",
   "playerList.headerRating": "Рейтинг",
   "playerList.deleteConfirm": "Ви впевнені, що хочете видалити {0}?",
 
@@ -106,7 +111,5 @@
   "teams.balanceComparison": "Порівняння балансу",
   "teams.metricTitle": "{0} {1}: {2}",
   "teams.overallRatingTitle": "{0} — загальний рейтинг: {1}",
-  "teams.noPlayersOnTeam": "У цій команді немає гравців.",
-  "teams.positionCountTitle": "{0} × {1}",
-  "teams.unsetCountTitle": "Гравців без вказаної позиції: {0}"
+  "teams.noPlayersOnTeam": "У цій команді немає гравців."
 }

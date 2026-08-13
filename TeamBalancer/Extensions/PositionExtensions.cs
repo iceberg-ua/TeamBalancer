@@ -69,18 +69,4 @@ public static class PositionExtensions
         Position.Forward => 3,
         _ => 4
     };
-
-    /// <summary>
-    /// Gets the CSS modifier class that colours a badge or chip for this position.
-    /// </summary>
-    /// <param name="position">The position to style.</param>
-    /// <returns>A CSS class name.</returns>
-    public static string ToBadgeClass(this Position position) => position switch
-    {
-        Position.Goalkeeper => "pos-gk",
-        Position.Defender => "pos-def",
-        Position.Midfielder => "pos-mid",
-        Position.Forward => "pos-fwd",
-        _ => "pos-unset"
-    };
 }

@@ -23,6 +23,9 @@ public partial class PlayerList
     private IActivePlayerRepository ActivePlayerRepository { get; set; } = default!;
 
     [Inject]
+    private IPlayerListRepository PlayerListRepository { get; set; } = default!;
+
+    [Inject]
     private TeamBalancingService TeamBalancingService { get; set; } = default!;
 
     [Inject]
@@ -47,6 +50,7 @@ public partial class PlayerList
     private BalancingAlgorithmType _selectedAlgorithm = BalancingAlgorithmType.SnakeDraft;
     private bool _showDeleteConfirm = false;
     private Player? _playerToDelete = null;
+    private string _activeListName = string.Empty;
 
     #endregion
 
@@ -56,6 +60,23 @@ public partial class PlayerList
     /// Gets whether the Create Teams button should be enabled.
     /// </summary>
     private bool NoPlayersSelected => _selectedPlayerIds.Count == 0;
+
+    /// <summary>
+    /// Gets the line under the title: which list is being picked from, and how many players
+    /// it holds. The name is dropped rather than left dangling before the separator when the
+    /// list has not been named yet.
+    /// </summary>
+    private string HeaderSubline
+    {
+        get
+        {
+            var count = Loc["playerList.playerCount", _players.Count];
+
+            return string.IsNullOrEmpty(_activeListName)
+                ? count
+                : $"{_activeListName} · {count}";
+        }
+    }
 
     #endregion
 
@@ -69,6 +90,7 @@ public partial class PlayerList
         ActivePlayerRepository.ListChanged += HandleListChanged;
 
         await LoadPlayers();
+        await LoadListName();
     }
 
     /// <inheritdoc />
@@ -96,6 +118,24 @@ public partial class PlayerList
 
         _isLoading = false;
         StateHasChanged();
+
+        // The header carries the count and the picked tally, and it belongs to the layout
+        // rather than to this page.
+        Layout?.Refresh();
+    }
+
+    /// <summary>
+    /// Reads the name of the list being picked from, for the header subline.
+    /// </summary>
+    private async Task LoadListName()
+    {
+        var lists = await PlayerListRepository.GetAllAsync();
+
+        _activeListName = lists
+            .FirstOrDefault(l => l.Id == ActivePlayerRepository.CurrentListId)?.Name
+            ?? string.Empty;
+
+        Layout?.Refresh();
     }
 
     /// <summary>
@@ -105,6 +145,7 @@ public partial class PlayerList
     private void HandleListChanged() => InvokeAsync(async () =>
     {
         await LoadPlayers();
+        await LoadListName();
 
         Layout?.Refresh();
     });
