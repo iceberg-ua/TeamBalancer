@@ -26,17 +26,20 @@
     line-height: 1;
 }
 
+/* The chips follow whatever context they sit in - the Teams screen sets --chip-color to the
+   colour of the team whose lineup is open, and --chip-ink to the shade that stays readable on
+   it. Custom properties inherit through CSS isolation. */
 .pos-chip.is-primary {
-    background-color: var(--color-accent);
-    color: var(--color-neutral-100);
+    background-color: var(--chip-color, var(--color-accent));
+    color: var(--chip-ink, var(--color-neutral-100));
 }
 
 /* The fallback position is the same colour as the primary but hollow, so the pair reads as
    one column ranked top to bottom. */
 .pos-chip.is-secondary {
     background-color: transparent;
-    border-color: var(--color-accent);
-    color: var(--color-accent);
+    border-color: var(--chip-color, var(--color-accent));
+    color: var(--chip-color, var(--color-accent));
     font-weight: 600;
 }
 

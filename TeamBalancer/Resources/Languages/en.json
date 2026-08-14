@@ -108,8 +108,20 @@
   "teams.name": "Team {0}",
   "teams.empty": "No teams have been created yet.",
   "teams.reshuffle": "Reshuffle",
-  "teams.balanceComparison": "Balance comparison",
   "teams.metricTitle": "{0} {1}: {2}",
   "teams.overallRatingTitle": "{0} overall rating: {1}",
-  "teams.noPlayersOnTeam": "No players on this team."
+  "teams.noPlayersOnTeam": "No players on this team.",
+  "teams.balanced": "Balanced",
+  "teams.aheadBy": "{0} +{1}",
+  "teams.showTeam": "Show {0}",
+  "teams.lineup": "{0} lineup",
+  "teams.moveTo": "Move to {0}",
+  "teams.leaveTitle": "Leave without saving?",
+  "teams.leaveBody": "These teams have not been saved. Going back now discards the current split and any swaps you made.",
+  "teams.leaveNo": "No, stay",
+  "teams.leaveYes": "Yes, leave",
+  "teams.reshuffleTitle": "Reshuffle both teams?",
+  "teams.reshuffleBody": "A new balanced draw replaces the current split. {0} and {1} will both change, and manual swaps are lost.",
+  "teams.reshuffleNo": "No, keep these",
+  "teams.reshuffleYes": "Yes, reshuffle"
 }

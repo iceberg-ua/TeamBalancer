@@ -22,15 +22,6 @@
     color: var(--color-accent);
 }
 
-/* On the Teams screen the counts read as the team whose tab is open. */
-.position-tiles.team-a .tile-count {
-    color: var(--color-team-a);
-}
-
-.position-tiles.team-b .tile-count {
-    color: var(--color-team-b);
-}
-
 /* A zero count keeps its tile so a gap in the line-up stays visible, but drops the
    accent - nothing to celebrate there. */
 .position-tile.is-empty .tile-count {

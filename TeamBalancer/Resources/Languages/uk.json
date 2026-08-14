@@ -108,8 +108,20 @@
   "teams.name": "Команда {0}",
   "teams.empty": "Команди ще не створено.",
   "teams.reshuffle": "Перемішати",
-  "teams.balanceComparison": "Порівняння балансу",
   "teams.metricTitle": "{0} {1}: {2}",
   "teams.overallRatingTitle": "{0} — загальний рейтинг: {1}",
-  "teams.noPlayersOnTeam": "У цій команді немає гравців."
+  "teams.noPlayersOnTeam": "У цій команді немає гравців.",
+  "teams.balanced": "Збалансовано",
+  "teams.aheadBy": "{0} +{1}",
+  "teams.showTeam": "Показати: {0}",
+  "teams.lineup": "Склад: {0}",
+  "teams.moveTo": "Перемістити → {0}",
+  "teams.leaveTitle": "Вийти без збереження?",
+  "teams.leaveBody": "Ці команди не збережено. Якщо повернутися зараз, поточний поділ і всі зроблені заміни буде втрачено.",
+  "teams.leaveNo": "Ні, залишитися",
+  "teams.leaveYes": "Так, вийти",
+  "teams.reshuffleTitle": "Перемішати обидві команди?",
+  "teams.reshuffleBody": "Новий збалансований розподіл замінить поточний поділ. {0} і {1} зміняться обидві, а ручні заміни буде втрачено.",
+  "teams.reshuffleNo": "Ні, залишити ці",
+  "teams.reshuffleYes": "Так, перемішати"
 }

@@ -34,6 +34,11 @@
        among cards that have not been. */
     --color-surface-raised: #272a36;
 
+    /* A panel lifted only just off the background, below --color-surface: the Teams
+       scoreboard and the sheet its confirmations rise in. It holds cards of its own, so it
+       has to stay darker than the ones it holds. */
+    --color-surface-quiet: #1e2130;
+
     /* Something the user should go and deal with, short of an outright error. Shares its
        amber with team B, which is where the palette's second hue was picked. */
     --color-warning: #d9a441;
@@ -390,6 +395,23 @@ a, .btn-link {
     background-color: rgba(233, 233, 237, 0.14);
 }
 
+/* An action that costs the user something they have but cannot get back - leaving a split
+   that was never saved - without being the outright destruction .btn-danger answers for. It
+   takes the palette's amber, the same hue the warning sublines and team B are drawn in. */
+.btn-warning {
+    color: #fdf3dc;
+    background-color: #7a5c1f;
+    border-color: #a97f2e;
+}
+
+.btn-warning:hover {
+    background-color: #8f6c25;
+}
+
+.btn-warning:active {
+    background-color: #6b501b;
+}
+
 .btn-danger {
     color: #fff;
     background-color: #a13a42;
@@ -427,6 +449,14 @@ a, .btn-link {
 .btn-danger.disabled {
     color: #fff;
     background-color: #a13a42;
+    opacity: 0.45;
+}
+
+.btn-warning:disabled,
+.btn-warning.disabled {
+    color: #fdf3dc;
+    background-color: #7a5c1f;
+    border-color: #a97f2e;
     opacity: 0.45;
 }
 
@@ -470,6 +500,13 @@ a, .btn-link {
 .btn .create-icon {
     font-size: 1rem;
     opacity: 0.8;
+}
+
+/* The house is a solid glyph with a wider, heavier footprint than the plus stroke, so at the
+   shared .btn-icon size it reads as the bigger of the two. Scaled down to match it, on every
+   screen that offers the way home. */
+.footer-home i {
+    font-size: 1.6rem;
 }
 
 /* Nocturne segmented control: a row of mutually exclusive options sharing one
@@ -767,6 +804,29 @@ button.menu-button:active,
     .header-title-left {
         font-size: 2rem;
     }
+}
+
+/* The same title stacked over the context it applies to - the list being picked from on
+   Select Players, the list a split came out of on Teams - leaving whatever the screen puts
+   at the end of the row its own place. */
+.header-title-block-left {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex: 1;
+    min-width: 0;
+}
+
+.header-title-block-left .header-title-left {
+    flex: 0 0 auto;
+}
+
+.header-subline {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Menu overlay and popup */

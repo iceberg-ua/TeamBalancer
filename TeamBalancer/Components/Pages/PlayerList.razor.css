@@ -3,35 +3,8 @@
 }
 
 /* ---- Header ---- */
-/* The title stacks over the list it is picking from, leaving the picked tally its own
-   place at the end of the row. */
-.header-title-block-left {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    flex: 1;
-    min-width: 0;
-}
-
-.header-title-block-left .header-title-left {
-    flex: 0 0 auto;
-}
-
-.header-subline {
-    font-size: 0.72rem;
-    color: var(--color-text-muted);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* ---- Footer ---- */
-/* The house is a solid glyph with a wider, heavier footprint than the plus stroke, so at
-   the shared .btn-icon size it reads as the bigger of the two. Scaled down to match it. */
-.footer-home i {
-    font-size: 1.6rem;
-}
-
+/* The stacked title and its subline are shared with the Teams screen, so they live in
+   app.css; the tally at the end of the row belongs to this screen alone. */
 .picked-pill {
     display: inline-flex;
     align-items: center;

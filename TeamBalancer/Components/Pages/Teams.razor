@@ -1,23 +1,44 @@
 @page "/teams"
 @inherits LocalizedComponentBase
+@using TeamBalancer.Core.Models
 @using TeamBalancer.Components.Shared
 @using TeamBalancer.Extensions
 
 <LayoutSection Section="Header">
     <div class="header-with-back">
-        <button class="back-button" @onclick="GoToCreateTeams" title="@(Loc["common.back"])">
+        @* Leaving throws the split away, so the arrow asks before it goes - and stays lit
+           while it is asking, so the sheet is anchored to the button that opened it. *@
+        <button class="back-button @(IsArmed(SelectPlayersRoute) ? "is-armed" : "")"
+                @onclick="() => AskToLeave(SelectPlayersRoute)" title="@(Loc["common.back"])">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
         </button>
-        <h1 class="header-title-left">@Loc["teams.title"]</h1>
+        @* Which squad this split came out of, and how many of its players are on the pitch. *@
+        <div class="header-title-block-left">
+            <h1 class="header-title-left">@Loc["teams.title"]</h1>
+            <span class="header-subline">@HeaderSubline</span>
+        </div>
+        @* How the draw came out, in one word: level, or which side it leans to and by how much. *@
+        @if (IsComparable)
+        {
+            <span class="balance-pill @(IsLevel ? "is-level" : "is-tilted")">@BalanceLabel</span>
+        }
     </div>
 </LayoutSection>
 
-@if (GeneratedTeams != null && GeneratedTeams.Any())
+@if (GeneratedTeams != null && GeneratedTeams.Count > 0)
 {
     <LayoutSection Section="Footer">
         <div class="button-group">
-            <button class="btn btn-success" @onclick="ReshuffleTeams">@Loc["teams.reshuffle"]</button>
-            <button class="btn btn-secondary" @onclick="GoHome">@Loc["common.home"]</button>
+            <button class="btn btn-success @(_pending == PendingAction.Reshuffle ? "is-armed" : "")"
+                    @onclick="AskToReshuffle">
+                <i class="fas fa-shuffle create-icon"></i>
+                @Loc["teams.reshuffle"]
+            </button>
+            <button class="btn btn-secondary btn-icon footer-home @(IsArmed(HomeRoute) ? "is-armed" : "")"
+                    @onclick="() => AskToLeave(HomeRoute)"
+                    title="@(Loc["common.home"])" aria-label="@(Loc["common.home"])">
+                <i class="fas fa-house"></i>
+            </button>
         </div>
     </LayoutSection>
 }
@@ -25,7 +46,7 @@
 <div class="page-container">
     <div class="page-content-narrow teams-pane">
 
-        @if (GeneratedTeams == null || !GeneratedTeams.Any())
+        @if (GeneratedTeams == null || GeneratedTeams.Count == 0)
         {
             <div class="no-teams text-center card-padding">
                 <p>@Loc["teams.empty"]</p>
@@ -34,74 +55,75 @@
         }
         else
         {
-            @* Teams can be regenerated underneath us, so never trust the stored index blindly. *@
-            var activeIndex = Math.Clamp(_activeTabIndex, 0, GeneratedTeams.Count - 1);
+            var activeIndex = ActiveIndex;
             var activeTeam = GeneratedTeams[activeIndex];
 
-            @* Tabs, comparison and counts stay put; only the roster below them scrolls,
-               so the team you are looking at and its stats are never scrolled away. *@
-            <div class="teams-summary">
-            <div class="seg team-tabs" role="tablist">
-                @for (var i = 0; i < GeneratedTeams.Count; i++)
-                {
-                    var index = i;
-                    <button type="button"
-                            role="tab"
-                            aria-selected="@(index == activeIndex)"
-                            class="seg-opt @TeamColorClass(index) @(index == activeIndex ? "is-selected" : "")"
-                            @onclick="() => _activeTabIndex = index">
-                        @TeamName(index)
-                    </button>
-                }
-            </div>
-
-            @if (GeneratedTeams.Count == 2)
-            {
-                <div class="balance-card">
-                    <div class="card-kicker">@Loc["teams.balanceComparison"]</div>
-
-                    @foreach (var metric in GetBalanceMetrics(GeneratedTeams[0], GeneratedTeams[1]))
+            @* The scoreboard doubles as the team switcher: the side being shown is the tinted,
+               ringed half with the caret pointing down at the lineup, and the other steps back.
+               It stays put along with the comparison; only the lineup below them scrolls. *@
+            <div class="scoreboard">
+                <div class="score-sides" role="tablist">
+                    @for (var i = 0; i < GeneratedTeams.Count; i++)
                     {
-                        <div class="balance-row">
-                            <span class="balance-label">@metric.Label</span>
-                            <div class="balance-bars">
-                                <div class="balance-track">
-                                    <div class="balance-fill team-a"
-                                         style="width:@Percent(metric.LeftValue)"
-                                         title="@(Loc["teams.metricTitle", TeamName(0), metric.Label, metric.LeftValue.ToString("F2")])"></div>
-                                </div>
-                                <div class="balance-track">
-                                    <div class="balance-fill team-b"
-                                         style="width:@Percent(metric.RightValue)"
-                                         title="@(Loc["teams.metricTitle", TeamName(1), metric.Label, metric.RightValue.ToString("F2")])"></div>
+                        var index = i;
+                        var team = GeneratedTeams[index];
+
+                        @* Left untranslated, like the position abbreviations: a mark between the
+                           halves rather than a word to read. *@
+                        if (index > 0)
+                        {
+                            <span class="score-vs">VS</span>
+                        }
+
+                        <button type="button"
+                                role="tab"
+                                aria-selected="@(index == activeIndex ? "true" : "false")"
+                                class="score-side @TeamColorClass(index) @(index == activeIndex ? "is-shown" : "")"
+                                title="@(Loc["teams.showTeam", TeamName(index)])"
+                                @onclick="() => _activeTabIndex = index">
+                            <span class="side-name">@TeamName(index)</span>
+                            <span class="side-rating"
+                                  title="@(Loc["teams.overallRatingTitle", TeamName(index), Overall(team).ToString("F2")])">
+                                @Overall(team).ToString("F1")
+                            </span>
+                            <span class="side-count" title="@(Loc["playerList.playerCount", team.Players.Count])">
+                                @team.Players.Count
+                            </span>
+                        </button>
+                    }
+                </div>
+
+                @if (IsComparable)
+                {
+                    <div class="scoreboard-rule"></div>
+
+                    <div class="balance-rows">
+                        @foreach (var metric in GetBalanceMetrics(GeneratedTeams[0], GeneratedTeams[1]))
+                        {
+                            <div class="balance-row">
+                                <span class="balance-label">@metric.Label</span>
+                                <div class="balance-bars">
+                                    <span class="balance-value team-a">@metric.LeftValue.ToString("F1")</span>
+                                    @* The two bars grow away from the middle, so the pair reads as
+                                       one scale - the longer half is the stronger side. *@
+                                    <div class="balance-tracks">
+                                        <div class="balance-track is-left">
+                                            <div class="balance-fill team-a"
+                                                 style="width:@Percent(metric.LeftValue)"
+                                                 title="@(Loc["teams.metricTitle", TeamName(0), metric.Label, metric.LeftValue.ToString("F2")])"></div>
+                                        </div>
+                                        <div class="balance-track is-right">
+                                            <div class="balance-fill team-b"
+                                                 style="width:@Percent(metric.RightValue)"
+                                                 title="@(Loc["teams.metricTitle", TeamName(1), metric.Label, metric.RightValue.ToString("F2")])"></div>
+                                        </div>
+                                    </div>
+                                    <span class="balance-value team-b">@metric.RightValue.ToString("F1")</span>
                                 </div>
                             </div>
-                        </div>
-                    }
-
-                    @* Each cell pushes its name pill to the card's outer edge and its rating
-                       inwards, so the two ratings meet in the middle like the bars above.
-                       Team B's pair is ordered by hand rather than reversed in CSS. *@
-                    <div class="balance-legend">
-                        <div class="legend-cell">
-                            <span class="legend-tag team-a">@TeamName(0)</span>
-                            <span class="legend-rating team-a"
-                                  title="@(Loc["teams.overallRatingTitle", TeamName(0), Overall(GeneratedTeams[0]).ToString("F2")])">
-                                @Overall(GeneratedTeams[0]).ToString("F1")
-                            </span>
-                        </div>
-                        <div class="legend-cell">
-                            <span class="legend-rating team-b"
-                                  title="@(Loc["teams.overallRatingTitle", TeamName(1), Overall(GeneratedTeams[1]).ToString("F2")])">
-                                @Overall(GeneratedTeams[1]).ToString("F1")
-                            </span>
-                            <span class="legend-tag team-b">@TeamName(1)</span>
-                        </div>
+                        }
                     </div>
-                </div>
-            }
-
-            <PositionCounts Players="activeTeam.Players" ColorClass="@TeamColorClass(activeIndex)" />
+                }
             </div>
 
             @if (activeTeam.Players.Count == 0)
@@ -110,15 +132,54 @@
             }
             else
             {
-                <div class="team-players-scroll scroll-shadows">
-                    <div class="team-players @TeamColorClass(activeIndex)">
+                @* "Rating" heads the column below it, so the row sits above the scroller and
+                   holds its place while the lineup moves - the same split Select Players uses. *@
+                <div class="lineup-head">
+                    <span class="lineup-label">@Loc["teams.lineup", TeamName(activeIndex)]</span>
+                    <span class="lineup-gap"></span>
+                    <span class="lineup-rating">@Loc["playerList.headerRating"]</span>
+                    @if (CanMovePlayers)
+                    {
+                        <span class="lineup-move-spacer"></span>
+                    }
+                </div>
+
+                <div class="lineup-scroll scroll-shadows">
+                    <div class="lineup @TeamColorClass(activeIndex)">
                         @* Line the team up down the pitch - GK, DEF, MID, FWD, then anyone
                            without a position - and keep the strongest first within each group. *@
                         @foreach (var player in activeTeam.Players
                             .OrderBy(p => p.PrimaryPosition.ToSortOrder())
                             .ThenByDescending(p => p.OverallSkillLevel))
                         {
-                            <PlayerItem Player="@player" IsSelected="false" ShowCheckbox="false" />
+                            var hasPosition = player.PrimaryPosition != Position.Unspecified;
+
+                            <div class="lineup-row">
+                                <PositionChips Player="player" />
+
+                                <span class="row-identity">
+                                    <span class="row-name">@player.Name</span>
+                                    <span class="row-subline @(hasPosition ? "" : "is-unset")">
+                                        @(hasPosition ? player.PrimaryPosition.ToDisplayName(Loc) : Loc["playerItem.setPosition"])
+                                    </span>
+                                </span>
+
+                                <span class="row-rating"
+                                      title="@(Loc["playerItem.skillsTitle", player.Speed, player.TechnicalSkills, player.Stamina])">
+                                    <SkillRatingDisplay Rating="@((int)Math.Round(player.OverallSkillLevel, MidpointRounding.AwayFromZero))" />
+                                </span>
+
+                                @if (CanMovePlayers)
+                                {
+                                    @* Sends this player over to the other side. The scoreboard
+                                       above recalculates as they go, so an even draw can be
+                                       nudged by hand and still be seen to be even. *@
+                                    <button type="button" class="row-move" @onclick="() => MovePlayer(player)"
+                                            title="@MoveTitle" aria-label="@MoveTitle">
+                                        <i class="fas fa-right-left"></i>
+                                    </button>
+                                }
+                            </div>
                         }
                     </div>
                 </div>
@@ -126,3 +187,49 @@
         }
     </div>
 </div>
+
+@* Both guarded actions ask the same way: a tinted mark, one line of what is lost, and a
+   yes/no pair where No is the calm ghost button and Yes carries the action's own colour -
+   amber when something goes, green when a new draw is made. *@
+@if (_pending != PendingAction.None)
+{
+    var isLeave = _pending == PendingAction.Leave;
+
+    <div class="sheet-overlay" @onclick="CancelPending">
+        <div class="sheet" role="dialog" aria-modal="true" @onclick:stopPropagation="true">
+            <div class="sheet-head">
+                <span class="sheet-mark @(isLeave ? "is-warning" : "is-accent")">
+                    <i class="fas @(isLeave ? "fa-arrow-right-from-bracket" : "fa-shuffle")"></i>
+                </span>
+                <span class="sheet-title">@(isLeave ? Loc["teams.leaveTitle"] : Loc["teams.reshuffleTitle"])</span>
+            </div>
+
+            <p class="sheet-body">
+                @(isLeave
+                    ? Loc["teams.leaveBody"]
+                    : Loc["teams.reshuffleBody", TeamName(0), TeamName(1)])
+            </p>
+
+            <div class="sheet-actions">
+                <button class="btn btn-secondary" @onclick="CancelPending">
+                    @(isLeave ? Loc["teams.leaveNo"] : Loc["teams.reshuffleNo"])
+                </button>
+
+                @if (isLeave)
+                {
+                    <button class="btn btn-warning" @onclick="ConfirmLeave">
+                        <i class="fas fa-arrow-right-from-bracket"></i>
+                        @Loc["teams.leaveYes"]
+                    </button>
+                }
+                else
+                {
+                    <button class="btn btn-success" @onclick="ConfirmReshuffle">
+                        <i class="fas fa-shuffle"></i>
+                        @Loc["teams.reshuffleYes"]
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+}

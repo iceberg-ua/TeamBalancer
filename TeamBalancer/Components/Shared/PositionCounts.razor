@@ -3,7 +3,7 @@
 @using TeamBalancer.Extensions
 @inject ILocalizationService Loc
 
-<div class="position-tiles @ColorClass">
+<div class="position-tiles">
     @foreach (var entry in GetSummary())
     {
         <div class="position-tile @(entry.Count == 0 ? "is-empty" : "")" title="@entry.Title">
@@ -15,26 +15,18 @@
 
 @code {
     /// <summary>
-    /// Gets or sets the players to count. This is a squad on the home screen and a single
-    /// team on the Teams screen.
+    /// Gets or sets the players to count - the squad the home screen summarises.
     /// </summary>
     [Parameter, EditorRequired]
     public IReadOnlyCollection<Player> Players { get; set; } = [];
 
     /// <summary>
-    /// Gets or sets whether players with no position get a tile of their own. The Teams
-    /// screen shows one because an unplaced player still has to be accounted for somewhere;
-    /// the home screen leaves it off, since the roster below names those players outright.
+    /// Gets or sets whether players with no position get a tile of their own. A screen that
+    /// names those players below the summary leaves it off, since the tile would only repeat
+    /// what the rows already say; one that does not has to account for them somewhere.
     /// </summary>
     [Parameter]
     public bool ShowUnset { get; set; } = true;
-
-    /// <summary>
-    /// Gets or sets the modifier class that tints the counts - "team-a" or "team-b" on the
-    /// Teams screen. Left unset, the counts take the app accent.
-    /// </summary>
-    [Parameter]
-    public string? ColorClass { get; set; }
 
     /// <summary>
     /// A single position count.
