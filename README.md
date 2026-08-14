@@ -1,9 +1,9 @@
 # ⚽ TeamBalancer
 
-A cross-platform application that automatically divides football (soccer) players into balanced teams based on their skill levels. Built with .NET 9 and .NET MAUI, TeamBalancer ensures fair and competitive matches by intelligently analyzing player abilities across multiple attributes.
+A cross-platform application that automatically divides football (soccer) players into balanced teams based on their skill levels. Built with .NET 10 and .NET MAUI, TeamBalancer ensures fair and competitive matches by intelligently analyzing player abilities across multiple attributes.
 
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20iOS%20%7C%20Android-blue)
-![.NET](https://img.shields.io/badge/.NET-9.0-purple)
+![.NET](https://img.shields.io/badge/.NET-10.0-purple)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## ✨ Features
@@ -16,6 +16,12 @@ A cross-platform application that automatically divides football (soccer) player
   - **Stamina** - Endurance and fitness level
 - 📊 Overall skill level automatically calculated from attributes
 - 💾 Persistent storage with CSV file format
+
+### Player Lists
+- 📋 Named lists, created, renamed, deleted and switched from the home header
+- 🗂️ Each list keeps its own CSV file; the screens that deal in players see only the active one
+- ⬆️ An install upgrading from a single-list build has its squad migrated into a list, keeping
+  the existing `players.csv` rather than moving it
 
 ### Team Balancing
 - 🐍 **Draft Strategy** - the single balancing algorithm, run in two phases:
