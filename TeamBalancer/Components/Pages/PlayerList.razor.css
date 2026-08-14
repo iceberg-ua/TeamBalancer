@@ -29,7 +29,7 @@
 /* The house is a solid glyph with a wider, heavier footprint than the plus stroke, so at
    the shared .btn-icon size it reads as the bigger of the two. Scaled down to match it. */
 .footer-home i {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
 }
 
 .picked-pill {

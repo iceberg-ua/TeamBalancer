@@ -15,8 +15,11 @@
            is loaded is the second thing you need to know about this screen, not the first. *@
         <div class="header-title-block">
             <h1 class="header-title-centered">@Loc["app.title"]</h1>
+            @* How big the squad is rides along with which squad it is - the name can be
+               shortened to fit, the count never is. *@
             <button class="list-switcher" @onclick="ToggleListMenu" title="@(Loc["playerLists.switcher"])" aria-label="@(Loc["playerLists.switcher"])">
                 <span class="list-switcher-name">@_activeListName</span>
+                <span class="list-switcher-count">&#183; @Loc["playerList.playerCount", _players.Count]</span>
                 <i class="fas fa-chevron-down"></i>
             </button>
         </div>

@@ -341,18 +341,19 @@ a, .btn-link {
 }
 
 /* Global Button Styles */
+/* Geometry comes from the design: 64px tall, an 18px radius and a 19px label. */
 .btn {
     padding: 1.125rem 1.5rem;
-    font-size: 1.3125rem;
+    font-size: 1.1875rem;
     border: 1px solid transparent;
-    border-radius: 9px;
+    border-radius: 18px;
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.2s, border-color 0.2s;
     white-space: normal;
     word-wrap: break-word;
     min-width: auto;
-    height: 72px;
+    height: 64px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -445,16 +446,16 @@ a, .btn-link {
 
 @media (min-width: 768px) {
     .btn {
-        font-size: 1.4625rem;
+        font-size: 1.325rem;
     }
 }
 
 .btn-icon {
-    min-width: 72px;
-    width: 72px;
-    height: 72px;
+    min-width: 64px;
+    width: 64px;
+    height: 64px;
     padding: 0;
-    font-size: 2.25rem;
+    font-size: 2rem;
     flex-shrink: 0;
     white-space: nowrap;
 }
@@ -959,6 +960,14 @@ button.list-switcher:hover,
     white-space: nowrap;
 }
 
+/* The count holds its ground while the name gives way, so a long list name is shortened
+   rather than pushing the size of the squad off the end. */
+.list-switcher-count {
+    flex-shrink: 0;
+    white-space: nowrap;
+    opacity: 0.75;
+}
+
 .list-switcher i {
     font-size: 0.7rem;
     flex-shrink: 0;
@@ -1024,10 +1033,13 @@ button.list-switcher:hover,
     justify-content: flex-end;
 }
 
+/* These are a third the height of a footer button, so they take a proportionate radius -
+   the full 18px on a button this short reads as a lozenge. */
 .confirm-footer .btn {
     min-width: auto;
     height: auto;
     padding: 0.5rem 1rem;
+    border-radius: 9px;
     font-size: 0.9rem;
 }
 
