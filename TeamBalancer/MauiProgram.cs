@@ -3,8 +3,10 @@ using TeamBalancer.Core.Localization;
 using TeamBalancer.Core.Services.Interfaces;
 using TeamBalancer.Core.Services.Csv;
 using TeamBalancer.Core.Services.Balancing;
+using TeamBalancer.Core.Services.Sharing;
 using TeamBalancer.Localization;
 using TeamBalancer.Services;
+using ZXing.Net.Maui.Controls;
 
 namespace TeamBalancer;
 
@@ -15,6 +17,7 @@ public static class MauiProgram
 		var builder = MauiApp.CreateBuilder();
 		builder
 			.UseMauiApp<App>()
+			.UseBarcodeReader()
 			.ConfigureFonts(fonts =>
 			{
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -89,5 +92,11 @@ public static class MauiProgram
 
 		// Register file save service
 		services.AddSingleton<IFileSaveService, FileSaveService>();
+
+		// Register squad sharing. The codec is platform-agnostic and lives in Core with the
+		// CSV it wraps; the two QR services are the only place a barcode library is named.
+		services.AddSingleton<ISquadPayloadCodec, SquadPayloadCodec>();
+		services.AddSingleton<IQrCodeService, QrCodeService>();
+		services.AddSingleton<IQrScannerService, QrScannerService>();
 	}
 }

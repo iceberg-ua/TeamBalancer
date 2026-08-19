@@ -38,18 +38,20 @@ public class CsvImportExportService : ICsvImportExportService
     /// be imported are counted by reason rather than merely dropped, so the caller can tell the
     /// user what happened to the rest of their file.
     /// </summary>
-    public async Task<PlayerImportResult> ImportPlayersAsync(string csvContent)
+    public async Task<PlayerImportResult> ImportPlayersAsync(string csvContent, ImportMode mode = ImportMode.AddOnly)
     {
         if (string.IsNullOrWhiteSpace(csvContent))
             throw new ArgumentException("CSV content cannot be empty.", nameof(csvContent));
 
-        _logger.LogInformation("Starting player import from CSV");
+        _logger.LogInformation("Starting player import from CSV in {Mode} mode", mode);
 
         var parsed = _csvParser.ParsePlayersWithDiagnostics(csvContent);
         int importedCount = 0;
         int invalidNameCount = 0;
         int invalidSkillsCount = 0;
         int duplicateCount = 0;
+        int updatedCount = 0;
+        int unchangedCount = 0;
         int errorCount = 0;
         int truncatedCount = 0;
         int numberedCount = 0;
@@ -102,8 +104,27 @@ public class CsvImportExportService : ICsvImportExportService
 
                     if (distinctName is null)
                     {
-                        _logger.LogWarning("Skipping player '{PlayerName}' - a player with this name already exists", player.Name);
-                        duplicateCount++;
+                        // The row and the player in the list are the same person. Under
+                        // AddOnly that is the end of it; a merge takes the sender's ratings,
+                        // which is the whole point of receiving a squad a second time.
+                        if (mode == ImportMode.AddOnly)
+                        {
+                            _logger.LogWarning("Skipping player '{PlayerName}' - a player with this name already exists", player.Name);
+                            duplicateCount++;
+                            continue;
+                        }
+
+                        if (ApplyTo(existingPlayer, player))
+                        {
+                            await _playerRepository.UpdateAsync(existingPlayer);
+                            _logger.LogDebug("Updated player '{PlayerName}' from the import", existingPlayer.Name);
+                            updatedCount++;
+                        }
+                        else
+                        {
+                            unchangedCount++;
+                        }
+
                         continue;
                     }
 
@@ -161,25 +182,59 @@ public class CsvImportExportService : ICsvImportExportService
             // above, so both counts have to be added up to account for every such row.
             InvalidSkillsCount = parsed.InvalidSkillRowCount + invalidSkillsCount,
             DuplicateCount = duplicateCount,
+            UpdatedCount = updatedCount,
+            UnchangedCount = unchangedCount,
             ErrorCount = errorCount,
             TruncatedCount = truncatedCount,
             NumberedCount = numberedCount
         };
 
-        // Save all changes at once
-        if (importedCount > 0)
+        // Save all changes at once. Updates count as changes too - a merge that only adjusted
+        // ratings adds no players, and saving only on ImportedCount would drop every one of
+        // them the next time the list is loaded.
+        if (importedCount > 0 || updatedCount > 0)
         {
             await _playerRepository.SaveChangesAsync();
-            _logger.LogInformation("Player import completed: {ImportedCount} players imported, {SkippedCount} skipped",
-                result.ImportedCount, result.SkippedCount);
+            _logger.LogInformation("Player import completed: {ImportedCount} added, {UpdatedCount} updated, {SkippedCount} skipped",
+                result.ImportedCount, result.UpdatedCount, result.SkippedCount);
         }
         else
         {
-            _logger.LogWarning("Player import completed: No players were imported, {SkippedCount} skipped",
+            _logger.LogWarning("Player import completed: nothing changed, {SkippedCount} skipped",
                 result.SkippedCount);
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Copies an imported player's ratings and positions onto the player already in the list.
+    /// The name is deliberately left alone: it is what matched the two in the first place, and
+    /// the one in the list may differ in case or spacing from the one in the file.
+    /// </summary>
+    /// <param name="existing">The player already in the list, updated in place.</param>
+    /// <param name="incoming">The player the import carried.</param>
+    /// <returns>True if anything actually changed, false if the two already agreed.</returns>
+    private static bool ApplyTo(Player existing, Player incoming)
+    {
+        var changed = existing.Speed != incoming.Speed
+            || existing.TechnicalSkills != incoming.TechnicalSkills
+            || existing.Stamina != incoming.Stamina
+            || existing.PrimaryPosition != incoming.PrimaryPosition
+            || existing.SecondaryPosition != incoming.SecondaryPosition;
+
+        if (!changed)
+        {
+            return false;
+        }
+
+        existing.Speed = incoming.Speed;
+        existing.TechnicalSkills = incoming.TechnicalSkills;
+        existing.Stamina = incoming.Stamina;
+        existing.PrimaryPosition = incoming.PrimaryPosition;
+        existing.SecondaryPosition = incoming.SecondaryPosition;
+
+        return true;
     }
 
     /// <summary>

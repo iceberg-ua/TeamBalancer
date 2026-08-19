@@ -1,6 +1,7 @@
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using TeamBalancer.Components.Layout;
+using TeamBalancer.Core.Exceptions;
 using TeamBalancer.Core.Models;
 using TeamBalancer.Core.Services.Interfaces;
 using TeamBalancer.Services;
@@ -27,8 +28,28 @@ public partial class Index
     [Inject]
     private IFileSaveService FileSaveService { get; set; } = default!;
 
+    [Inject]
+    private ICsvParser CsvParser { get; set; } = default!;
+
+    [Inject]
+    private ISquadPayloadCodec SquadCodec { get; set; } = default!;
+
+    [Inject]
+    private IQrCodeService QrCodeService { get; set; } = default!;
+
+    [Inject]
+    private IQrScannerService QrScanner { get; set; } = default!;
+
     [CascadingParameter]
     private MainLayout? Layout { get; set; }
+
+    /// <summary>
+    /// The longest payload the app will render as a QR code. Past this the symbol needs so many
+    /// modules that a phone camera struggles to read it off another phone's screen, and showing
+    /// a code that mostly fails is worse than saying plainly that the squad is too big for one.
+    /// In practice this is around 180 players; a hundred come to roughly 1,500 characters.
+    /// </summary>
+    private const int MaxQrPayloadLength = 2200;
 
     private List<Player> _players = new();
     private bool CanCreateTeams => _players.Count >= 2;
@@ -39,6 +60,25 @@ public partial class Index
     private bool _showListMenu = false;
     private List<PlayerListInfo> _lists = new();
     private string _activeListName = string.Empty;
+
+    private bool _showQrOverlay = false;
+    private string? _qrImage;
+
+    private bool _showImportDialog = false;
+    private string _pendingCsv = string.Empty;
+    private int _pendingPlayerCount;
+    private bool _importCreatesNewList = true;
+    private string _importListName = string.Empty;
+    private bool _showImportNameError = false;
+    private Guid _importTargetListId;
+
+    /// <summary>
+    /// Gets a value indicating whether the import can go ahead: a new list needs a name that
+    /// will survive being written to CSV, an existing one needs to have been picked.
+    /// </summary>
+    private bool CanConfirmImport => _importCreatesNewList
+        ? CsvSafeName.IsValid(_importListName)
+        : _importTargetListId != Guid.Empty;
 
     protected override void OnInitialized()
     {
@@ -160,24 +200,245 @@ public partial class Index
                 return;
             }
 
-            // Import players
-            var result = await CsvImportExportService.ImportPlayersAsync(csvContent);
-
-            _message = DescribeImport(result);
-            _isError = result.ImportedCount == 0 && !result.IsEntirelyDuplicates;
-
-            if (result.ImportedCount > 0)
-            {
-                await LoadPlayers();
-            }
-
+            // A file carries no list name of its own, so the naming dialog opens with the file's
+            // own name behind it - closer to something the user recognises than a blank box.
             _showMenu = false;
+            BeginImport(csvContent, SuggestNameFromFile(file.Name));
         }
         catch (Exception ex)
         {
             _message = Loc["home.importError", ex.Message];
             _isError = true;
         }
+    }
+
+    /// <summary>
+    /// Renders the active list as a QR code for someone standing next to you to scan. The code
+    /// carries the same CSV the export produces, compressed, so a squad shared this way and a
+    /// squad shared as a file arrive as exactly the same thing.
+    /// </summary>
+    private async Task ShowSquadQr()
+    {
+        _showMenu = false;
+        _message = string.Empty;
+        _qrImage = null;
+
+        if (_players.Count == 0)
+        {
+            _message = Loc["share.nothingToShare"];
+            _isError = true;
+            return;
+        }
+
+        try
+        {
+            var csv = await CsvImportExportService.ExportPlayersAsync();
+            var payload = SquadCodec.Encode(new SquadPayload(_activeListName, csv));
+
+            // Left null when the squad is too big, which the dialog reports rather than showing
+            // a code dense enough that scanning it would mostly fail.
+            _qrImage = payload.Length <= MaxQrPayloadLength
+                ? await QrCodeService.CreateQrImageAsync(payload)
+                : null;
+
+            _showQrOverlay = true;
+        }
+        catch (Exception ex)
+        {
+            _message = Loc["share.qrError", ex.Message];
+            _isError = true;
+        }
+    }
+
+    private void CloseQr()
+    {
+        _showQrOverlay = false;
+        _qrImage = null;
+    }
+
+    /// <summary>
+    /// Opens the camera and imports whatever squad it finds.
+    /// </summary>
+    private async Task ScanSquadQr()
+    {
+        _showMenu = false;
+        _message = string.Empty;
+
+        try
+        {
+            HandleScannedCode(await QrScanner.ScanWithCameraAsync());
+        }
+        catch (Exception ex)
+        {
+            _message = Loc["share.scanError", ex.Message];
+            _isError = true;
+        }
+    }
+
+    /// <summary>
+    /// Decides what a scan produced and either opens the import dialog or explains why it
+    /// cannot. The failures are told apart deliberately: backing out of the camera is not an
+    /// error at all, a code belonging to something else is a different mistake from a squad
+    /// code that arrived damaged, and each wants a different sentence.
+    /// </summary>
+    /// <param name="scanned">The text read, or null if the user backed out.</param>
+    private void HandleScannedCode(string? scanned)
+    {
+        if (string.IsNullOrEmpty(scanned))
+        {
+            return;
+        }
+
+        if (!SquadCodec.IsSquadCode(scanned))
+        {
+            _message = Loc["share.notASquadCode"];
+            _isError = true;
+            return;
+        }
+
+        try
+        {
+            var payload = SquadCodec.Decode(scanned);
+            BeginImport(payload.PlayersCsv, payload.ListName);
+        }
+        catch (SquadPayloadException)
+        {
+            _message = Loc["share.codeUnreadable"];
+            _isError = true;
+        }
+    }
+
+    /// <summary>
+    /// Opens the dialog that asks where an incoming squad should go. Every import goes through
+    /// here, whichever way the players arrived, so a file and a scanned code ask the same
+    /// question and land in the same place.
+    /// </summary>
+    /// <param name="csvContent">The players that arrived.</param>
+    /// <param name="suggestedName">The name to offer for a new list.</param>
+    private void BeginImport(string csvContent, string suggestedName)
+    {
+        // Counted with the same parser the import itself uses, so the number in the question is
+        // the number of players that will actually arrive rather than a count of lines.
+        _pendingPlayerCount = CsvParser.ParsePlayersWithDiagnostics(csvContent).Players.Count;
+
+        if (_pendingPlayerCount == 0)
+        {
+            _message = Loc["home.importEmpty"];
+            _isError = true;
+            return;
+        }
+
+        _pendingCsv = csvContent;
+        _importCreatesNewList = true;
+        _importListName = CsvSafeName.IsValid(suggestedName) ? suggestedName : string.Empty;
+        _showImportNameError = false;
+        _importTargetListId = ActivePlayerRepository.CurrentListId;
+        _showImportDialog = true;
+    }
+
+    /// <summary>
+    /// Switches the import between creating a list and adding to one that exists.
+    /// </summary>
+    /// <param name="createsNewList">True to create a list, false to add to an existing one.</param>
+    private void SetImportTarget(bool createsNewList)
+    {
+        _importCreatesNewList = createsNewList;
+        _showImportNameError = false;
+    }
+
+    /// <summary>
+    /// Shows the name rule once the field has something in it, so the message appears when the
+    /// name is wrong rather than the moment the dialog opens on an empty box.
+    /// </summary>
+    private void ValidateImportName() =>
+        _showImportNameError = !string.IsNullOrEmpty(_importListName) && !CsvSafeName.IsValid(_importListName);
+
+    private void CancelImport()
+    {
+        _showImportDialog = false;
+        _pendingCsv = string.Empty;
+        _pendingPlayerCount = 0;
+    }
+
+    /// <summary>
+    /// Carries out the import against whichever list the user chose. A new list is created and
+    /// switched to first; an existing one only needs switching to, because the import service
+    /// writes to whichever list is active.
+    /// </summary>
+    private async Task ConfirmImport()
+    {
+        _showImportDialog = false;
+        _message = string.Empty;
+
+        var csvContent = _pendingCsv;
+        _pendingCsv = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(csvContent))
+        {
+            return;
+        }
+
+        try
+        {
+            ImportMode mode;
+
+            if (_importCreatesNewList)
+            {
+                var created = await PlayerListRepository.AddAsync(_importListName.Trim());
+                await ActivePlayerRepository.SwitchListAsync(created.Id);
+
+                // A list created a moment ago holds nobody, so there is nothing for a merge to
+                // reconcile and the cheaper path says exactly what happened.
+                mode = ImportMode.AddOnly;
+            }
+            else
+            {
+                if (_importTargetListId != ActivePlayerRepository.CurrentListId)
+                {
+                    await ActivePlayerRepository.SwitchListAsync(_importTargetListId);
+                }
+
+                mode = ImportMode.Merge;
+            }
+
+            var result = await CsvImportExportService.ImportPlayersAsync(csvContent, mode);
+
+            _message = DescribeImport(result);
+
+            // Nothing arriving is only a failure when nothing was already right. A squad that
+            // was entirely up to date, or entirely already present, changed nothing and is not
+            // a problem the user needs to act on.
+            _isError = result.ImportedCount == 0
+                && result.UpdatedCount == 0
+                && !result.IsEntirelyDuplicates
+                && !result.IsEntirelyUnchanged;
+
+            await LoadPlayers();
+            await LoadLists();
+        }
+        catch (Exception ex)
+        {
+            _message = Loc["home.importError", ex.Message];
+            _isError = true;
+        }
+    }
+
+    /// <summary>
+    /// Turns a file name into a starting point for a list name - the name without its
+    /// extension, shortened to fit, and dropped entirely if what is left would be rejected.
+    /// </summary>
+    /// <param name="fileName">The name of the file the user picked.</param>
+    /// <returns>A name to offer, or an empty string when the file name cannot supply one.</returns>
+    private static string SuggestNameFromFile(string fileName)
+    {
+        var stem = Path.GetFileNameWithoutExtension(fileName).Trim();
+
+        if (stem.Length > CsvSafeName.MaxLength)
+        {
+            stem = CsvSafeName.Truncate(stem);
+        }
+
+        return CsvSafeName.IsValid(stem) ? stem : string.Empty;
     }
 
     /// <summary>
@@ -201,6 +462,13 @@ public partial class Index
         if (result.IsEntirelyDuplicates)
         {
             return Loc["home.importAllDuplicates", result.DuplicateCount];
+        }
+
+        // The merge counterpart: every player was already there and already agreed. Receiving
+        // a squad that has not changed since last time is the most ordinary outcome there is.
+        if (result.IsEntirelyUnchanged)
+        {
+            return Loc["home.importAllUnchanged", result.UnchangedCount];
         }
 
         var reasons = new List<string>();
@@ -234,19 +502,45 @@ public partial class Index
             reasons.Add(Loc["home.importNumbered", result.NumberedCount]);
         }
 
+        var headline = Headline(result);
+
         if (reasons.Count == 0)
         {
-            // Every row landed untouched, so the count on its own is the whole story.
+            // Every row landed untouched, so the headline on its own is the whole story.
+            return headline;
+        }
+
+        return $"{headline} {string.Join(" ", reasons)}";
+    }
+
+    /// <summary>
+    /// The opening sentence of an import message. A merge can add players, update players, or
+    /// both, and each of the three reads differently enough to deserve its own sentence -
+    /// "imported 0 players" would be an actively misleading way to report a merge that
+    /// refreshed a dozen ratings.
+    /// </summary>
+    /// <param name="result">The outcome of the import.</param>
+    /// <returns>The sentence to open with.</returns>
+    private string Headline(PlayerImportResult result)
+    {
+        if (result.ImportedCount > 0 && result.UpdatedCount > 0)
+        {
+            return Loc["home.importAddedAndUpdated", result.ImportedCount, result.UpdatedCount];
+        }
+
+        if (result.UpdatedCount > 0)
+        {
+            return Loc["home.importUpdatedOnly", result.UpdatedCount];
+        }
+
+        if (result.SkippedCount == 0)
+        {
             return Loc["home.importSuccess", result.ImportedCount];
         }
 
-        var headline = result.SkippedCount == 0
-            ? Loc["home.importSuccess", result.ImportedCount]
-            : result.ImportedCount > 0
-                ? Loc["home.importPartial", result.ImportedCount, result.TotalRows]
-                : Loc["home.importNone", result.TotalRows];
-
-        return $"{headline} {string.Join(" ", reasons)}";
+        return result.ImportedCount > 0
+            ? Loc["home.importPartial", result.ImportedCount, result.TotalRows]
+            : Loc["home.importNone", result.TotalRows];
     }
 
     private void ToggleMenu()

@@ -85,6 +85,9 @@
         <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+        <!-- QR code generation and scanning for squad sharing. Only QrCodeService,
+             QrScannerService and QrScanPage reference it directly. -->
+        <PackageReference Include="ZXing.Net.Maui.Controls" Version="0.10.4" />
     </ItemGroup>
 
     <ItemGroup>

@@ -5,6 +5,7 @@
   "common.back": "Back",
   "common.home": "Home",
   "common.cancel": "Cancel",
+  "common.close": "Close",
   "common.save": "Save",
   "common.delete": "Delete",
   "common.createTeams": "Create Teams",
@@ -46,6 +47,9 @@
   "home.importSkippedError": "{0} skipped: unexpected error.",
   "home.importTruncated": "{0} name(s) shortened to {1} characters.",
   "home.importNumbered": "{0} of them numbered to stay distinct.",
+  "home.importAllUnchanged": "All {0} players are already up to date.",
+  "home.importAddedAndUpdated": "Added {0} player(s) and updated {1}.",
+  "home.importUpdatedOnly": "Updated {0} player(s).",
 
   "playerLists.title": "Player Lists",
   "playerLists.switcher": "Switch player list",
@@ -123,5 +127,25 @@
   "teams.reshuffleTitle": "Reshuffle both teams?",
   "teams.reshuffleBody": "A new balanced draw replaces the current split. {0} and {1} will both change, and manual swaps are lost.",
   "teams.reshuffleNo": "No, keep these",
-  "teams.reshuffleYes": "Yes, reshuffle"
+  "teams.reshuffleYes": "Yes, reshuffle",
+
+  "share.showQr": "Share as QR code",
+  "share.scanQr": "Scan a QR code",
+  "share.scanTitle": "Scan a squad",
+  "share.scanHint": "Point the camera at the QR code on the other phone.",
+  "share.qrAlt": "QR code carrying this squad",
+  "share.qrCaption": "{0} · {1} player(s). Scan this from the other phone.",
+  "share.qrTooLarge": "This squad of {0} is too large for a QR code. Export it as a file and send that instead.",
+  "share.qrError": "Could not create the QR code: {0}",
+  "share.scanError": "Could not read the code: {0}",
+  "share.nothingToShare": "This list has no players to share yet.",
+  "share.notASquadCode": "That code does not carry a Team Balancer squad.",
+  "share.codeUnreadable": "That squad code is damaged and could not be read.",
+
+  "import.destinationTitle": "Where should these players go?",
+  "import.destinationIntro": "{0} player(s) are ready to import.",
+  "import.newList": "Into a new list",
+  "import.existingList": "Into a list you already have",
+  "import.mergeHint": "New players are added and ratings you receive replace the ones you have. Players missing from the import are kept.",
+  "import.confirm": "Import"
 }

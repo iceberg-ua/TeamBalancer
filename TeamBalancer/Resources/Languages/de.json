@@ -5,6 +5,7 @@
   "common.back": "Zurück",
   "common.home": "Start",
   "common.cancel": "Abbrechen",
+  "common.close": "Schließen",
   "common.save": "Speichern",
   "common.delete": "Löschen",
   "common.createTeams": "Teams erstellen",
@@ -46,6 +47,9 @@
   "home.importSkippedError": "{0} übersprungen: unerwarteter Fehler.",
   "home.importTruncated": "{0} Name(n) auf {1} Zeichen gekürzt.",
   "home.importNumbered": "Davon {0} nummeriert, um sie zu unterscheiden.",
+  "home.importAllUnchanged": "Alle {0} Spieler sind bereits aktuell.",
+  "home.importAddedAndUpdated": "{0} Spieler hinzugefügt und {1} aktualisiert.",
+  "home.importUpdatedOnly": "{0} Spieler aktualisiert.",
 
   "playerLists.title": "Spielerlisten",
   "playerLists.switcher": "Spielerliste wechseln",
@@ -123,5 +127,25 @@
   "teams.reshuffleTitle": "Beide Teams neu mischen?",
   "teams.reshuffleBody": "Eine neue ausgewogene Auslosung ersetzt die aktuelle Aufteilung. {0} und {1} ändern sich beide, und manuelle Wechsel gehen verloren.",
   "teams.reshuffleNo": "Nein, so lassen",
-  "teams.reshuffleYes": "Ja, neu mischen"
+  "teams.reshuffleYes": "Ja, neu mischen",
+
+  "share.showQr": "Als QR-Code teilen",
+  "share.scanQr": "QR-Code scannen",
+  "share.scanTitle": "Kader scannen",
+  "share.scanHint": "Richte die Kamera auf den QR-Code des anderen Telefons.",
+  "share.qrAlt": "QR-Code mit diesem Kader",
+  "share.qrCaption": "{0} · {1} Spieler. Scanne das vom anderen Telefon aus.",
+  "share.qrTooLarge": "Dieser Kader mit {0} Spielern ist zu groß für einen QR-Code. Exportiere ihn als Datei und sende diese stattdessen.",
+  "share.qrError": "QR-Code konnte nicht erstellt werden: {0}",
+  "share.scanError": "Code konnte nicht gelesen werden: {0}",
+  "share.nothingToShare": "Diese Liste enthält noch keine Spieler zum Teilen.",
+  "share.notASquadCode": "Dieser Code enthält keinen Team-Balancer-Kader.",
+  "share.codeUnreadable": "Dieser Kader-Code ist beschädigt und konnte nicht gelesen werden.",
+
+  "import.destinationTitle": "Wohin sollen diese Spieler?",
+  "import.destinationIntro": "{0} Spieler stehen zum Import bereit.",
+  "import.newList": "In eine neue Liste",
+  "import.existingList": "In eine vorhandene Liste",
+  "import.mergeHint": "Neue Spieler werden hinzugefügt, empfangene Bewertungen ersetzen die vorhandenen. Spieler, die im Import fehlen, bleiben erhalten.",
+  "import.confirm": "Importieren"
 }
