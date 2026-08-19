@@ -12,7 +12,7 @@ public class CsvPlayerRepository : IPlayerRepository
     private readonly ICsvParser _csvParser;
     private readonly string _filePath;
     private List<Player> _players;
-    private bool _isInitialized;
+    private Task? _initialization;
 
     /// <summary>
     /// Initializes a new instance of the CsvPlayerRepository class.
@@ -24,32 +24,50 @@ public class CsvPlayerRepository : IPlayerRepository
         _csvParser = csvParser ?? throw new ArgumentNullException(nameof(csvParser));
         _filePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
         _players = [];
-        _isInitialized = false;
     }
 
     /// <summary>
     /// Ensures the repository is initialized by loading data from CSV.
-    /// If the file doesn't exist, it copies the embedded resource.
     /// </summary>
-    private async Task EnsureInitializedAsync()
+    /// <remarks>
+    /// The load itself is cached rather than a "done" flag being raised at the end of it. A flag
+    /// leaves a window: reading the file is asynchronous, so a second caller arriving while the
+    /// first is still reading sees the flag unset, loads the file all over again, and assigns
+    /// its own result over <c>_players</c> - discarding anything the first caller added in the
+    /// meantime. That is not hypothetical. Importing into a list the app has just switched to
+    /// does exactly this, because switching raises ListChanged, which sends the home screen off
+    /// to reload its players at the same moment the import is adding them.
+    /// </remarks>
+    /// <returns>The load, shared by every caller that arrives before it finishes.</returns>
+    private Task EnsureInitializedAsync() => _initialization ??= LoadAsync();
+
+    /// <summary>
+    /// Reads the player file, seeding it from the embedded roster on a first run.
+    /// </summary>
+    private async Task LoadAsync()
     {
-        if (_isInitialized)
-            return;
-
-        // If file doesn't exist, copy from embedded resource
-        if (!File.Exists(_filePath))
+        try
         {
-            await CopyEmbeddedResourceAsync();
-        }
+            // If file doesn't exist, copy from embedded resource
+            if (!File.Exists(_filePath))
+            {
+                await CopyEmbeddedResourceAsync();
+            }
 
-        // Load players from file
-        if (File.Exists(_filePath))
+            // Load players from file
+            if (File.Exists(_filePath))
+            {
+                var csvContent = await File.ReadAllTextAsync(_filePath);
+                _players = [.. _csvParser.ParsePlayers(csvContent)];
+            }
+        }
+        catch
         {
-            var csvContent = await File.ReadAllTextAsync(_filePath);
-            _players = [.. _csvParser.ParsePlayers(csvContent)];
+            // A failed load is not cached: the file may be momentarily locked, and every later
+            // call would otherwise be handed the same failure forever.
+            _initialization = null;
+            throw;
         }
-
-        _isInitialized = true;
     }
 
     /// <summary>

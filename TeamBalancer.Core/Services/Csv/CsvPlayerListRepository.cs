@@ -34,7 +34,7 @@ public class CsvPlayerListRepository : IPlayerListRepository
     private readonly string _dataDirectory;
     private readonly string _filePath;
     private List<PlayerListInfo> _lists;
-    private bool _isInitialized;
+    private Task? _initialization;
 
     /// <summary>
     /// Initializes a new instance of the CsvPlayerListRepository class.
@@ -47,17 +47,43 @@ public class CsvPlayerListRepository : IPlayerListRepository
         _dataDirectory = dataDirectory ?? throw new ArgumentNullException(nameof(dataDirectory));
         _filePath = PlayerListFiles.ListsFilePath(dataDirectory);
         _lists = [];
-        _isInitialized = false;
     }
 
     /// <summary>
     /// Ensures the repository is initialized by loading lists.csv, creating it on first run.
     /// </summary>
-    private async Task EnsureInitializedAsync()
-    {
-        if (_isInitialized)
-            return;
+    /// <remarks>
+    /// The load is cached rather than flagged as done at the end of it, for the same reason as
+    /// in <see cref="CsvPlayerRepository"/>: reading the file is asynchronous, so a flag leaves
+    /// a window in which a second caller loads it again and assigns its result over the list
+    /// the first caller had already added to.
+    /// </remarks>
+    /// <returns>The load, shared by every caller that arrives before it finishes.</returns>
+    private Task EnsureInitializedAsync() => _initialization ??= LoadAsync();
 
+    /// <summary>
+    /// Reads lists.csv, creating the default list on a first run or an upgrade.
+    /// </summary>
+    private async Task LoadAsync()
+    {
+        try
+        {
+            await LoadCoreAsync();
+        }
+        catch
+        {
+            // Not cached when it fails, so a momentarily locked file does not leave every later
+            // call holding the same error.
+            _initialization = null;
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// The body of the load, split out so the caching wrapper stays readable.
+    /// </summary>
+    private async Task LoadCoreAsync()
+    {
         if (File.Exists(_filePath))
         {
             var csvContent = await File.ReadAllTextAsync(_filePath);
@@ -86,8 +112,6 @@ public class CsvPlayerListRepository : IPlayerListRepository
 
             await SaveAsync();
         }
-
-        _isInitialized = true;
     }
 
     /// <summary>
