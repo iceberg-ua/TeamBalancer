@@ -119,6 +119,123 @@
                     <span>@Loc["home.importPlayers"]</span>
                     <InputFile OnChange="ImportPlayers" accept=".csv,text/csv,text/comma-separated-values,application/csv" style="display: none;" />
                 </label>
+
+                @* Sharing sits under the file actions it is a shortcut for: the same squad,
+                   the same CSV, carried by a camera instead of a file. *@
+                <div class="menu-divider"></div>
+
+                <button class="menu-item" @onclick="ShowSquadQr">
+                    <i class="fas fa-qrcode"></i>
+                    <span>@Loc["share.showQr"]</span>
+                </button>
+                @if (QrScanner.IsCameraScanningSupported)
+                {
+                    <button class="menu-item" @onclick="ScanSquadQr">
+                        <i class="fas fa-camera"></i>
+                        <span>@Loc["share.scanQr"]</span>
+                    </button>
+                }
+                @* A code that arrived in a messenger is a picture on this phone, and no camera
+                   can photograph the screen it is being shown on. *@
+                <button class="menu-item" @onclick="ImportQrFromImage">
+                    <i class="fas fa-image"></i>
+                    <span>@Loc["share.scanFromImage"]</span>
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showQrOverlay)
+{
+    <div class="confirm-overlay" @onclick="CloseQr">
+        <div class="confirm-dialog qr-dialog" @onclick:stopPropagation="true">
+            <div class="confirm-header">
+                <h3>@Loc["share.showQr"]</h3>
+            </div>
+            <div class="confirm-body qr-body">
+                @if (_qrImage is null)
+                {
+                    <p>@Loc["share.qrTooLarge", _players.Count]</p>
+                }
+                else
+                {
+                    <img class="qr-image" src="@_qrImage" alt="@Loc["share.qrAlt"]" />
+                    <p class="qr-caption">@Loc["share.qrCaption", _activeListName, _players.Count]</p>
+                }
+            </div>
+            <div class="confirm-footer">
+                <button class="btn btn-secondary" @onclick="CloseQr">@Loc["common.close"]</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showImportDialog)
+{
+    <div class="confirm-overlay" @onclick="CancelImport">
+        <div class="confirm-dialog" @onclick:stopPropagation="true">
+            <div class="confirm-header">
+                <h3>@Loc["import.destinationTitle"]</h3>
+            </div>
+            <div class="confirm-body">
+                <p>@Loc["import.destinationIntro", _pendingPlayerCount]</p>
+
+                <div class="import-choice">
+                    <label class="import-option @(_importCreatesNewList ? "is-selected" : "")">
+                        <input type="radio" name="importTarget" checked="@_importCreatesNewList"
+                               @onchange="() => SetImportTarget(true)" />
+                        <span>@Loc["import.newList"]</span>
+                    </label>
+
+                    @if (_importCreatesNewList)
+                    {
+                        <div class="form-group flex-col import-detail">
+                            <label for="importListName">@Loc["playerLists.nameLabel"]</label>
+                            <input id="importListName"
+                                   type="text"
+                                   class="form-control @(_showImportNameError ? "is-invalid" : "")"
+                                   @bind="_importListName"
+                                   @bind:event="oninput"
+                                   @bind:after="ValidateImportName"
+                                   maxlength="@CsvSafeName.MaxLength"
+                                   placeholder="@(Loc["playerLists.namePlaceholder"])" />
+                            @if (_showImportNameError)
+                            {
+                                <div class="invalid-feedback">
+                                    @Loc["playerLists.nameInvalid", CsvSafeName.MaxLength]
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <label class="import-option @(!_importCreatesNewList ? "is-selected" : "")">
+                        <input type="radio" name="importTarget" checked="@(!_importCreatesNewList)"
+                               @onchange="() => SetImportTarget(false)" />
+                        <span>@Loc["import.existingList"]</span>
+                    </label>
+
+                    @if (!_importCreatesNewList)
+                    {
+                        <div class="form-group flex-col import-detail">
+                            <select class="form-control" @bind="_importTargetListId">
+                                @foreach (var list in _lists)
+                                {
+                                    <option value="@list.Id">@list.Name</option>
+                                }
+                            </select>
+                            @* Says plainly what a merge does before it runs, because "update"
+                               could just as easily mean "replace" to someone reading it. *@
+                            <p class="import-hint">@Loc["import.mergeHint"]</p>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="confirm-footer">
+                <button class="btn btn-secondary" @onclick="CancelImport">@Loc["common.cancel"]</button>
+                <button class="btn btn-primary" @onclick="ConfirmImport" disabled="@(!CanConfirmImport)">
+                    @Loc["import.confirm"]
+                </button>
             </div>
         </div>
     </div>

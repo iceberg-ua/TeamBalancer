@@ -5,6 +5,7 @@
   "common.back": "Назад",
   "common.home": "Головна",
   "common.cancel": "Скасувати",
+  "common.close": "Закрити",
   "common.save": "Зберегти",
   "common.delete": "Видалити",
   "common.createTeams": "Створити команди",
@@ -46,6 +47,9 @@
   "home.importSkippedError": "Пропущено {0}: неочікувана помилка.",
   "home.importTruncated": "Скорочено імен до {1} символів: {0}.",
   "home.importNumbered": "З них пронумеровано для розрізнення: {0}.",
+  "home.importAllUnchanged": "Усі {0} гравців уже актуальні.",
+  "home.importAddedAndUpdated": "Додано гравців: {0}, оновлено: {1}.",
+  "home.importUpdatedOnly": "Оновлено гравців: {0}.",
 
   "playerLists.title": "Списки гравців",
   "playerLists.switcher": "Змінити список гравців",
@@ -123,5 +127,27 @@
   "teams.reshuffleTitle": "Перемішати обидві команди?",
   "teams.reshuffleBody": "Новий збалансований розподіл замінить поточний поділ. {0} і {1} зміняться обидві, а ручні заміни буде втрачено.",
   "teams.reshuffleNo": "Ні, залишити ці",
-  "teams.reshuffleYes": "Так, перемішати"
+  "teams.reshuffleYes": "Так, перемішати",
+
+  "share.showQr": "Поділитися QR-кодом",
+  "share.scanQr": "Сканувати QR-код",
+  "share.scanFromImage": "Зчитати QR-код із зображення",
+  "share.scanTitle": "Сканування складу",
+  "share.scanHint": "Наведіть камеру на QR-код на іншому телефоні.",
+  "share.qrAlt": "QR-код із цим складом",
+  "share.qrCaption": "{0} · гравців: {1}. Скануйте це з іншого телефона.",
+  "share.qrTooLarge": "Цей склад ({0} гравців) завеликий для QR-коду. Експортуйте його файлом і надішліть його.",
+  "share.qrError": "Не вдалося створити QR-код: {0}",
+  "share.scanError": "Не вдалося зчитати код: {0}",
+  "share.nothingToShare": "У цьому списку ще немає гравців, якими можна поділитися.",
+  "share.noCodeInImage": "На цьому зображенні QR-код не знайдено.",
+  "share.notASquadCode": "Цей код не містить складу Team Balancer.",
+  "share.codeUnreadable": "Цей код складу пошкоджено, і його не вдалося прочитати.",
+
+  "import.destinationTitle": "Куди додати цих гравців?",
+  "import.destinationIntro": "Готово до імпорту гравців: {0}.",
+  "import.newList": "У новий список",
+  "import.existingList": "У наявний список",
+  "import.mergeHint": "Нових гравців буде додано, а отримані оцінки замінять наявні. Гравців, яких немає в імпорті, збережено.",
+  "import.confirm": "Імпортувати"
 }

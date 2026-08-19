@@ -1140,3 +1140,93 @@ button.list-switcher:hover,
     color: #e5a7ab;
     border: 1px solid rgba(161, 58, 66, 0.4);
 }
+
+/* ── Squad sharing ─────────────────────────────────────────────────────────────
+   The QR dialog is wider than the confirm dialogs it borrows its shell from: the
+   code is the content, and shrinking it to a 320px box is what makes a dense one
+   fail to scan. */
+
+.menu-divider {
+    height: 1px;
+    background-color: var(--color-divider);
+    margin: 0;
+}
+
+.qr-dialog {
+    max-width: 380px;
+}
+
+.qr-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* White plate under the code with a real quiet zone around it. The app is dark and a
+   QR rendered straight onto that background is unreadable to most scanners - they
+   look for dark modules on light, not the other way round. */
+.qr-image {
+    width: 100%;
+    max-width: 320px;
+    aspect-ratio: 1 / 1;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 8px;
+
+    /* Modules are square and must stay square. Smooth scaling blurs their edges,
+       which is exactly the detail a camera is trying to resolve. */
+    image-rendering: pixelated;
+}
+
+.qr-caption {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    text-align: center;
+}
+
+/* ── Import destination ────────────────────────────────────────────────────── */
+
+.import-choice {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.import-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-divider);
+    background-color: var(--color-surface);
+    cursor: pointer;
+}
+
+.import-option.is-selected {
+    border-color: var(--color-accent);
+    background-color: var(--color-surface-raised);
+}
+
+.import-option input[type="radio"] {
+    accent-color: var(--color-accent);
+    width: 1.1rem;
+    height: 1.1rem;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+/* Indented under the option it belongs to, so the name box and the list picker read
+   as part of the choice above them rather than as a third option. */
+.import-detail {
+    margin: 0 0 0.25rem 1.75rem;
+}
+
+.import-hint {
+    margin: 0.5rem 0 0 0;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+}

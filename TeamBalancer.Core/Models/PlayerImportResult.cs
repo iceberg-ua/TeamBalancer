@@ -47,9 +47,24 @@ public sealed class PlayerImportResult
     public int InvalidSkillsCount { get; init; }
 
     /// <summary>
-    /// Gets the number of players skipped because the list already holds that name.
+    /// Gets the number of players skipped because the list already holds that name. Only
+    /// <see cref="ImportMode.AddOnly"/> skips them; a merge updates them instead.
     /// </summary>
     public int DuplicateCount { get; init; }
+
+    /// <summary>
+    /// Gets the number of players already in the list whose ratings or positions the import
+    /// changed. A merge produces these in place of duplicates.
+    /// </summary>
+    public int UpdatedCount { get; init; }
+
+    /// <summary>
+    /// Gets the number of players already in the list that the import left alone because it
+    /// carried exactly the same ratings and positions. Told apart from
+    /// <see cref="UpdatedCount"/> so that receiving an unchanged squad reads as "nothing has
+    /// changed" rather than as a list of edits that did nothing.
+    /// </summary>
+    public int UnchangedCount { get; init; }
 
     /// <summary>
     /// Gets the number of players dropped by an error the import did not expect.
@@ -63,9 +78,18 @@ public sealed class PlayerImportResult
         UnreadableCount + InvalidNameCount + InvalidSkillsCount + DuplicateCount + ErrorCount;
 
     /// <summary>
-    /// Gets the number of data rows the file held.
+    /// Gets the number of data rows the file held. Updated and unchanged players count here
+    /// too: they were rows the file carried and the import acted on, even though neither added
+    /// a player nor dropped a row.
     /// </summary>
-    public int TotalRows => ImportedCount + SkippedCount;
+    public int TotalRows => ImportedCount + UpdatedCount + UnchangedCount + SkippedCount;
+
+    /// <summary>
+    /// Gets a value indicating whether the import changed nothing at all because every player
+    /// it carried was already in the list with the same ratings. The merge counterpart of
+    /// <see cref="IsEntirelyDuplicates"/>, and just as much a success rather than a failure.
+    /// </summary>
+    public bool IsEntirelyUnchanged => TotalRows > 0 && UnchangedCount == TotalRows;
 
     /// <summary>
     /// Gets a value indicating whether every row in the file was already in the list. This is
