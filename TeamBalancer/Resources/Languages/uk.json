@@ -143,6 +143,8 @@
   "share.noCodeInImage": "На цьому зображенні QR-код не знайдено.",
   "share.notASquadCode": "Цей код не містить складу Team Balancer.",
   "share.codeUnreadable": "Цей код складу пошкоджено, і його не вдалося прочитати.",
+  "share.noPhotoAccess": "Team Balancer потрібен доступ до ваших зображень, щоб зчитати з них QR-код.",
+  "share.noPhotoPicker": "Цей пристрій не може відкривати зображення для зчитування QR-коду.",
 
   "import.destinationTitle": "Куди додати цих гравців?",
   "import.destinationIntro": "Готово до імпорту гравців: {0}.",

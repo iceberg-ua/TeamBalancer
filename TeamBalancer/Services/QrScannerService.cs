@@ -7,6 +7,12 @@ using ZXing.Net.Maui;
 /// <summary>
 /// Reads QR codes with ZXing, either live from the camera or out of an image on the phone.
 /// </summary>
+/// <remarks>
+/// Every call into MAUI's device APIs here is marshalled to the UI thread. This screen is
+/// Blazor, so its event handlers run on the renderer's dispatcher rather than on the platform's
+/// main thread, and both the media picker and the permission prompts fail outright when they are
+/// started from anywhere else.
+/// </remarks>
 public sealed class QrScannerService : IQrScannerService
 {
     private readonly ILocalizationService _localization;
@@ -19,6 +25,19 @@ public sealed class QrScannerService : IQrScannerService
     {
         _localization = localization ?? throw new ArgumentNullException(nameof(localization));
     }
+
+    /// <summary>
+    /// The decode settings both routes use. TryHarder earns its cost here: a full squad makes a
+    /// dense symbol, and it is being read off another phone's screen or out of a photograph of
+    /// one, where a single quick pass often fails.
+    /// </summary>
+    private static BarcodeReaderOptions ReaderOptions => new()
+    {
+        Formats = BarcodeFormats.TwoDimensional,
+        AutoRotate = true,
+        TryHarder = true,
+        Multiple = false
+    };
 
     /// <inheritdoc />
     public bool IsCameraScanningSupported
@@ -43,53 +62,56 @@ public sealed class QrScannerService : IQrScannerService
             return null;
         }
 
-        var status = await Permissions.CheckStatusAsync<Permissions.Camera>();
-        if (status != PermissionStatus.Granted)
-        {
-            status = await Permissions.RequestAsync<Permissions.Camera>();
-        }
-
-        if (status != PermissionStatus.Granted)
-        {
-            return null;
-        }
-
         var navigation = CurrentNavigation();
         if (navigation is null)
         {
             return null;
         }
 
-        // Built and pushed on the UI thread: this is called from a Blazor event handler, which
-        // does not run there, and creating a native camera view off it throws on both platforms.
+        // Permission prompt and native view creation both belong on the UI thread, and they are
+        // done in one hop so the prompt cannot be answered between them.
         var page = await MainThread.InvokeOnMainThreadAsync(async () =>
         {
+            var status = await Permissions.CheckStatusAsync<Permissions.Camera>();
+            if (status != PermissionStatus.Granted)
+            {
+                status = await Permissions.RequestAsync<Permissions.Camera>();
+            }
+
+            if (status != PermissionStatus.Granted)
+            {
+                return null;
+            }
+
             var scanPage = new QrScanPage(_localization);
             await navigation.PushModalAsync(scanPage);
             return scanPage;
         });
 
-        return await page.Result;
+        return page is null ? null : await page.Result;
     }
 
     /// <inheritdoc />
     public async Task<string?> ScanFromImageAsync()
     {
-        var photo = await MediaPicker.Default.PickPhotoAsync();
+        var photo = await MainThread.InvokeOnMainThreadAsync(() => MediaPicker.Default.PickPhotoAsync());
         if (photo is null)
         {
             return null;
         }
 
-        using var stream = await photo.OpenReadAsync();
-
-        var results = await BarcodeReader.DecodeAsync(stream, new BarcodeReaderOptions
+        // Buffered into memory rather than decoded from the picker's stream directly. On Android
+        // the stream can come back from a content provider without support for seeking, and
+        // decoding an image needs to read the header and then go back over the pixels.
+        using var buffer = new MemoryStream();
+        using (var source = await photo.OpenReadAsync())
         {
-            Formats = BarcodeFormats.TwoDimensional,
-            AutoRotate = true,
-            TryHarder = true,
-            Multiple = false
-        });
+            await source.CopyToAsync(buffer);
+        }
+
+        buffer.Position = 0;
+
+        var results = await BarcodeReader.DecodeAsync(buffer, ReaderOptions);
 
         // An empty string rather than null: the user did choose a picture, it simply had no
         // code in it, and the screen says something different about each of those.

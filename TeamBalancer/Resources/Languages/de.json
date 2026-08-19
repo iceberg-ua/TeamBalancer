@@ -143,6 +143,8 @@
   "share.noCodeInImage": "In diesem Bild wurde kein QR-Code gefunden.",
   "share.notASquadCode": "Dieser Code enthält keinen Team-Balancer-Kader.",
   "share.codeUnreadable": "Dieser Kader-Code ist beschädigt und konnte nicht gelesen werden.",
+  "share.noPhotoAccess": "Team Balancer braucht Zugriff auf deine Bilder, um einen QR-Code daraus zu lesen.",
+  "share.noPhotoPicker": "Dieses Gerät kann keine Bilder zum Lesen eines QR-Codes öffnen.",
 
   "import.destinationTitle": "Wohin sollen diese Spieler?",
   "import.destinationIntro": "{0} Spieler stehen zum Import bereit.",

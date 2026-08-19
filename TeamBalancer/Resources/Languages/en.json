@@ -143,6 +143,8 @@
   "share.noCodeInImage": "No QR code was found in that picture.",
   "share.notASquadCode": "That code does not carry a Team Balancer squad.",
   "share.codeUnreadable": "That squad code is damaged and could not be read.",
+  "share.noPhotoAccess": "Team Balancer needs access to your pictures to read a QR code from one.",
+  "share.noPhotoPicker": "This device cannot open pictures for reading a QR code.",
 
   "import.destinationTitle": "Where should these players go?",
   "import.destinationIntro": "{0} player(s) are ready to import.",

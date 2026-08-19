@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.Maui.ApplicationModel;
 using TeamBalancer.Components.Layout;
 using TeamBalancer.Core.Exceptions;
 using TeamBalancer.Core.Models;
@@ -287,6 +288,18 @@ public partial class Index
         try
         {
             HandleScannedCode(await QrScanner.ScanFromImageAsync());
+        }
+        catch (PermissionException)
+        {
+            // Refusing access to pictures is a choice, not a fault, and the platform's own
+            // wording for it is no use to anyone reading it here.
+            _message = Loc["share.noPhotoAccess"];
+            _isError = true;
+        }
+        catch (FeatureNotSupportedException)
+        {
+            _message = Loc["share.noPhotoPicker"];
+            _isError = true;
         }
         catch (Exception ex)
         {
