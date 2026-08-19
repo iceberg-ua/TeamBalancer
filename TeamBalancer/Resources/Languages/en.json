@@ -141,7 +141,7 @@
   "share.qrError": "Could not create the QR code: {0}",
   "share.scanError": "Could not read the code: {0}",
   "share.nothingToShare": "This list has no players to share yet.",
-  "share.noCodeInImage": "No QR code was found in that picture.",
+  "share.noCodeInImage": "No QR code was found in that picture. A screenshot of the code reads best; a photo needs the code large in frame and in focus.",
   "share.notASquadCode": "That code does not carry a Team Balancer squad.",
   "share.codeUnreadable": "That squad code is damaged and could not be read.",
   "share.noPhotoAccess": "Team Balancer needs access to your pictures to read a QR code from one.",
