@@ -23,12 +23,9 @@
     </array>
     <key>XSAppIconAssets</key>
     <string>Assets.xcassets/appicon.appiconset</string>
-    <!-- Shown by iOS when the app first asks for the camera or the photo library. Both are
-         used for the same thing: reading a squad someone shared as a QR code, either off
-         their screen or out of a picture they sent. -->
+    <!-- Shown by iOS when the app first asks for the camera, which it uses for one thing:
+         scanning a QR code someone shared their squad with. -->
     <key>NSCameraUsageDescription</key>
     <string>Team Balancer uses the camera to scan a QR code someone shared their squad with.</string>
-    <key>NSPhotoLibraryUsageDescription</key>
-    <string>Team Balancer reads a shared squad from a QR code image saved on your phone.</string>
 </dict>
 </plist>

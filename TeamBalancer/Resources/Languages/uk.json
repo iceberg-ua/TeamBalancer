@@ -131,8 +131,6 @@
 
   "share.showQr": "Поділитися QR-кодом",
   "share.scanQr": "Сканувати QR-код",
-  "share.scanFromImage": "Зчитати QR-код із зображення",
-  "share.pickImageTitle": "Виберіть зображення з QR-кодом",
   "share.scanTitle": "Сканування складу",
   "share.scanHint": "Наведіть камеру на QR-код на іншому телефоні.",
   "share.qrAlt": "QR-код із цим складом",
@@ -141,11 +139,8 @@
   "share.qrError": "Не вдалося створити QR-код: {0}",
   "share.scanError": "Не вдалося зчитати код: {0}",
   "share.nothingToShare": "У цьому списку ще немає гравців, якими можна поділитися.",
-  "share.noCodeInImage": "На цьому зображенні QR-код не знайдено. Найкраще зчитується знімок екрана; на фото код має бути великим у кадрі та різким.",
   "share.notASquadCode": "Цей код не містить складу Team Balancer.",
   "share.codeUnreadable": "Цей код складу пошкоджено, і його не вдалося прочитати.",
-  "share.noPhotoAccess": "Team Balancer потрібен доступ до ваших зображень, щоб зчитати з них QR-код.",
-  "share.noPhotoPicker": "Цей пристрій не може відкривати зображення для зчитування QR-коду.",
 
   "import.destinationTitle": "Куди додати цих гравців?",
   "import.destinationIntro": "Готово до імпорту гравців: {0}.",

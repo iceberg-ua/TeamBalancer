@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.Maui.ApplicationModel;
 using TeamBalancer.Components.Layout;
 using TeamBalancer.Core.Exceptions;
 using TeamBalancer.Core.Models;
@@ -277,57 +276,16 @@ public partial class Index
     }
 
     /// <summary>
-    /// Reads a squad out of a picture already on the phone - the case where the code arrived
-    /// through a messenger rather than on someone else's screen.
-    /// </summary>
-    private async Task ImportQrFromImage()
-    {
-        _showMenu = false;
-        _message = string.Empty;
-
-        try
-        {
-            HandleScannedCode(await QrScanner.ScanFromImageAsync());
-        }
-        catch (PermissionException)
-        {
-            // Refusing access to pictures is a choice, not a fault, and the platform's own
-            // wording for it is no use to anyone reading it here.
-            _message = Loc["share.noPhotoAccess"];
-            _isError = true;
-        }
-        catch (FeatureNotSupportedException)
-        {
-            _message = Loc["share.noPhotoPicker"];
-            _isError = true;
-        }
-        catch (Exception ex)
-        {
-            _message = Loc["share.scanError", ex.Message];
-            _isError = true;
-        }
-    }
-
-    /// <summary>
     /// Decides what a scan produced and either opens the import dialog or explains why it
-    /// cannot. The three failures are told apart deliberately: backing out is not an error,
-    /// a picture with no code in it is a different mistake from a code belonging to something
-    /// else, and both are different from a squad code that arrived damaged.
+    /// cannot. The failures are told apart deliberately: backing out of the camera is not an
+    /// error at all, a code belonging to something else is a different mistake from a squad
+    /// code that arrived damaged, and each wants a different sentence.
     /// </summary>
-    /// <param name="scanned">
-    /// The text read, null if the user backed out, or empty if an image held no code.
-    /// </param>
+    /// <param name="scanned">The text read, or null if the user backed out.</param>
     private void HandleScannedCode(string? scanned)
     {
-        if (scanned is null)
+        if (string.IsNullOrEmpty(scanned))
         {
-            return;
-        }
-
-        if (scanned.Length == 0)
-        {
-            _message = Loc["share.noCodeInImage"];
-            _isError = true;
             return;
         }
 

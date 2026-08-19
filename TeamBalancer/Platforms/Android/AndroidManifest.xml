@@ -11,11 +11,4 @@
 	     device without a camera can still install the app and use every other feature. -->
 	<uses-permission android:name="android.permission.CAMERA" />
 	<uses-feature android:name="android.hardware.camera" android:required="false" />
-	<!-- Reading a shared squad from a QR code image the user was sent. Capped at API 32 on
-	     purpose: from Android 13 the system photo picker hands back the one image the user
-	     chose and needs no permission at all. The granular READ_MEDIA_IMAGES that would
-	     replace it here is deliberately NOT declared - it grants the whole gallery, and it
-	     puts the app under Google Play's Photo and Video Permissions policy, which is a
-	     declaration form and a review for a feature that reads one picture. -->
-	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
 </manifest>
