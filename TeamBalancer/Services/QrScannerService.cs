@@ -94,7 +94,7 @@ public sealed class QrScannerService : IQrScannerService
     /// <inheritdoc />
     public async Task<string?> ScanFromImageAsync()
     {
-        var photo = await MainThread.InvokeOnMainThreadAsync(() => MediaPicker.Default.PickPhotoAsync());
+        var photo = await MainThread.InvokeOnMainThreadAsync(PickImageAsync);
         if (photo is null)
         {
             return null;
@@ -116,6 +116,34 @@ public sealed class QrScannerService : IQrScannerService
         // An empty string rather than null: the user did choose a picture, it simply had no
         // code in it, and the screen says something different about each of those.
         return results?.FirstOrDefault()?.Value ?? string.Empty;
+    }
+
+    /// <summary>
+    /// Asks the user for the image holding the code, using whichever picker on this platform
+    /// can actually reach where a received picture is kept.
+    /// </summary>
+    /// <remarks>
+    /// The two platforms genuinely differ, so this is a split rather than a preference. On iOS
+    /// an image someone sent lands in the photo library, which the document picker cannot see at
+    /// all, so the media picker is the only one that can reach it. On Android the reverse holds
+    /// in practice: the system photo picker depends on the media provider resolving the item,
+    /// which fails on emulators and for pictures held only in the cloud - it reports "Can't load
+    /// some photos" and hands back nothing. The document picker asks the storage layer directly,
+    /// browses Downloads and the messengers' own folders where a received code actually sits,
+    /// and grants access to the single file the user chose without any permission at all.
+    /// </remarks>
+    /// <returns>The chosen file, or null if the user picked nothing.</returns>
+    private Task<FileResult?> PickImageAsync()
+    {
+#if IOS || MACCATALYST
+        return MediaPicker.Default.PickPhotoAsync();
+#else
+        return FilePicker.Default.PickAsync(new PickOptions
+        {
+            PickerTitle = _localization["share.pickImageTitle"],
+            FileTypes = FilePickerFileType.Images
+        });
+#endif
     }
 
     /// <summary>

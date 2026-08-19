@@ -132,6 +132,7 @@
   "share.showQr": "Als QR-Code teilen",
   "share.scanQr": "QR-Code scannen",
   "share.scanFromImage": "QR-Code aus einem Bild lesen",
+  "share.pickImageTitle": "Bild mit dem QR-Code auswählen",
   "share.scanTitle": "Kader scannen",
   "share.scanHint": "Richte die Kamera auf den QR-Code des anderen Telefons.",
   "share.qrAlt": "QR-Code mit diesem Kader",

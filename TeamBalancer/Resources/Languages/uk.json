@@ -132,6 +132,7 @@
   "share.showQr": "Поділитися QR-кодом",
   "share.scanQr": "Сканувати QR-код",
   "share.scanFromImage": "Зчитати QR-код із зображення",
+  "share.pickImageTitle": "Виберіть зображення з QR-кодом",
   "share.scanTitle": "Сканування складу",
   "share.scanHint": "Наведіть камеру на QR-код на іншому телефоні.",
   "share.qrAlt": "QR-код із цим складом",
