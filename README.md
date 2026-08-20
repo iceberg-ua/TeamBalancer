@@ -51,6 +51,20 @@ description of the algorithm and the alternatives that were considered.
 - 🔒 **CSV Injection Prevention** - Comprehensive security validation
 - ✅ Input validation with detailed error messages
 
+### Sharing
+- 📱 **QR code sharing** - the active list is drawn as a QR code on one phone and read
+  with the camera on another, with no network between them
+- 🧾 The code carries the same CSV the export writes, so a squad sent as a code and a squad
+  sent as a file arrive as the same thing, through one parser
+- 🗜️ Payload is the list name and CSV, deflated and base32-encoded behind a `TB1:` marker;
+  base32 keeps it inside the QR alphanumeric set, which stores 5.5 bits per character where
+  byte mode stores 8. The marker carries a format version, and decompression is capped
+- 📏 Above 2,200 characters - near 180 players - the code is not drawn at all, since a symbol
+  that dense mostly fails to scan; the app asks for the file route instead
+- 🎯 Every import asks where the players land: a new list, named after the sender's, or a
+  merge into an existing one that adds newcomers, takes the sender's ratings for players
+  already there, and removes nobody
+
 ### Languages
 - 🌍 English, German and Ukrainian, switchable from the home screen without restarting
 - 📱 Starts in the device's language when it is one of the three, and falls back to English

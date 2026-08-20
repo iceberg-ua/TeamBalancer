@@ -2,6 +2,38 @@
 
 Notable changes to Team Balancer, newest first.
 
+## 2.1 — 2026-08-20
+
+### Sharing
+
+- A squad now travels from one phone to another without a network: show the
+  active list as a QR code on one phone, scan it from the other. The camera
+  keeps trying until it reads, so there is nothing to line up exactly.
+- What arrives is the same squad a shared file carries — the list name and every
+  player with their positions and ratings — so it makes no difference which way
+  you sent it.
+- A squad too big to fit a readable code says so, and asks you to send it as a
+  file instead. That is somewhere around 180 players.
+- Scanning asks for the camera the first time. Nothing else was added: the app
+  does not ask for your photos or your files.
+
+### Import
+
+- Every import now asks where the players should go, whether they came from a
+  file or from a code. Before, they went into whichever list happened to be
+  open.
+- "Into a new list" suggests the sender's list name. "Into a list you already
+  have" merges.
+- Merging means what you would expect. Players you do not have are added,
+  ratings you receive replace the ones you have, and players missing from the
+  import are kept — someone not being in the squad you were sent is not the same
+  as them having left. Who you had picked for tonight is left alone.
+
+### Fixes
+
+- Importing into a list you had just created could leave that list empty. The
+  list appeared, correctly named, with nobody in it.
+
 ## 2.0 — 2026-08-14
 
 ### Languages
