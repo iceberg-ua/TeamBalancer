@@ -2,6 +2,27 @@
 
 Notable changes to Team Balancer, newest first.
 
+## Unreleased
+
+### Matches
+
+- A split you are happy with can now be accepted. Accepting takes you to a new
+  Match screen, where the game is recorded while it is being played: the score,
+  who scored, and who set them up.
+- The score works either way round. Leave it alone and it counts the goals as
+  you name the scorers. Enter it yourself and it stays put while you catch up on
+  who scored — until you name more goals than the figure you entered, at which
+  point it follows the scorers. Goals nobody is named for are still part of the
+  score, and the screen says how many there are.
+- Players who turn up after kick-off can be added to either side, from the list
+  or as somebody new. Nothing is rebalanced around them, and they can score and
+  assist like anyone else. Someone put on the wrong side can still be sent over,
+  and their goals go with them.
+- Finishing the match saves the result. It is written to a file of its own, so a
+  game you played survives closing the app. Leaving any other way asks first.
+- Reshuffle keeps its place in the footer next to the new Accept button, as its
+  own shuffle glyph.
+
 ## 2.1 — 2026-08-20
 
 ### Sharing

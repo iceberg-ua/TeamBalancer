@@ -80,6 +80,10 @@ public static class MauiProgram
 			dataDirectory));
 		services.AddSingleton<IPlayerRepository>(sp => sp.GetRequiredService<IActivePlayerRepository>());
 
+		// Register the store for finished matches. It writes matches.csv into the same data
+		// directory as the player files, and is only ever appended to.
+		services.AddSingleton<IMatchRepository>(_ => new CsvMatchRepository(dataDirectory));
+
 		// Register CSV import/export service
 		services.AddSingleton<ICsvImportExportService, CsvImportExportService>();
 
@@ -87,8 +91,11 @@ public static class MauiProgram
 		services.AddSingleton<ITeamBalancingStrategy, DraftStrategy>();
 		services.AddSingleton<TeamBalancingService>();
 
-		// Register UI services
+		// Register UI services. The team state carries a split from Select Players to Teams;
+		// the match state carries an accepted split on to the Match screen, and holds the game
+		// while the user steps out to add a player who turned up late.
 		services.AddSingleton<TeamStateService>();
+		services.AddSingleton<MatchStateService>();
 
 		// Register file save service
 		services.AddSingleton<IFileSaveService, FileSaveService>();

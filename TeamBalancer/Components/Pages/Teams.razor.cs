@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using TeamBalancer.Components.Layout;
 using TeamBalancer.Core.Models;
@@ -18,6 +18,11 @@ public partial class Teams
 
     private const string HomeRoute = "/";
 
+    /// <summary>
+    /// Where accepting the split goes: the screen the game itself is recorded on.
+    /// </summary>
+    private const string MatchRoute = "/match";
+
     [Inject]
     private NavigationManager Navigation { get; set; } = default!;
 
@@ -32,6 +37,9 @@ public partial class Teams
 
     [Inject]
     private IPlayerListRepository PlayerListRepository { get; set; } = default!;
+
+    [Inject]
+    private MatchStateService MatchState { get; set; } = default!;
 
     [CascadingParameter]
     private MainLayout? Layout { get; set; }
@@ -203,6 +211,36 @@ public partial class Teams
         // The pill reporting how the draw stands lives in the header, which belongs to the
         // layout rather than to this page.
         Layout?.Refresh();
+    }
+
+    /// <summary>
+    /// Gets whether the split is one that can be played: two sides, both with someone on them.
+    /// </summary>
+    private bool CanAccept => GeneratedTeams is { Count: 2 }
+        && GeneratedTeams.All(t => t.Players.Count > 0);
+
+    /// <summary>
+    /// Takes the split as it stands and goes off to play it.
+    /// </summary>
+    /// <remarks>
+    /// This is the one way off this screen that asks nothing first. Every other exit throws
+    /// the split away, which is what the sheet exists to confirm; accepting keeps it, so
+    /// there is nothing to warn about.
+    ///
+    /// The split is left in <see cref="TeamState"/> rather than cleared. The match holds sides
+    /// of its own from here on, and clearing would only matter if the user came back to this
+    /// screen - which, having accepted, they do by drawing again from Select Players anyway.
+    /// </remarks>
+    private void AcceptTeams()
+    {
+        if (!CanAccept)
+        {
+            return;
+        }
+
+        MatchState.StartMatch(MatchRecord.FromTeams(GeneratedTeams!, ActivePlayerRepository.CurrentListId));
+
+        Navigation.NavigateTo(MatchRoute);
     }
 
     /// <summary>

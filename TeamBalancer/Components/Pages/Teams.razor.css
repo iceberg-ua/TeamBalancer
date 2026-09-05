@@ -446,6 +446,12 @@
     outline-offset: 1px;
 }
 
+/* The shuffle arrows are two thin strokes where the house is a solid block, so at the shared
+   .btn-icon size they read as the smaller mark. Nudged up to sit level with it. */
+.footer-reshuffle i {
+    font-size: 1.5rem;
+}
+
 .no-players-hint {
     font-size: 0.9rem;
     padding: 1.5rem 0;

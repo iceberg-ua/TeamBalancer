@@ -1,4 +1,4 @@
-@page "/teams"
+﻿@page "/teams"
 @inherits LocalizedComponentBase
 @using TeamBalancer.Core.Models
 @using TeamBalancer.Components.Shared
@@ -28,11 +28,18 @@
 @if (GeneratedTeams != null && GeneratedTeams.Count > 0)
 {
     <LayoutSection Section="Footer">
+        @* Accepting is what the screen is now for, so it takes the labelled slot and the two
+           adjustments either side of it - draw again, or go home - keep their glyphs. Three
+           labels would not survive a narrow phone in German or Ukrainian. *@
         <div class="button-group">
-            <button class="btn btn-success @(_pending == PendingAction.Reshuffle ? "is-armed" : "")"
-                    @onclick="AskToReshuffle">
-                <i class="fas fa-shuffle create-icon"></i>
-                @Loc["teams.reshuffle"]
+            <button class="btn btn-success" @onclick="AcceptTeams" disabled="@(!CanAccept)">
+                <i class="fas fa-check create-icon"></i>
+                @Loc["teams.accept"]
+            </button>
+            <button class="btn btn-secondary btn-icon footer-reshuffle @(_pending == PendingAction.Reshuffle ? "is-armed" : "")"
+                    @onclick="AskToReshuffle"
+                    title="@(Loc["teams.reshuffle"])" aria-label="@(Loc["teams.reshuffle"])">
+                <i class="fas fa-shuffle"></i>
             </button>
             <button class="btn btn-secondary btn-icon footer-home @(IsArmed(HomeRoute) ? "is-armed" : "")"
                     @onclick="() => AskToLeave(HomeRoute)"
