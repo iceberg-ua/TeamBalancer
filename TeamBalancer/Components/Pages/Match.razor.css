@@ -1,0 +1,403 @@
+/* The Match screen deliberately wears the Teams screen's clothes - the same scoreboard over
+   the same lineup, the same sheets rising from the bottom - so that accepting a split reads
+   as carrying on rather than arriving somewhere new. That shape is shared from
+   wwwroot/css/app.css, which is where two components can share one; what is left here is
+   what only this screen has - the score controls, the tallies, the add-a-player sheet - and
+   the few places where this screen's version of a shared rule differs. */
+
+.no-match p {
+    font-size: 1.1rem;
+}
+
+/* The outline figure of a person and a plus is lighter than the solid house next to it on
+   other screens, so it takes the same reduction the shuffle arrows do. */
+.footer-add-player i {
+    font-size: 1.5rem;
+}
+
+/* ---- Panes ---- */
+.match-pane {
+    overflow: hidden;
+}
+
+/* ---- The score ---- */
+/* Where the Teams screen puts a rating. The figure keeps that size and weight, with the two
+   ways of changing it either side, so the number stays the thing being read. */
+.side-score {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+/* An input wearing the Teams screen's rating figure: same size, same weight, no chrome. The
+   spinners are stripped because the two circles beside it already do that job, and better
+   with a thumb. */
+.side-score-value {
+    width: 2.4rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    text-align: center;
+    font-family: inherit;
+    font-size: 1.7rem;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text);
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.side-score-value::-webkit-outer-spin-button,
+.side-score-value::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.side-score-value:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
+.score-step {
+    width: 1.5rem;
+    height: 1.5rem;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid rgba(233, 233, 237, 0.18);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-size: 0.6rem;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.score-step:hover:not(:disabled) {
+    background: rgba(233, 233, 237, 0.09);
+    border-color: rgba(233, 233, 237, 0.32);
+    color: var(--color-text);
+}
+
+.score-step:active:not(:disabled) {
+    background: rgba(233, 233, 237, 0.16);
+}
+
+.score-step:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+}
+
+/* Dimmed rather than removed: the score cannot go below the goals already pinned to scorers,
+   and a button that vanished at that floor would move the figure it sits beside. */
+.score-step:disabled {
+    opacity: 0.25;
+    cursor: default;
+}
+
+/* Goals in the score with nobody named for them. Said once under both halves rather than on
+   the side it belongs to, which would leave the two halves different heights. */
+.unattributed-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin: 0;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #e8c477;
+}
+
+/* A score typed in that the match refused. It sits where the unattributed note sits, in the
+   colour of something gone wrong rather than something still to do. */
+.unattributed-note.is-refusal {
+    color: #e5a7ab;
+    text-wrap: pretty;
+}
+
+/* ---- Lineup ---- */
+/* Two tally columns and a move button leave less room across a row than the Teams screen
+   needs, so the gaps close up. No position chips on the row either: four controls and a name
+   is all a narrow phone holds, and the position has already done its job in the draw - it
+   survives as the abbreviation on the subline. */
+.lineup-head {
+    gap: 0.4rem;
+}
+
+.lineup-row {
+    gap: 0.4rem;
+}
+
+/* Sits over the tally column below it and matches its width, the way "Rating" heads the
+   ratings on the screens that show them. */
+.lineup-tally {
+    width: 3.9rem;
+    flex-shrink: 0;
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+}
+
+/* ---- Tallies ---- */
+/* Goals and assists, each a pill that counts up when tapped and a smaller circle that takes
+   one back. The pill is the large target because scoring is the common way for the number to
+   move; correcting a mis-tap is not. */
+.tally-group {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    flex-shrink: 0;
+}
+
+.tally {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    min-width: 2.5rem;
+    height: 1.75rem;
+    padding: 0 0.4rem;
+    border: 1px solid rgba(233, 233, 237, 0.14);
+    border-radius: 9px;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-family: inherit;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.tally:hover {
+    background: rgba(233, 233, 237, 0.09);
+    border-color: rgba(233, 233, 237, 0.28);
+    color: var(--color-text);
+}
+
+.tally:active {
+    background: rgba(233, 233, 237, 0.16);
+}
+
+.tally:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+}
+
+/* Once a player is on the scoresheet their pill takes the team's colour, so a lineup can be
+   read for who did something without reading any of the numbers. The colour comes from the
+   --tally-* properties the shared .lineup.team-a / .team-b rules set. */
+.tally.is-counted {
+    background: var(--tally-color);
+    border-color: var(--tally-color);
+    color: var(--tally-ink);
+}
+
+.tally.is-counted:hover {
+    background: var(--tally-color);
+    border-color: var(--tally-color);
+    color: var(--tally-ink);
+    filter: brightness(1.08);
+}
+
+.tally-count {
+    font-size: 0.8rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+
+.tally-minus {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid rgba(233, 233, 237, 0.18);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-size: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.tally-minus:hover:not(:disabled) {
+    background: rgba(233, 233, 237, 0.09);
+    border-color: rgba(233, 233, 237, 0.32);
+    color: var(--color-text);
+}
+
+.tally-minus:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+}
+
+/* Dimmed rather than hidden at zero, so the row does not change width the moment a player
+   scores - a lineup shifting sideways under a thumb is how the wrong player gets tapped. */
+.tally-minus:disabled {
+    opacity: 0.2;
+    cursor: default;
+}
+
+/* ---- Moving a player ---- */
+/* Unlike the Teams screen this button can be dead - a match with only one side has nowhere
+   to move anyone to - so it takes a disabled look and keeps its hover off it. The padding
+   reset stops the icon crowding a circle this small. */
+.row-move {
+    padding: 0;
+}
+
+.row-move:hover:not(:disabled) {
+    background: rgba(233, 233, 237, 0.09);
+    border-color: rgba(233, 233, 237, 0.32);
+    color: var(--color-text);
+}
+
+.row-move:disabled {
+    opacity: 0.25;
+    cursor: default;
+}
+
+/* ---- Sheets ---- */
+.sheet {
+    /* The add-a-player sheet can hold a long list, so it is capped and scrolls inside rather
+       than growing off the top of the screen. */
+    max-height: 82vh;
+}
+
+/* The one thing on the finish sheet worth reading twice. */
+.finish-score {
+    margin: 0;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text);
+}
+
+.sheet-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.45rem;
+    margin: 0;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: #e8c477;
+    text-wrap: pretty;
+}
+
+/* The capped sheet scrolls its list, so the answers must not be squeezed by it. */
+.sheet-actions {
+    flex-shrink: 0;
+}
+
+/* ---- Adding a player ---- */
+/* Which side before who, because the answer to "who" is a whole list and the answer to
+   "which side" is one tap that changes what the list means. */
+.side-picker {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.side-choice {
+    flex: 1;
+    height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(233, 233, 237, 0.14);
+    border-radius: 12px;
+    background: transparent;
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.side-choice:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+}
+
+.side-choice.team-a.is-chosen {
+    background: var(--color-team-a);
+    border-color: var(--color-team-a);
+    color: var(--color-neutral-100);
+}
+
+.side-choice.team-b.is-chosen {
+    background: var(--color-team-b);
+    border-color: var(--color-team-b);
+    color: var(--color-bg);
+}
+
+.available-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.available {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 2px;
+}
+
+.available-row {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    width: 100%;
+    padding: 0.5rem 0.625rem;
+    border: none;
+    border-radius: 10px;
+    background: var(--color-surface-raised);
+    box-shadow: 0 0 0 1px rgba(233, 233, 237, 0.09);
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.available-row:hover {
+    background: rgba(233, 233, 237, 0.09);
+}
+
+.available-row:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+}
+
+.available-row .row-name {
+    flex: 1;
+    min-width: 0;
+}
+
+.available-add {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.375rem;
+    height: 1.375rem;
+    flex-shrink: 0;
+    border-radius: 999px;
+    background: rgba(127, 176, 105, 0.16);
+    color: #bce3a3;
+    font-size: 0.65rem;
+}

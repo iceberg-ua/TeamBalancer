@@ -1,0 +1,382 @@
+@page "/match"
+@inherits LocalizedComponentBase
+@using TeamBalancer.Core.Models
+@using TeamBalancer.Components.Shared
+@using TeamBalancer.Extensions
+
+<LayoutSection Section="Header">
+    <div class="header-with-back">
+        @* Going back throws away a result nobody has written down yet, so the arrow asks
+           first - and stays lit while it is asking, the way the Teams arrow does. *@
+        <button class="back-button @(_pending == PendingAction.Leave ? "is-armed" : "")"
+                @onclick="AskToLeave" title="@(Loc["common.back"])">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+        </button>
+        <div class="header-title-block-left">
+            <h1 class="header-title-left">@Loc["match.title"]</h1>
+            <span class="header-subline">@HeaderSubline</span>
+        </div>
+    </div>
+</LayoutSection>
+
+@if (CurrentMatch != null)
+{
+    <LayoutSection Section="Footer">
+        <div class="button-group">
+            <button class="btn btn-success @(_pending == PendingAction.Finish ? "is-armed" : "")"
+                    @onclick="AskToFinish">
+                <i class="fas fa-flag-checkered create-icon"></i>
+                @Loc["match.finish"]
+            </button>
+            <button class="btn btn-secondary btn-icon footer-add-player @(_pending == PendingAction.AddPlayer ? "is-armed" : "")"
+                    @onclick="AskToAddPlayer"
+                    title="@(Loc["match.addPlayer"])" aria-label="@(Loc["match.addPlayer"])">
+                <i class="fas fa-user-plus"></i>
+            </button>
+        </div>
+    </LayoutSection>
+}
+
+<div class="page-container">
+    <div class="page-content-narrow match-pane">
+
+        @if (CurrentMatch == null)
+        {
+            <div class="no-match text-center card-padding">
+                <p>@Loc["match.empty"]</p>
+                <button class="btn btn-primary" @onclick="GoToCreateTeams">@Loc["common.createTeams"]</button>
+            </div>
+        }
+        else
+        {
+            var activeIndex = ActiveIndex;
+            var activeTeam = CurrentMatch.Teams[activeIndex];
+
+            @* The same scoreboard-over-lineup shape as the Teams screen, with the score where
+               the rating was: the draw has been settled, and what matters now is the game. *@
+            <div class="scoreboard">
+                <div class="score-sides" role="tablist">
+                    @for (var i = 0; i < CurrentMatch.Teams.Count; i++)
+                    {
+                        var index = i;
+                        var team = CurrentMatch.Teams[index];
+                        var isShown = index == activeIndex;
+
+                        if (index > 0)
+                        {
+                            <span class="score-vs">VS</span>
+                        }
+
+                        @* A div rather than a button, unlike the Teams scoreboard: the score
+                           carries its own two buttons and a button cannot hold buttons. The
+                           tab role, the focus ring and Enter/Space are all kept by hand so it
+                           still behaves like the control it replaces. *@
+                        <div role="tab"
+                             tabindex="0"
+                             aria-selected="@(isShown ? "true" : "false")"
+                             class="score-side @TeamColorClass(index) @(isShown ? "is-shown" : "")"
+                             title="@(Loc["teams.showTeam", TeamName(index)])"
+                             @onclick="() => ShowTeam(index)"
+                             @onkeydown="args => HandleTabKey(args, index)">
+                            <span class="side-name">@TeamName(index)</span>
+
+                            <span class="side-score">
+                                <button type="button" class="score-step"
+                                        disabled="@(!team.CanDecrementScore)"
+                                        title="@ScoreDownTitle(team, index)"
+                                        aria-label="@ScoreDownTitle(team, index)"
+                                        @onclick="() => DecrementScore(team)"
+                                        @onclick:stopPropagation="true">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+
+                                @* Typed as well as tapped: seven taps to record a 7 is not
+                                   a scoreboard. The box is rebuilt on every commit - its own
+                                   key changes with it - so an entry the score refuses cannot
+                                   be left sitting in a field that disagrees with the match.
+                                   The key is per side, so committing one score does not tear
+                                   down the other side's box underneath whoever is typing in
+                                   it. The floor rather than the goals attributed: an assist
+                                   holds the score up just as a named goal does, and a box
+                                   that advertises a minimum the match then refuses is worse
+                                   than one that admits its real limit. *@
+                                <input type="number"
+                                       @key="(index, ScoreRevision(index))"
+                                       class="side-score-value"
+                                       inputmode="numeric"
+                                       min="@team.ScoreFloor"
+                                       value="@team.Score"
+                                       title="@(Loc["match.scoreEntry", TeamName(index)])"
+                                       aria-label="@(Loc["match.scoreEntry", TeamName(index)])"
+                                       @onchange="args => SetScore(team, index, args)" />
+
+                                <button type="button" class="score-step"
+                                        title="@(Loc["match.scoreUp", TeamName(index)])"
+                                        aria-label="@(Loc["match.scoreUp", TeamName(index)])"
+                                        @onclick="() => IncrementScore(team)"
+                                        @onclick:stopPropagation="true">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </span>
+
+                            <span class="side-count" title="@(Loc["playerList.playerCount", team.Players.Count])">
+                                @team.Players.Count
+                            </span>
+                        </div>
+                    }
+                </div>
+
+                @* A score typed in below what is already credited to players cannot be stored,
+                   and the box snaps back to the real score. Said out loud here rather than
+                   left as a field that quietly discards what was typed into it. *@
+                @if (!string.IsNullOrEmpty(_scoreRefusal))
+                {
+                    <div class="scoreboard-rule"></div>
+                    <p class="unattributed-note is-refusal">
+                        <i class="fas fa-circle-exclamation"></i>
+                        @_scoreRefusal
+                    </p>
+                }
+
+                @* Said once for the match rather than per side, so the two halves of the
+                   scoreboard stay the same shape as each other. It is the cue to finish
+                   naming scorers before the result is written down. *@
+                @if (CurrentMatch.HasUnattributedGoals)
+                {
+                    <div class="scoreboard-rule"></div>
+                    <p class="unattributed-note">
+                        <i class="fas fa-circle-question"></i>
+                        @Loc["match.unattributed", CurrentMatch.UnattributedGoals]
+                    </p>
+                }
+            </div>
+
+            @if (activeTeam.Players.Count == 0)
+            {
+                <p class="no-players-hint text-center text-muted">@Loc["teams.noPlayersOnTeam"]</p>
+            }
+            else
+            {
+                @* The two tally columns are headed by their own marks rather than words - the
+                   ball and the boot are narrower than "Goals" and "Assists" in any language,
+                   and the row below has little room to spare. *@
+                <div class="lineup-head">
+                    <span class="lineup-label">@Loc["match.lineup", TeamName(activeIndex)]</span>
+                    <span class="lineup-gap"></span>
+                    <span class="lineup-tally" title="@(Loc["match.goals"])">
+                        <i class="fas fa-futbol"></i>
+                    </span>
+                    <span class="lineup-tally" title="@(Loc["match.assists"])">
+                        <i class="fas fa-shoe-prints"></i>
+                    </span>
+                    <span class="lineup-move-spacer"></span>
+                </div>
+
+                <div class="lineup-scroll scroll-shadows">
+                    <div class="lineup @TeamColorClass(activeIndex)">
+                        @* The same order as the Teams screen - down the pitch, strongest
+                           first within each group - and deliberately not an order that reacts
+                           to the tallies. A lineup that resorted as goals went in would move
+                           the row being tapped out from under the thumb tapping it. *@
+                        @foreach (var participant in activeTeam.Players
+                            .OrderBy(p => p.Player.PrimaryPosition.ToSortOrder())
+                            .ThenByDescending(p => p.Player.OverallSkillLevel)
+                            .ThenBy(p => p.Player.Name))
+                        {
+                            var player = participant.Player;
+                            var hasPosition = player.PrimaryPosition != Position.Unspecified;
+
+                            <div class="lineup-row">
+                                <span class="row-identity">
+                                    <span class="row-name">@player.Name</span>
+                                    <span class="row-subline @(hasPosition ? "" : "is-unset")">
+                                        @(hasPosition ? player.PrimaryPosition.ToAbbreviation() : Loc["playerItem.setPosition"])
+                                    </span>
+                                </span>
+
+                                <span class="tally-group">
+                                    <button type="button" class="tally-minus"
+                                            disabled="@(!participant.HasGoals)"
+                                            title="@(Loc["match.goalDown", player.Name])"
+                                            aria-label="@(Loc["match.goalDown", player.Name])"
+                                            @onclick="() => RemoveGoal(activeTeam, participant)">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <button type="button" class="tally @(participant.HasGoals ? "is-counted" : "")"
+                                            title="@(Loc["match.goalUp", player.Name])"
+                                            aria-label="@(Loc["match.goalUp", player.Name])"
+                                            @onclick="() => AddGoal(activeTeam, participant)">
+                                        <i class="fas fa-futbol"></i>
+                                        <span class="tally-count">@participant.Goals</span>
+                                    </button>
+                                </span>
+
+                                @* A goal carries at most one assist, so once every goal on the
+                                   scoreboard has someone credited for it there is nothing left
+                                   to assist - and the button says which way out of that there
+                                   is, rather than just refusing. *@
+                                <span class="tally-group">
+                                    <button type="button" class="tally-minus"
+                                            disabled="@(!participant.HasAssists)"
+                                            title="@(Loc["match.assistDown", player.Name])"
+                                            aria-label="@(Loc["match.assistDown", player.Name])"
+                                            @onclick="() => RemoveAssist(activeTeam, participant)">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <button type="button" class="tally @(participant.HasAssists ? "is-counted" : "")"
+                                            disabled="@(!activeTeam.CanAddAssist)"
+                                            title="@AssistUpTitle(activeTeam, player.Name)"
+                                            aria-label="@AssistUpTitle(activeTeam, player.Name)"
+                                            @onclick="() => AddAssist(activeTeam, participant)">
+                                        <i class="fas fa-shoe-prints"></i>
+                                        <span class="tally-count">@participant.Assists</span>
+                                    </button>
+                                </span>
+
+                                @* Someone put on the wrong side, or swapped over at half time.
+                                   Their goals and assists go with them, because which side
+                                   they counted for is exactly what is being corrected. *@
+                                <button type="button" class="row-move"
+                                        disabled="@(!CanMovePlayers)"
+                                        @onclick="() => MovePlayer(participant)"
+                                        title="@MoveTitle" aria-label="@MoveTitle">
+                                    <i class="fas fa-right-left"></i>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@* Leaving and finishing are asked the same way the Teams screen asks its two questions, so
+   the gesture carries over: a tinted mark, a line of what happens, and a yes/no pair. *@
+@if (_pending == PendingAction.Leave || _pending == PendingAction.Finish)
+{
+    var isLeave = _pending == PendingAction.Leave;
+
+    <div class="sheet-overlay" @onclick="CancelPending">
+        <div class="sheet" role="dialog" aria-modal="true" @onclick:stopPropagation="true">
+            <div class="sheet-head">
+                <span class="sheet-mark @(isLeave ? "is-warning" : "is-accent")">
+                    <i class="fas @(isLeave ? "fa-arrow-right-from-bracket" : "fa-flag-checkered")"></i>
+                </span>
+                <span class="sheet-title">@(isLeave ? Loc["match.leaveTitle"] : Loc["match.finishTitle"])</span>
+            </div>
+
+            @if (isLeave)
+            {
+                <p class="sheet-body">@Loc["match.leaveBody"]</p>
+            }
+            else
+            {
+                @* The result as one line, because this is the last chance to read it back
+                   before it becomes the record of the game. *@
+                <p class="finish-score">@Scoreline</p>
+                <p class="sheet-body">@Loc["match.finishBody"]</p>
+
+                @if (CurrentMatch is { HasUnattributedGoals: true })
+                {
+                    <p class="sheet-note">
+                        <i class="fas fa-circle-question"></i>
+                        @Loc["match.finishUnattributed", CurrentMatch.UnattributedGoals]
+                    </p>
+                }
+
+                @if (!string.IsNullOrEmpty(_saveError))
+                {
+                    <div class="alert alert-danger">@_saveError</div>
+                }
+            }
+
+            <div class="sheet-actions">
+                <button class="btn btn-secondary" @onclick="CancelPending" disabled="@_isSaving">
+                    @(isLeave ? Loc["match.leaveNo"] : Loc["match.finishNo"])
+                </button>
+
+                @if (isLeave)
+                {
+                    <button class="btn btn-warning" @onclick="ConfirmLeave">
+                        <i class="fas fa-arrow-right-from-bracket"></i>
+                        @Loc["match.leaveYes"]
+                    </button>
+                }
+                else
+                {
+                    @* Held down for the length of the write. The handler gives way at the
+                       await and Blazor repaints the sheet mid-save, so a button left live
+                       would take a second tap and append the same match to the file twice -
+                       in a file that is only ever appended to, and so never corrected. *@
+                    <button class="btn btn-success" @onclick="ConfirmFinish" disabled="@_isSaving">
+                        <i class="fas @(_isSaving ? "fa-spinner fa-spin" : "fa-flag-checkered")"></i>
+                        @Loc["match.finishYes"]
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@* Someone turning up late. The side is chosen first, then the person - either off the list
+   this squad was drawn from, or one who is not on it yet. *@
+@if (_pending == PendingAction.AddPlayer && CurrentMatch != null)
+{
+    <div class="sheet-overlay" @onclick="CancelPending">
+        <div class="sheet" role="dialog" aria-modal="true" @onclick:stopPropagation="true">
+            <div class="sheet-head">
+                <span class="sheet-mark is-accent"><i class="fas fa-user-plus"></i></span>
+                <span class="sheet-title">@Loc["match.addPlayerTitle"]</span>
+            </div>
+
+            <div class="side-picker" role="group" aria-label="@(Loc["match.addPlayerSide"])">
+                @for (var i = 0; i < CurrentMatch.Teams.Count; i++)
+                {
+                    var index = i;
+
+                    <button type="button"
+                            class="side-choice @TeamColorClass(index) @(_addToTeamIndex == index ? "is-chosen" : "")"
+                            aria-pressed="@(_addToTeamIndex == index ? "true" : "false")"
+                            @onclick="() => _addToTeamIndex = index">
+                        @TeamName(index)
+                    </button>
+                }
+            </div>
+
+            @* Read once. It is a filter over the whole list crossed with everyone on the pitch,
+               followed by a culture-aware sort, and this sheet repaints on every side tap. *@
+            @{
+                var available = AvailablePlayers;
+            }
+
+            @if (available.Count == 0)
+            {
+                <p class="sheet-body">@Loc["match.addPlayerNone"]</p>
+            }
+            else
+            {
+                <div class="available-scroll scroll-shadows">
+                    <div class="available">
+                        @foreach (var player in available)
+                        {
+                            <button type="button" class="available-row" @onclick="() => AddPlayerToSide(player)">
+                                <PositionChips Player="player" />
+                                <span class="row-name">@player.Name</span>
+                                <span class="available-add"><i class="fas fa-plus"></i></span>
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+
+            <div class="sheet-actions">
+                <button class="btn btn-secondary" @onclick="CancelPending">@Loc["common.cancel"]</button>
+                <button class="btn btn-success" @onclick="GoToNewPlayer">
+                    <i class="fas fa-user-plus"></i>
+                    @Loc["match.newPlayer"]
+                </button>
+            </div>
+        </div>
+    </div>
+}
