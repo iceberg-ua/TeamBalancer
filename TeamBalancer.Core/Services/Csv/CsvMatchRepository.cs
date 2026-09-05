@@ -62,7 +62,12 @@ public class CsvMatchRepository : IMatchRepository
         {
             EnsureDataDirectoryExists();
 
-            var content = Serialize(match, writeHeader: !File.Exists(_filePath));
+            // An empty file needs the header as much as a missing one does. A file left behind
+            // at zero bytes - a first write that failed part way, or storage the phone reclaimed
+            // the contents of - would otherwise be filled with rows no reader can name.
+            var existing = new FileInfo(_filePath);
+
+            var content = Serialize(match, writeHeader: !existing.Exists || existing.Length == 0);
 
             await File.AppendAllTextAsync(_filePath, content);
         }
@@ -106,7 +111,15 @@ public class CsvMatchRepository : IMatchRepository
                 // A side can be left empty by moving its last player across. The score belongs
                 // to the side rather than to anyone on it, so the row is written regardless -
                 // dropping it would lose a result that is still half of the scoreline.
-                sb.AppendLine($"{matchColumns},,,0,0");
+                //
+                // The empty guid rather than an empty cell: PlayerId is a guid column in a file
+                // that is only ever appended to, so a reader meets this row for as long as the
+                // file lives and needs a value it can parse and then recognise as nobody. The
+                // name beside it stays blank - a stand-in name would have to be one no player
+                // could be called, and the id has already said this row is not a player.
+                sb.AppendLine(string.Create(
+                    CultureInfo.InvariantCulture,
+                    $"{matchColumns},{Guid.Empty},,0,0"));
                 continue;
             }
 

@@ -91,7 +91,7 @@ public class MatchRecord
 
         if (from.Remove(matchPlayer))
         {
-            to.Players.Add(matchPlayer);
+            to.Absorb(matchPlayer);
         }
     }
 }

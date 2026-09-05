@@ -4,10 +4,11 @@ using TeamBalancer.Core.Models;
 
 /// <summary>
 /// Covers the rule the scoreboard runs on: a side's score is the larger of the figure entered
-/// by hand and the goals attributed to its scorers. Everything the user was promised - a score
-/// that counts itself when nobody enters one, a score that holds still while scorers are named
-/// afterwards, and a score that gives way when the names outnumber it - is that one comparison,
-/// so it is pinned down here rather than left to be re-derived from the screen.
+/// by hand and the goals actually recorded, named or not. Everything the user was promised - a
+/// score that counts itself when nobody enters one, a score that holds still while scorers are
+/// named afterwards, a score that gives way when the names outnumber it, and a goal tapped
+/// straight onto the scoreboard that stays a goal of its own - is that one comparison, so it is
+/// pinned down here rather than left to be re-derived from the screen.
 /// </summary>
 public class MatchScoreTests
 {
@@ -463,5 +464,149 @@ public class MatchScoreTests
         Assert.Equal(1, to.AttributedAssists);
         Assert.Equal(1, to.Score);
         Assert.True(to.AttributedAssists <= to.Score);
+    }
+
+    // ---- A goal tapped onto the scoreboard is a goal of its own ----
+
+    [Fact]
+    public void IncrementScore_ThenNamingTheNextScorer_AddsToTheScoreRatherThanDisappearingIntoIt()
+    {
+        var team = NewTeam("Ivan", "Petro");
+
+        // Ivan scores and is tapped.
+        team.AddGoal(team.Players[0]);
+        Assert.Equal(1, team.Score);
+
+        // A second goes in and nobody sees the scorer, so it goes straight on the scoreboard.
+        team.IncrementScore();
+        Assert.Equal(2, team.Score);
+        Assert.Equal(1, team.UnattributedGoals);
+
+        // Petro scores the third. It is a goal in its own right: the anonymous one is still
+        // sitting in the score, and must not be quietly used up by the goal after it.
+        team.AddGoal(team.Players[1]);
+
+        Assert.Equal(3, team.Score);
+        Assert.Equal(2, team.AttributedGoals);
+        Assert.Equal(1, team.UnattributedGoals);
+        Assert.True(team.HasUnattributedGoals);
+    }
+
+    [Fact]
+    public void IncrementScore_AfterAFigureEnteredByHand_RaisesThatFigureRatherThanStandingBesideIt()
+    {
+        var team = NewTeam("Ivan");
+
+        Assert.True(team.TrySetScore(3));
+
+        // One more went in after the figure was entered. The figure is what is carrying the
+        // unnamed goals, so it is what grows - and the score goes up by exactly one.
+        team.IncrementScore();
+        Assert.Equal(4, team.Score);
+        Assert.Equal(4, team.UnattributedGoals);
+
+        // All four now have a scorer, and naming them lands exactly on the figure rather than
+        // overshooting it by the goal that was tapped in.
+        for (var i = 0; i < 4; i++)
+        {
+            team.AddGoal(team.Players[0]);
+        }
+
+        Assert.Equal(4, team.Score);
+        Assert.False(team.HasUnattributedGoals);
+
+        // The fifth is one goal too many, which is the only way the count takes over.
+        team.AddGoal(team.Players[0]);
+        Assert.Equal(5, team.Score);
+    }
+
+    [Fact]
+    public void IncrementScore_WithTheScoreHeldUpByAssists_StillAddsExactlyOne()
+    {
+        var team = NewTeam("Ivan", "Petro");
+
+        Assert.True(team.TrySetScore(2));
+
+        team.AddAssist(team.Players[1]);
+        team.AddAssist(team.Players[1]);
+        Assert.Equal(2, team.AttributedAssists);
+
+        team.IncrementScore();
+
+        Assert.Equal(3, team.Score);
+        Assert.Equal(3, team.UnattributedGoals);
+    }
+
+    [Fact]
+    public void DecrementScore_TakesOffTheGoalsTappedOntoTheScoreboardOneAtATime()
+    {
+        var team = NewTeam("Ivan");
+
+        team.AddGoal(team.Players[0]);
+        team.IncrementScore();
+        team.IncrementScore();
+
+        Assert.Equal(3, team.Score);
+
+        team.DecrementScore();
+        Assert.Equal(2, team.Score);
+
+        team.DecrementScore();
+        Assert.Equal(1, team.Score);
+
+        // What is left is pinned to a scorer, so it cannot come off the scoreboard.
+        Assert.False(team.CanDecrementScore);
+        Assert.Equal(1, team.AttributedGoals);
+    }
+
+    [Fact]
+    public void TrySetScore_BelowTheGoalsTappedOntoTheScoreboard_TakesThemOffRatherThanRefusing()
+    {
+        var team = NewTeam("Ivan");
+
+        team.IncrementScore();
+        team.IncrementScore();
+        team.IncrementScore();
+        Assert.Equal(3, team.Score);
+
+        // Nothing here is pinned to a player, so typing a lower figure does what pressing
+        // minus twice would do. Refusing it would leave the user with no way to correct a
+        // scoreboard they had over-tapped except by finding the minus button.
+        Assert.True(team.TrySetScore(1));
+        Assert.Equal(1, team.Score);
+        Assert.Equal(1, team.UnattributedGoals);
+
+        // And the goals taken off are gone rather than lurking behind the lower figure.
+        Assert.True(team.TrySetScore(2));
+        Assert.Equal(2, team.Score);
+    }
+
+    [Fact]
+    public void MovingAPlayerOntoASideThatAlreadyHasThem_MergesRatherThanListingThemTwice()
+    {
+        var from = new MatchTeam { Name = "Team A" };
+        var to = new MatchTeam { Name = "Team B" };
+
+        var player = NewPlayer("Ivan");
+
+        var here = from.Add(player);
+        var alsoThere = to.Add(player);
+
+        from.AddGoal(here);
+        from.AddGoal(here);
+        from.AddAssist(here);
+
+        to.AddGoal(alsoThere);
+
+        MatchRecord.Move(here, from, to);
+
+        // One person is one entry on a side. Two would both be summed into the score and both
+        // be written down when the match is finished, under the same player id.
+        Assert.Single(to.Players);
+        Assert.Empty(from.Players);
+
+        Assert.Equal(3, to.AttributedGoals);
+        Assert.Equal(1, to.AttributedAssists);
+        Assert.Equal(3, to.Score);
     }
 }

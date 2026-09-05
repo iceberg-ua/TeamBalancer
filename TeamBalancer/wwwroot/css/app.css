@@ -1230,3 +1230,435 @@ button.list-switcher:hover,
     font-size: 0.8rem;
     color: var(--color-text-muted);
 }
+
+/* ── Scoreboard, lineup and confirmation sheet ────────────────────────────────
+   The Teams screen and the Match screen are the same shape - a fixed scoreboard
+   over a scrolling lineup, with guarded actions rising from the bottom - because
+   accepting a split should read as carrying on rather than arriving somewhere
+   new. That shape lives here rather than in either screen's isolated stylesheet:
+   CSS isolation scopes a component's rules to its own markup, so a shape two
+   screens share can only be shared from an unscoped sheet like this one.
+
+   Each screen keeps its own deviations in its own file. An isolated rule carries
+   the component's attribute selector and so outranks the same selector here,
+   which is what lets a screen tighten a gap or cap a height without having to
+   restate the rule it is adjusting.                                           */
+
+/* ---- Armed buttons ---- */
+/* The control a sheet was opened from stays lit under it, each in the colour of
+   the answer it is waiting for, so the question stays attached to the button
+   that asked it. */
+.back-button.is-armed {
+    background: rgba(233, 233, 237, 0.1);
+}
+
+.btn-secondary.is-armed {
+    background-color: rgba(217, 164, 65, 0.1);
+    border-color: rgba(217, 164, 65, 0.55);
+}
+
+.btn-success.is-armed {
+    background-color: var(--color-accent-tonal-bg-hover);
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(127, 176, 105, 0.18);
+}
+
+/* ---- Scoreboard ---- */
+/* Both halves of the match, and the switch between them: the side being shown is
+   tinted and ringed with a caret pointing down at the lineup it belongs to. */
+.scoreboard {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 0.75rem;
+    margin-bottom: 0.7rem;
+    border-radius: 14px;
+    background: var(--color-surface-quiet);
+    box-shadow: 0 0 0 1px rgba(233, 233, 237, 0.07);
+}
+
+.score-sides {
+    display: flex;
+    align-items: stretch;
+    gap: 0.375rem;
+}
+
+/* A button on the Teams screen and a div on the Match screen, which carries its
+   own two score buttons inside it - hence the font reset, which a div does not
+   need and a button does. */
+.score-side {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.625rem 0.5rem 0.75rem;
+    border: 1px solid rgba(233, 233, 237, 0.08);
+    border-radius: 12px;
+    background: transparent;
+    font-family: inherit;
+    color: var(--color-text);
+    cursor: pointer;
+    opacity: 0.55;
+    transition: background-color 0.2s, border-color 0.2s, opacity 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.score-side:hover {
+    opacity: 1;
+}
+
+.score-side:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+}
+
+.score-side.is-shown {
+    opacity: 1;
+}
+
+.score-side.team-a.is-shown {
+    background: rgba(127, 176, 105, 0.1);
+    border-color: rgba(127, 176, 105, 0.45);
+}
+
+.score-side.team-b.is-shown {
+    background: rgba(217, 164, 65, 0.1);
+    border-color: rgba(217, 164, 65, 0.45);
+}
+
+/* The caret points from the half being shown down at the lineup below, which is
+   what ties the two together without a label saying so. */
+.score-side.is-shown::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -7px;
+    margin-left: -6px;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid transparent;
+}
+
+.score-side.team-a.is-shown::after {
+    border-top-color: var(--color-team-a);
+}
+
+.score-side.team-b.is-shown::after {
+    border-top-color: var(--color-team-b);
+}
+
+.side-name {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.55rem;
+    border-radius: 6px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--color-bg);
+}
+
+.score-side.team-a .side-name {
+    background: var(--color-team-a);
+}
+
+.score-side.team-b .side-name {
+    background: var(--color-team-b);
+}
+
+/* How many players are on that side: the other half of reading a draw as fair,
+   and the thing that shows a 7 v 6 when someone turns up after kick-off. */
+.side-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.375rem;
+    padding: 0 0.4rem;
+    border-radius: 7px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--color-neutral-100);
+}
+
+.score-side.team-a .side-count {
+    background: var(--color-team-a);
+}
+
+.score-side.team-b .side-count {
+    background: var(--color-team-b);
+}
+
+.score-vs {
+    align-self: center;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: #5c6175;
+}
+
+.scoreboard-rule {
+    height: 1px;
+    background: rgba(233, 233, 237, 0.08);
+}
+
+/* ---- Lineup ---- */
+.lineup-head {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0 0.625rem 0.55rem;
+    flex-shrink: 0;
+}
+
+.lineup-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lineup-gap {
+    flex: 1;
+}
+
+.lineup-move-spacer {
+    width: 1.375rem;
+    flex-shrink: 0;
+}
+
+.lineup-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* The 2px inset is what keeps a row's outline whole - see the note on
+   .home-roster. The scroller clips at its padding box, so full-width rows lose
+   the ring down their sides. */
+.lineup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding: 2px 2px 0.5rem;
+}
+
+/* Everything inside a lineup follows the side whose half of the scoreboard is
+   open - the position chips and rating stars on the Teams screen, the goal and
+   assist tallies on the Match screen. Custom properties inherit through CSS
+   isolation, which is what lets them reach into the shared components; a screen
+   that does not use one of them simply never reads it. */
+.lineup.team-a {
+    --rating-color: var(--color-team-a);
+    --chip-color: var(--color-team-a);
+    --chip-ink: var(--color-neutral-100);
+    --tally-color: var(--color-team-a);
+    --tally-ink: var(--color-neutral-100);
+}
+
+/* Amber is far lighter than the accent green, so its chips take the dark ink. */
+.lineup.team-b {
+    --rating-color: var(--color-team-b);
+    --chip-color: var(--color-team-b);
+    --chip-ink: var(--color-bg);
+    --tally-color: var(--color-team-b);
+    --tally-ink: var(--color-bg);
+}
+
+.lineup-row {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: 10px;
+    background: var(--color-surface-raised);
+    box-shadow: 0 0 0 1px rgba(233, 233, 237, 0.09);
+}
+
+.row-identity {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.0625rem;
+}
+
+.row-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.row-subline {
+    font-size: 0.625rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* A player with no position was placed by the draw without one, which is worth
+   showing here as plainly as on the screens where it can be fixed. */
+.row-subline.is-unset {
+    color: var(--color-warning);
+}
+
+/* Sends the player over to the other side. A ring rather than a filled button:
+   it is an adjustment to one row, not an action on the screen. */
+.row-move {
+    width: 1.375rem;
+    height: 1.375rem;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(233, 233, 237, 0.18);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--color-text-muted);
+    font-size: 0.65rem;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.row-move:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+}
+
+.no-players-hint {
+    font-size: 0.9rem;
+    padding: 1.5rem 0;
+}
+
+/* ---- Confirmation sheet ---- */
+/* Guarded actions rise from the bottom of the screen rather than landing in the
+   middle of it: the answer is given with the same thumb that asked the question. */
+.sheet-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0.875rem;
+    padding-bottom: calc(0.875rem + env(safe-area-inset-bottom, 0px));
+    background: rgba(9, 10, 15, 0.7);
+    backdrop-filter: blur(2.5px);
+}
+
+.sheet {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    padding: 1.125rem;
+    border-radius: 20px;
+    background: var(--color-surface-quiet);
+    box-shadow: 0 0 0 1px rgba(233, 233, 237, 0.1), 0 22px 44px rgba(0, 0, 0, 0.55);
+}
+
+.sheet-head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* The mark carries the action's colour, so which question this is reads before
+   the sentence does. */
+.sheet-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    border-radius: 12px;
+    font-size: 1.0625rem;
+}
+
+.sheet-mark.is-warning {
+    background: rgba(217, 164, 65, 0.16);
+    color: #e8c477;
+}
+
+.sheet-mark.is-accent {
+    background: rgba(127, 176, 105, 0.16);
+    color: #bce3a3;
+}
+
+.sheet-title {
+    flex: 1;
+    min-width: 0;
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: var(--color-text);
+    text-wrap: pretty;
+}
+
+.sheet-body {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: var(--color-text-muted);
+    text-wrap: pretty;
+}
+
+.sheet-actions {
+    display: flex;
+    align-items: stretch;
+    gap: 0.625rem;
+    margin-top: 0.125rem;
+}
+
+/* Shorter than a footer button, with a radius to match - these answer a question
+   rather than carry the screen. Both halves are equal width: neither answer is
+   the one to reach for. */
+.sheet-actions .btn {
+    flex: 1;
+    height: 56px;
+    padding: 0.75rem 1rem;
+    border-radius: 16px;
+    font-size: 1rem;
+    gap: 0.55rem;
+}
+
+.sheet-actions .btn i {
+    font-size: 0.875rem;
+}
+
+@media (min-width: 768px) {
+    .row-name {
+        font-size: 1.05rem;
+    }
+
+    .row-subline {
+        font-size: 0.7rem;
+    }
+
+    .sheet {
+        width: 100%;
+        max-width: 480px;
+        margin: 0 auto;
+    }
+}

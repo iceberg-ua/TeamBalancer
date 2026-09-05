@@ -81,11 +81,29 @@ public partial class Match
     private string _saveError = string.Empty;
 
     /// <summary>
-    /// Bumped every time a score is typed in. It is part of the score box's key, so committing
-    /// an entry rebuilds the box from the match - which is what makes a refused entry snap back
-    /// instead of being left on screen as a score the match does not agree with.
+    /// Set while the finished match is being written, so the button that started the write is
+    /// held down until it is over. Nothing else on the screen waits on a file.
     /// </summary>
-    private int _scoreRevision;
+    private bool _isSaving;
+
+    /// <summary>
+    /// Why the last score typed in was refused, or empty. Cleared by anything that moves a
+    /// score, since the complaint is about a figure that is no longer on the screen.
+    /// </summary>
+    private string _scoreRefusal = string.Empty;
+
+    /// <summary>
+    /// Bumped every time a score is typed in, one counter per side. It is part of that side's
+    /// score box key, so committing an entry rebuilds the box from the match - which is what
+    /// makes a refused entry snap back instead of being left on screen as a score the match
+    /// does not agree with.
+    /// </summary>
+    /// <remarks>
+    /// Per side rather than one for the match: a single counter is in both boxes' keys, so
+    /// typing into one would throw away and rebuild the other - discarding a half-finished
+    /// entry, a selection or an open keyboard on a box whose value never changed.
+    /// </remarks>
+    private readonly List<int> _scoreRevisions = [];
 
     /// <summary>
     /// The question waiting on an answer, if any. Leaving and finishing are asked with the
@@ -259,10 +277,24 @@ public partial class Match
             return Loc["match.scoreDown", TeamName(index)];
         }
 
+        // Nothing is pinned to anyone and the score is nil, so there is no goal to take off
+        // and nothing for the user to go and undo first.
+        if (team.ScoreFloor == 0)
+        {
+            return Loc["match.scoreDownAtZero"];
+        }
+
         // Either tally can be the one holding the floor up, and the message has to name the
-        // right one - a manual score with every goal assisted but no scorer named is held by
-        // the assists, and being told to take a goal off a scorer would send the user looking
-        // for a scorer who is not there.
+        // right one - a score with every goal assisted but no scorer named is held by the
+        // assists, and being told to take a goal off a scorer would send the user looking for
+        // a scorer who is not there. Level, both hold it: doing only what either of the other
+        // two messages says would leave the button just as dead, which is the one thing a
+        // message explaining a dead button must not do.
+        if (team.AttributedAssists == team.AttributedGoals)
+        {
+            return Loc["match.scoreDownBlockedByBoth"];
+        }
+
         return team.AttributedAssists > team.AttributedGoals
             ? Loc["match.scoreDownBlockedByAssist"]
             : Loc["match.scoreDownBlocked"];
@@ -298,32 +330,64 @@ public partial class Match
     /// whose scorer is settled later.
     /// </summary>
     /// <param name="team">The side that scored.</param>
-    private void IncrementScore(MatchTeam team) => team.IncrementScore();
+    private void IncrementScore(MatchTeam team)
+    {
+        ClearScoreRefusal();
+
+        team.IncrementScore();
+    }
 
     /// <summary>
     /// Takes a goal off a side's score.
     /// </summary>
     /// <param name="team">The side to take it off.</param>
-    private void DecrementScore(MatchTeam team) => team.DecrementScore();
+    private void DecrementScore(MatchTeam team)
+    {
+        ClearScoreRefusal();
+
+        team.DecrementScore();
+    }
 
     /// <summary>
-    /// Sets a side's score to a figure typed in. Anything below the goals already pinned to
-    /// scorers is refused by the match itself, and anything unreadable is ignored; either way
-    /// the box goes back to showing the score as it stands.
+    /// Gets the revision of a side's score box, which is part of its key. Sides that have never
+    /// been typed into are at zero rather than being pre-seeded, so this reads past the end of
+    /// the list rather than growing it during a render.
+    /// </summary>
+    /// <param name="index">The side's index in the match.</param>
+    private int ScoreRevision(int index) =>
+        index >= 0 && index < _scoreRevisions.Count ? _scoreRevisions[index] : 0;
+
+    /// <summary>
+    /// Sets a side's score to a figure typed in. Anything below the goals and assists already
+    /// pinned to players is refused by the match itself, and anything unreadable is ignored;
+    /// either way the box goes back to showing the score as it stands, and a refusal says so
+    /// rather than letting the entry disappear without a word.
     /// </summary>
     /// <param name="team">The side being scored.</param>
+    /// <param name="index">That side's index in the match.</param>
     /// <param name="args">The value that was typed.</param>
-    private void SetScore(MatchTeam team, ChangeEventArgs args)
+    private void SetScore(MatchTeam team, int index, ChangeEventArgs args)
     {
-        _scoreRevision++;
+        while (_scoreRevisions.Count <= index)
+        {
+            _scoreRevisions.Add(0);
+        }
 
-        if (int.TryParse(
+        _scoreRevisions[index]++;
+        _scoreRefusal = string.Empty;
+
+        if (!int.TryParse(
                 args.Value?.ToString(),
                 NumberStyles.Integer,
                 CultureInfo.InvariantCulture,
                 out var entered))
         {
-            team.TrySetScore(entered);
+            return;
+        }
+
+        if (!team.TrySetScore(entered))
+        {
+            _scoreRefusal = Loc["match.scoreTooLow", TeamName(index), team.ScoreFloor];
         }
     }
 
@@ -333,14 +397,24 @@ public partial class Match
     /// </summary>
     /// <param name="team">The side they scored for.</param>
     /// <param name="participant">The scorer.</param>
-    private static void AddGoal(MatchTeam team, MatchPlayer participant) => team.AddGoal(participant);
+    private void AddGoal(MatchTeam team, MatchPlayer participant)
+    {
+        ClearScoreRefusal();
+
+        team.AddGoal(participant);
+    }
 
     /// <summary>
     /// Takes a goal back off a player.
     /// </summary>
     /// <param name="team">The side it counted for.</param>
     /// <param name="participant">The player it was credited to.</param>
-    private static void RemoveGoal(MatchTeam team, MatchPlayer participant) => team.RemoveGoal(participant);
+    private void RemoveGoal(MatchTeam team, MatchPlayer participant)
+    {
+        ClearScoreRefusal();
+
+        team.RemoveGoal(participant);
+    }
 
     /// <summary>
     /// Credits a player with an assist. The side is asked rather than the player, because
@@ -348,14 +422,31 @@ public partial class Match
     /// </summary>
     /// <param name="team">The side they assisted for.</param>
     /// <param name="participant">The player who made it.</param>
-    private static void AddAssist(MatchTeam team, MatchPlayer participant) => team.AddAssist(participant);
+    private void AddAssist(MatchTeam team, MatchPlayer participant)
+    {
+        ClearScoreRefusal();
+
+        team.AddAssist(participant);
+    }
 
     /// <summary>
     /// Takes an assist back off a player.
     /// </summary>
     /// <param name="team">The side it counted for.</param>
     /// <param name="participant">The player it was credited to.</param>
-    private static void RemoveAssist(MatchTeam team, MatchPlayer participant) => team.RemoveAssist(participant);
+    private void RemoveAssist(MatchTeam team, MatchPlayer participant)
+    {
+        ClearScoreRefusal();
+
+        team.RemoveAssist(participant);
+    }
+
+    /// <summary>
+    /// Drops the complaint about a refused score. Every tally on the screen moves the floor
+    /// that refusal quoted, so leaving it up would leave a figure on screen that is no longer
+    /// the one the match would refuse.
+    /// </summary>
+    private void ClearScoreRefusal() => _scoreRefusal = string.Empty;
 
     /// <summary>
     /// Gets the wording on the button that credits an assist. When there is no goal left to
@@ -382,6 +473,8 @@ public partial class Match
         }
 
         var index = ActiveIndex;
+
+        ClearScoreRefusal();
 
         // Their goals go with them, so both scores may move. Both are on this page, which
         // re-renders itself once this handler returns - only the header subline lives in the
@@ -497,14 +590,22 @@ public partial class Match
     /// A failed write leaves everything exactly as it was, sheet included, with the reason on
     /// it. Clearing the match and navigating away on a write that did not happen would throw
     /// away the only copy of a game that had just been played.
+    ///
+    /// The write is the one thing on this screen that gives way part-done: the sheet is
+    /// repainted while it is in flight, so the flag closes the door behind the first tap. The
+    /// file is only ever appended to, which makes a second tap a second copy of the match
+    /// rather than an overwrite of the first, and no reader could tell that from a game that
+    /// really was played twice. It is released only when the write failed and the sheet is
+    /// staying open to be tried again; a write that worked leaves the screen entirely.
     /// </remarks>
     private async Task ConfirmFinish()
     {
-        if (CurrentMatch == null)
+        if (CurrentMatch == null || _isSaving)
         {
             return;
         }
 
+        _isSaving = true;
         _saveError = string.Empty;
 
         try
@@ -514,6 +615,8 @@ public partial class Match
         catch (Exception ex)
         {
             _saveError = Loc["match.saveError", ex.Message];
+            _isSaving = false;
+
             return;
         }
 
@@ -529,10 +632,17 @@ public partial class Match
     }
 
     /// <summary>
-    /// Closes whichever sheet is open, changing nothing.
+    /// Closes whichever sheet is open, changing nothing. It refuses while the match is being
+    /// written: the write finishes either way, and closing the sheet over it would leave the
+    /// user back on a match that has already been recorded.
     /// </summary>
     private void CancelPending()
     {
+        if (_isSaving)
+        {
+            return;
+        }
+
         _pending = PendingAction.None;
         _saveError = string.Empty;
 

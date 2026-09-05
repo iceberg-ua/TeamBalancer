@@ -91,18 +91,24 @@
                                 </button>
 
                                 @* Typed as well as tapped: seven taps to record a 7 is not
-                                   a scoreboard. The box is rebuilt on every commit - the key
-                                   changes with it - so an entry the score refuses cannot be
-                                   left sitting in a field that disagrees with the match. *@
+                                   a scoreboard. The box is rebuilt on every commit - its own
+                                   key changes with it - so an entry the score refuses cannot
+                                   be left sitting in a field that disagrees with the match.
+                                   The key is per side, so committing one score does not tear
+                                   down the other side's box underneath whoever is typing in
+                                   it. The floor rather than the goals attributed: an assist
+                                   holds the score up just as a named goal does, and a box
+                                   that advertises a minimum the match then refuses is worse
+                                   than one that admits its real limit. *@
                                 <input type="number"
-                                       @key="(index, _scoreRevision)"
+                                       @key="(index, ScoreRevision(index))"
                                        class="side-score-value"
                                        inputmode="numeric"
-                                       min="@team.AttributedGoals"
+                                       min="@team.ScoreFloor"
                                        value="@team.Score"
                                        title="@(Loc["match.scoreEntry", TeamName(index)])"
                                        aria-label="@(Loc["match.scoreEntry", TeamName(index)])"
-                                       @onchange="args => SetScore(team, args)" />
+                                       @onchange="args => SetScore(team, index, args)" />
 
                                 <button type="button" class="score-step"
                                         title="@(Loc["match.scoreUp", TeamName(index)])"
@@ -119,6 +125,18 @@
                         </div>
                     }
                 </div>
+
+                @* A score typed in below what is already credited to players cannot be stored,
+                   and the box snaps back to the real score. Said out loud here rather than
+                   left as a field that quietly discards what was typed into it. *@
+                @if (!string.IsNullOrEmpty(_scoreRefusal))
+                {
+                    <div class="scoreboard-rule"></div>
+                    <p class="unattributed-note is-refusal">
+                        <i class="fas fa-circle-exclamation"></i>
+                        @_scoreRefusal
+                    </p>
+                }
 
                 @* Said once for the match rather than per side, so the two halves of the
                    scoreboard stay the same shape as each other. It is the cue to finish
@@ -274,7 +292,7 @@
             }
 
             <div class="sheet-actions">
-                <button class="btn btn-secondary" @onclick="CancelPending">
+                <button class="btn btn-secondary" @onclick="CancelPending" disabled="@_isSaving">
                     @(isLeave ? Loc["match.leaveNo"] : Loc["match.finishNo"])
                 </button>
 
@@ -287,8 +305,12 @@
                 }
                 else
                 {
-                    <button class="btn btn-success" @onclick="ConfirmFinish">
-                        <i class="fas fa-flag-checkered"></i>
+                    @* Held down for the length of the write. The handler gives way at the
+                       await and Blazor repaints the sheet mid-save, so a button left live
+                       would take a second tap and append the same match to the file twice -
+                       in a file that is only ever appended to, and so never corrected. *@
+                    <button class="btn btn-success" @onclick="ConfirmFinish" disabled="@_isSaving">
+                        <i class="fas @(_isSaving ? "fa-spinner fa-spin" : "fa-flag-checkered")"></i>
                         @Loc["match.finishYes"]
                     </button>
                 }
@@ -322,7 +344,13 @@
                 }
             </div>
 
-            @if (AvailablePlayers.Count == 0)
+            @* Read once. It is a filter over the whole list crossed with everyone on the pitch,
+               followed by a culture-aware sort, and this sheet repaints on every side tap. *@
+            @{
+                var available = AvailablePlayers;
+            }
+
+            @if (available.Count == 0)
             {
                 <p class="sheet-body">@Loc["match.addPlayerNone"]</p>
             }
@@ -330,7 +358,7 @@
             {
                 <div class="available-scroll scroll-shadows">
                     <div class="available">
-                        @foreach (var player in AvailablePlayers)
+                        @foreach (var player in available)
                         {
                             <button type="button" class="available-row" @onclick="() => AddPlayerToSide(player)">
                                 <PositionChips Player="player" />
