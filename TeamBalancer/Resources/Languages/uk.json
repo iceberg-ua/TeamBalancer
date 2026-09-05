@@ -144,6 +144,8 @@
   "match.scoreUp": "Додати гол команді {0}",
   "match.scoreDown": "Прибрати гол у команди {0}",
   "match.scoreDownBlocked": "Спершу приберіть гол у бомбардира",
+  "match.assistBlocked": "Спершу додайте гол",
+  "match.scoreDownBlockedByAssist": "Спершу приберіть асист у гравця",
   "match.unattributed": "Голів без автора: {0}",
   "match.scoreline": "{0} {1} - {2} {3}",
   "match.addPlayer": "Додати гравця",

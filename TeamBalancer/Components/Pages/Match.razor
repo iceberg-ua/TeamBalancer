@@ -181,30 +181,35 @@
                                             disabled="@(!participant.HasGoals)"
                                             title="@(Loc["match.goalDown", player.Name])"
                                             aria-label="@(Loc["match.goalDown", player.Name])"
-                                            @onclick="() => RemoveGoal(participant)">
+                                            @onclick="() => RemoveGoal(activeTeam, participant)">
                                         <i class="fas fa-minus"></i>
                                     </button>
                                     <button type="button" class="tally @(participant.HasGoals ? "is-counted" : "")"
                                             title="@(Loc["match.goalUp", player.Name])"
                                             aria-label="@(Loc["match.goalUp", player.Name])"
-                                            @onclick="() => AddGoal(participant)">
+                                            @onclick="() => AddGoal(activeTeam, participant)">
                                         <i class="fas fa-futbol"></i>
                                         <span class="tally-count">@participant.Goals</span>
                                     </button>
                                 </span>
 
+                                @* A goal carries at most one assist, so once every goal on the
+                                   scoreboard has someone credited for it there is nothing left
+                                   to assist - and the button says which way out of that there
+                                   is, rather than just refusing. *@
                                 <span class="tally-group">
                                     <button type="button" class="tally-minus"
                                             disabled="@(!participant.HasAssists)"
                                             title="@(Loc["match.assistDown", player.Name])"
                                             aria-label="@(Loc["match.assistDown", player.Name])"
-                                            @onclick="() => RemoveAssist(participant)">
+                                            @onclick="() => RemoveAssist(activeTeam, participant)">
                                         <i class="fas fa-minus"></i>
                                     </button>
                                     <button type="button" class="tally @(participant.HasAssists ? "is-counted" : "")"
-                                            title="@(Loc["match.assistUp", player.Name])"
-                                            aria-label="@(Loc["match.assistUp", player.Name])"
-                                            @onclick="() => AddAssist(participant)">
+                                            disabled="@(!activeTeam.CanAddAssist)"
+                                            title="@AssistUpTitle(activeTeam, player.Name)"
+                                            aria-label="@AssistUpTitle(activeTeam, player.Name)"
+                                            @onclick="() => AddAssist(activeTeam, participant)">
                                         <i class="fas fa-shoe-prints"></i>
                                         <span class="tally-count">@participant.Assists</span>
                                     </button>

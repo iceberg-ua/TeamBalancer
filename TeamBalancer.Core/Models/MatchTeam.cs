@@ -31,20 +31,40 @@ public class MatchTeam
     public int AttributedGoals => Players.Sum(p => p.Goals);
 
     /// <summary>
-    /// Gets the score, which is the larger of what was entered by hand and what has been
-    /// attributed to scorers.
+    /// Gets the number of assists credited to players on this side.
+    /// </summary>
+    public int AttributedAssists => Players.Sum(p => p.Assists);
+
+    /// <summary>
+    /// Gets the figure the score can never go below. A goal carries at most one assist, so a
+    /// side credited with five assists scored at least five goals, exactly as a side with five
+    /// named scorers did - both are evidence of goals that were definitely scored.
+    /// </summary>
+    public int ScoreFloor => Math.Max(AttributedGoals, AttributedAssists);
+
+    /// <summary>
+    /// Gets the score: the larger of what was entered by hand and what the recorded goals and
+    /// assists prove was scored.
     /// </summary>
     /// <remarks>
-    /// The whole behaviour asked of the scoreboard falls out of that one comparison. With
-    /// nothing entered by hand the score simply counts the goals as they are attributed. With
-    /// a figure entered, that figure stands while scorers are named, because naming them
-    /// cannot make the sum exceed it. Name one goal too many and the sum takes over, which is
-    /// the only way the score can be pushed past what was entered.
+    /// The whole behaviour asked of the scoreboard falls out of that comparison. With nothing
+    /// entered by hand the score simply counts the goals as they are attributed. With a figure
+    /// entered, that figure stands while scorers are named, because naming them cannot make
+    /// the sum exceed it. Name one goal too many and the sum takes over, which is the only way
+    /// the score can be pushed past what was entered.
     ///
     /// It is recomputed rather than remembered, so deleting a goal that had pushed the score
-    /// up lets it fall back to whichever of the two is now the larger.
+    /// up lets it fall back to whichever term is now the larger.
+    ///
+    /// Assists sit in the floor rather than only being capped on the way in, and that is what
+    /// makes "assists cannot outnumber goals" true at all times rather than merely true while
+    /// the buttons are the only way in. Adding one is capped, so in normal use the score never
+    /// moves because of an assist. But a player sent to the other side takes their goals and
+    /// assists with them, and the two need not leave in step - the side they left can lose
+    /// three goals and no assists. Without assists in the floor that side would be left
+    /// claiming more assists than goals; with them, its score cannot fall that far.
     /// </remarks>
-    public int Score => Math.Max(ManualScore, AttributedGoals);
+    public int Score => Math.Max(ManualScore, ScoreFloor);
 
     /// <summary>
     /// Gets the goals in the score that no scorer has been named for. Never negative, since
@@ -58,16 +78,16 @@ public class MatchTeam
     public bool HasUnattributedGoals => UnattributedGoals > 0;
 
     /// <summary>
-    /// Sets the score by hand. A figure below the goals already attributed cannot take effect,
-    /// so it is refused rather than stored and silently overridden - a stored figure the
-    /// scoreboard disagrees with would surface later as a score that jumps on its own when a
-    /// goal is deleted.
+    /// Sets the score by hand. A figure below the goals and assists already recorded cannot
+    /// take effect, so it is refused rather than stored and silently overridden - a stored
+    /// figure the scoreboard disagrees with would surface later as a score that jumps on its
+    /// own when a goal is deleted.
     /// </summary>
     /// <param name="value">The score to set.</param>
-    /// <returns>True if the score was set, false if it was below the attributed goals.</returns>
+    /// <returns>True if the score was set, false if it was below <see cref="ScoreFloor"/>.</returns>
     public bool TrySetScore(int value)
     {
-        if (value < AttributedGoals || value < 0)
+        if (value < ScoreFloor || value < 0)
         {
             return false;
         }
@@ -82,13 +102,13 @@ public class MatchTeam
     public void IncrementScore() => ManualScore = Score + 1;
 
     /// <summary>
-    /// Gets whether the score can be taken down by one. It cannot go below the goals already
-    /// attributed to scorers - one of those has to be taken off its scorer first.
+    /// Gets whether the score can be taken down by one. It cannot go below what the recorded
+    /// goals and assists prove was scored - one of those has to come off a player first.
     /// </summary>
-    public bool CanDecrementScore => Score > AttributedGoals;
+    public bool CanDecrementScore => Score > ScoreFloor;
 
     /// <summary>
-    /// Takes one off the score, ignoring the request when every goal in it has a scorer.
+    /// Takes one off the score, ignoring the request when every goal in it is accounted for.
     /// </summary>
     public void DecrementScore()
     {
@@ -97,6 +117,46 @@ public class MatchTeam
             ManualScore = Score - 1;
         }
     }
+
+    /// <summary>
+    /// Gets whether another assist can be credited to anyone on this side. A goal carries at
+    /// most one, so a side cannot record more assists than it scored goals.
+    /// </summary>
+    public bool CanAddAssist => AttributedAssists < Score;
+
+    /// <summary>
+    /// Credits a player on this side with a goal. Always allowed: a goal is its own evidence,
+    /// and it takes the score up with it once the named goals outnumber the figure entered.
+    /// </summary>
+    /// <param name="participant">The scorer.</param>
+    public void AddGoal(MatchPlayer participant) => participant.AddGoal();
+
+    /// <summary>
+    /// Takes a goal back off a player. Always allowed, even where it drops the named goals
+    /// below the assists recorded: the score keeps those assists covered by itself, and
+    /// someone correcting a mis-tapped scorer should not have to dismantle the assists first.
+    /// </summary>
+    /// <param name="participant">The player it was credited to.</param>
+    public void RemoveGoal(MatchPlayer participant) => participant.RemoveGoal();
+
+    /// <summary>
+    /// Credits a player on this side with an assist, if there is a goal left to assist.
+    /// </summary>
+    /// <param name="participant">The player who made it.</param>
+    public void AddAssist(MatchPlayer participant)
+    {
+        if (CanAddAssist)
+        {
+            participant.AddAssist();
+        }
+    }
+
+    /// <summary>
+    /// Takes an assist back off a player. Always allowed - it can only bring the side further
+    /// inside the rule.
+    /// </summary>
+    /// <param name="participant">The player it was credited to.</param>
+    public void RemoveAssist(MatchPlayer participant) => participant.RemoveAssist();
 
     /// <summary>
     /// Finds a player's part in this match.

@@ -14,6 +14,9 @@ Notable changes to Team Balancer, newest first.
   who scored — until you name more goals than the figure you entered, at which
   point it follows the scorers. Goals nobody is named for are still part of the
   score, and the screen says how many there are.
+- A goal carries at most one assist, so a side can never be credited with more
+  assists than it scored. Once every goal on the board has someone down for it,
+  the assist button says to add the goal first.
 - Players who turn up after kick-off can be added to either side, from the list
   or as somebody new. Nothing is rebalanced around them, and they can score and
   assist like anyone else. Someone put on the wrong side can still be sent over,

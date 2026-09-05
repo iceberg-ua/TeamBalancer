@@ -252,9 +252,21 @@ public partial class Match
     /// </summary>
     /// <param name="team">The side the button belongs to.</param>
     /// <param name="index">That side's index in the match.</param>
-    private string ScoreDownTitle(MatchTeam team, int index) => team.CanDecrementScore
-        ? Loc["match.scoreDown", TeamName(index)]
-        : Loc["match.scoreDownBlocked"];
+    private string ScoreDownTitle(MatchTeam team, int index)
+    {
+        if (team.CanDecrementScore)
+        {
+            return Loc["match.scoreDown", TeamName(index)];
+        }
+
+        // Either tally can be the one holding the floor up, and the message has to name the
+        // right one - a manual score with every goal assisted but no scorer named is held by
+        // the assists, and being told to take a goal off a scorer would send the user looking
+        // for a scorer who is not there.
+        return team.AttributedAssists > team.AttributedGoals
+            ? Loc["match.scoreDownBlockedByAssist"]
+            : Loc["match.scoreDownBlocked"];
+    }
 
     #endregion
 
@@ -319,26 +331,42 @@ public partial class Match
     /// Credits a player with a goal, which also raises their side's score once the goals named
     /// exceed whatever was entered by hand.
     /// </summary>
+    /// <param name="team">The side they scored for.</param>
     /// <param name="participant">The scorer.</param>
-    private void AddGoal(MatchPlayer participant) => participant.AddGoal();
+    private static void AddGoal(MatchTeam team, MatchPlayer participant) => team.AddGoal(participant);
 
     /// <summary>
     /// Takes a goal back off a player.
     /// </summary>
+    /// <param name="team">The side it counted for.</param>
     /// <param name="participant">The player it was credited to.</param>
-    private void RemoveGoal(MatchPlayer participant) => participant.RemoveGoal();
+    private static void RemoveGoal(MatchTeam team, MatchPlayer participant) => team.RemoveGoal(participant);
 
     /// <summary>
-    /// Credits a player with an assist.
+    /// Credits a player with an assist. The side is asked rather than the player, because
+    /// whether there is a goal left to assist is a fact about the side.
     /// </summary>
+    /// <param name="team">The side they assisted for.</param>
     /// <param name="participant">The player who made it.</param>
-    private void AddAssist(MatchPlayer participant) => participant.AddAssist();
+    private static void AddAssist(MatchTeam team, MatchPlayer participant) => team.AddAssist(participant);
 
     /// <summary>
     /// Takes an assist back off a player.
     /// </summary>
+    /// <param name="team">The side it counted for.</param>
     /// <param name="participant">The player it was credited to.</param>
-    private void RemoveAssist(MatchPlayer participant) => participant.RemoveAssist();
+    private static void RemoveAssist(MatchTeam team, MatchPlayer participant) => team.RemoveAssist(participant);
+
+    /// <summary>
+    /// Gets the wording on the button that credits an assist. When there is no goal left to
+    /// assist it says what to do about that instead, since a button that is simply dead
+    /// invites the question rather than answering it.
+    /// </summary>
+    /// <param name="team">The side being credited.</param>
+    /// <param name="playerName">The player the button belongs to.</param>
+    private string AssistUpTitle(MatchTeam team, string playerName) => team.CanAddAssist
+        ? Loc["match.assistUp", playerName]
+        : Loc["match.assistBlocked"];
 
     /// <summary>
     /// Sends a player to the other side, goals and assists included. Nothing is rebalanced

@@ -16,4 +16,11 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- The match tallies are internal so that only MatchTeam can move them, which is what
+         keeps the assist rule out of reach of its callers. The tests still need to reach in
+         to set a game up. -->
+    <InternalsVisibleTo Include="TeamBalancer.Core.Tests" />
+  </ItemGroup>
+
 </Project>

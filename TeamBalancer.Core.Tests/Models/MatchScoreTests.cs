@@ -46,9 +46,9 @@ public class MatchScoreTests
     {
         var team = NewTeam("Ivan", "Petro");
 
-        team.Players[0].AddGoal();
-        team.Players[0].AddGoal();
-        team.Players[1].AddGoal();
+        team.AddGoal(team.Players[0]);
+        team.AddGoal(team.Players[0]);
+        team.AddGoal(team.Players[1]);
 
         Assert.Equal(3, team.Score);
         Assert.Equal(0, team.UnattributedGoals);
@@ -61,9 +61,9 @@ public class MatchScoreTests
 
         Assert.True(team.TrySetScore(5));
 
-        team.Players[0].AddGoal();
-        team.Players[0].AddGoal();
-        team.Players[1].AddGoal();
+        team.AddGoal(team.Players[0]);
+        team.AddGoal(team.Players[0]);
+        team.AddGoal(team.Players[1]);
 
         // Three of the five now have a scorer. The score is still the five that were entered.
         Assert.Equal(5, team.Score);
@@ -78,8 +78,8 @@ public class MatchScoreTests
 
         Assert.True(team.TrySetScore(2));
 
-        team.Players[0].AddGoal();
-        team.Players[0].AddGoal();
+        team.AddGoal(team.Players[0]);
+        team.AddGoal(team.Players[0]);
 
         Assert.Equal(2, team.Score);
         Assert.False(team.HasUnattributedGoals);
@@ -94,7 +94,7 @@ public class MatchScoreTests
 
         for (var i = 0; i < 6; i++)
         {
-            team.Players[0].AddGoal();
+            team.AddGoal(team.Players[0]);
         }
 
         Assert.Equal(6, team.Score);
@@ -109,20 +109,20 @@ public class MatchScoreTests
 
         for (var i = 0; i < 6; i++)
         {
-            team.Players[0].AddGoal();
+            team.AddGoal(team.Players[0]);
         }
 
         Assert.Equal(6, team.Score);
 
         // Deleting the goal that pushed it past the entered figure lets it come back down...
-        team.Players[0].RemoveGoal();
+        team.RemoveGoal(team.Players[0]);
         Assert.Equal(5, team.Score);
 
         // ...and it keeps coming down until the entered figure catches it.
-        team.Players[0].RemoveGoal();
+        team.RemoveGoal(team.Players[0]);
         Assert.Equal(4, team.Score);
 
-        team.Players[0].RemoveGoal();
+        team.RemoveGoal(team.Players[0]);
         Assert.Equal(4, team.Score);
         Assert.Equal(3, team.AttributedGoals);
     }
@@ -132,9 +132,9 @@ public class MatchScoreTests
     {
         var team = NewTeam("Ivan");
 
-        team.Players[0].AddGoal();
-        team.Players[0].AddGoal();
-        team.Players[0].AddGoal();
+        team.AddGoal(team.Players[0]);
+        team.AddGoal(team.Players[0]);
+        team.AddGoal(team.Players[0]);
 
         Assert.False(team.TrySetScore(2));
         Assert.Equal(3, team.Score);
@@ -167,8 +167,8 @@ public class MatchScoreTests
     {
         var team = NewTeam("Ivan");
 
-        team.Players[0].AddGoal();
-        team.Players[0].AddGoal();
+        team.AddGoal(team.Players[0]);
+        team.AddGoal(team.Players[0]);
         team.IncrementScore();
 
         Assert.Equal(3, team.Score);
@@ -187,10 +187,11 @@ public class MatchScoreTests
     [Fact]
     public void Tallies_NeverGoNegative()
     {
-        var participant = new MatchPlayer { Player = NewPlayer("Ivan") };
+        var team = NewTeam("Ivan");
+        var participant = team.Players[0];
 
-        participant.RemoveGoal();
-        participant.RemoveAssist();
+        team.RemoveGoal(participant);
+        team.RemoveAssist(participant);
 
         Assert.Equal(0, participant.Goals);
         Assert.Equal(0, participant.Assists);
@@ -205,9 +206,9 @@ public class MatchScoreTests
         var to = new MatchTeam { Name = "Team B" };
 
         var scorer = from.Add(NewPlayer("Ivan"));
-        scorer.AddGoal();
-        scorer.AddGoal();
-        scorer.AddAssist();
+        from.AddGoal(scorer);
+        from.AddGoal(scorer);
+        from.AddAssist(scorer);
 
         Assert.Equal(2, from.Score);
         Assert.Equal(0, to.Score);
@@ -229,7 +230,7 @@ public class MatchScoreTests
         var to = new MatchTeam { Name = "Team B" };
 
         var scorer = from.Add(NewPlayer("Ivan"));
-        scorer.AddGoal();
+        from.AddGoal(scorer);
 
         Assert.True(from.TrySetScore(4));
 
@@ -249,7 +250,7 @@ public class MatchScoreTests
         var player = NewPlayer("Ivan");
 
         var first = team.Add(player);
-        first.AddGoal();
+        team.AddGoal(first);
 
         var second = team.Add(player);
 
@@ -300,7 +301,7 @@ public class MatchScoreTests
         var teamA = new MatchTeam { Name = "Team A" };
         var teamB = new MatchTeam { Name = "Team B" };
 
-        teamA.Add(NewPlayer("Ivan")).AddGoal();
+        teamA.AddGoal(teamA.Add(NewPlayer("Ivan")));
         Assert.True(teamA.TrySetScore(3));
 
         Assert.True(teamB.TrySetScore(1));
@@ -309,5 +310,158 @@ public class MatchScoreTests
 
         Assert.True(match.HasUnattributedGoals);
         Assert.Equal(3, match.UnattributedGoals);
+    }
+
+    // ---- A goal carries at most one assist ----
+
+    [Fact]
+    public void AddAssist_WithNoGoalScored_IsRefused()
+    {
+        var team = NewTeam("Ivan");
+
+        Assert.False(team.CanAddAssist);
+
+        team.AddAssist(team.Players[0]);
+
+        Assert.Equal(0, team.AttributedAssists);
+        Assert.Equal(0, team.Score);
+    }
+
+    [Fact]
+    public void AddAssist_StopsOnceEveryGoalHasOne()
+    {
+        var team = NewTeam("Ivan", "Petro");
+
+        team.AddGoal(team.Players[0]);
+        team.AddGoal(team.Players[0]);
+
+        team.AddAssist(team.Players[1]);
+        team.AddAssist(team.Players[1]);
+
+        Assert.Equal(2, team.AttributedAssists);
+        Assert.False(team.CanAddAssist);
+
+        // The third has no goal to belong to.
+        team.AddAssist(team.Players[1]);
+
+        Assert.Equal(2, team.AttributedAssists);
+        Assert.Equal(2, team.Score);
+    }
+
+    [Fact]
+    public void AddAssist_CountsAgainstGoalsNobodyIsNamedFor()
+    {
+        var team = NewTeam("Ivan");
+
+        // Three goals went in and nobody has been named for any of them - but the assists are
+        // known. Naming an assister does not require naming the scorer first.
+        Assert.True(team.TrySetScore(3));
+
+        team.AddAssist(team.Players[0]);
+        team.AddAssist(team.Players[0]);
+        team.AddAssist(team.Players[0]);
+
+        Assert.Equal(3, team.AttributedAssists);
+        Assert.Equal(3, team.Score);
+        Assert.False(team.CanAddAssist);
+    }
+
+    [Fact]
+    public void RemoveGoal_StrandingAnAssist_LeavesTheScoreCoveringIt()
+    {
+        var team = NewTeam("Ivan", "Petro");
+
+        team.AddGoal(team.Players[0]);
+        team.AddGoal(team.Players[0]);
+        team.AddAssist(team.Players[1]);
+        team.AddAssist(team.Players[1]);
+
+        // Correcting a mis-tapped scorer is allowed even though it leaves more assists than
+        // named goals - the score keeps them covered rather than the button refusing.
+        team.RemoveGoal(team.Players[0]);
+
+        Assert.Equal(1, team.AttributedGoals);
+        Assert.Equal(2, team.AttributedAssists);
+        Assert.Equal(2, team.Score);
+    }
+
+    [Fact]
+    public void DecrementScore_StopsAtTheAssistsRecorded()
+    {
+        var team = NewTeam("Ivan");
+
+        Assert.True(team.TrySetScore(2));
+
+        team.AddAssist(team.Players[0]);
+        team.AddAssist(team.Players[0]);
+
+        Assert.False(team.CanDecrementScore);
+
+        team.DecrementScore();
+
+        Assert.Equal(2, team.Score);
+    }
+
+    [Fact]
+    public void TrySetScore_BelowTheAssistsRecorded_IsRefused()
+    {
+        var team = NewTeam("Ivan");
+
+        Assert.True(team.TrySetScore(3));
+
+        team.AddAssist(team.Players[0]);
+        team.AddAssist(team.Players[0]);
+        team.AddAssist(team.Players[0]);
+
+        Assert.False(team.TrySetScore(1));
+        Assert.Equal(3, team.Score);
+    }
+
+    [Fact]
+    public void MovingAScorerAway_CannotLeaveTheSideClaimingMoreAssistsThanGoals()
+    {
+        var from = new MatchTeam { Name = "Team A" };
+        var to = new MatchTeam { Name = "Team B" };
+
+        var scorer = from.Add(NewPlayer("Ivan"));
+        var assister = from.Add(NewPlayer("Petro"));
+
+        from.AddGoal(scorer);
+        from.AddGoal(scorer);
+        from.AddAssist(assister);
+        from.AddAssist(assister);
+
+        // The scorer leaves and takes both goals; the assists stay behind with the player who
+        // made them. Nothing was capped on the way out, so only the floor holds the rule up.
+        MatchRecord.Move(scorer, from, to);
+
+        Assert.Equal(0, from.AttributedGoals);
+        Assert.Equal(2, from.AttributedAssists);
+        Assert.Equal(2, from.Score);
+        Assert.True(from.AttributedAssists <= from.Score);
+    }
+
+    [Fact]
+    public void MovingAnAssisterAway_CarriesTheirAssistsWithThem()
+    {
+        var from = new MatchTeam { Name = "Team A" };
+        var to = new MatchTeam { Name = "Team B" };
+
+        var scorer = from.Add(NewPlayer("Ivan"));
+        var assister = from.Add(NewPlayer("Petro"));
+
+        from.AddGoal(scorer);
+        from.AddAssist(assister);
+
+        MatchRecord.Move(assister, from, to);
+
+        Assert.Equal(1, from.Score);
+        Assert.Equal(0, from.AttributedAssists);
+
+        // The receiving side now claims an assist with no goal behind it, so its score has to
+        // account for the goal that assist proves happened.
+        Assert.Equal(1, to.AttributedAssists);
+        Assert.Equal(1, to.Score);
+        Assert.True(to.AttributedAssists <= to.Score);
     }
 }

@@ -144,6 +144,8 @@
   "match.scoreUp": "Tor für {0} hinzufügen",
   "match.scoreDown": "Tor von {0} abziehen",
   "match.scoreDownBlocked": "Zuerst ein Tor von einem Torschützen abziehen",
+  "match.assistBlocked": "Zuerst das Tor eintragen",
+  "match.scoreDownBlockedByAssist": "Zuerst eine Vorlage von einem Spieler abziehen",
   "match.unattributed": "{0} Tor(e) ohne Torschütze",
   "match.scoreline": "{0} {1} - {2} {3}",
   "match.addPlayer": "Spieler hinzufügen",

@@ -144,6 +144,8 @@
   "match.scoreUp": "Add a goal to {0}",
   "match.scoreDown": "Take a goal off {0}",
   "match.scoreDownBlocked": "Take a goal off a scorer first",
+  "match.assistBlocked": "Add the goal first",
+  "match.scoreDownBlockedByAssist": "Take an assist off a player first",
   "match.unattributed": "{0} goal(s) with no scorer",
   "match.scoreline": "{0} {1} - {2} {3}",
   "match.addPlayer": "Add a player",
