@@ -158,7 +158,7 @@
             else
             {
                 @* The two tally columns are headed by their own marks rather than words - the
-                   ball and the boot are narrower than "Goals" and "Assists" in any language,
+                   ball and the runner are narrower than "Goals" and "Assists" in any language,
                    and the row below has little room to spare. *@
                 <div class="lineup-head">
                     <span class="lineup-label">@Loc["match.lineup", TeamName(activeIndex)]</span>
@@ -167,7 +167,7 @@
                         <i class="fas fa-futbol"></i>
                     </span>
                     <span class="lineup-tally" title="@(Loc["match.assists"])">
-                        <i class="fas fa-shoe-prints"></i>
+                        <i class="fas fa-person-running"></i>
                     </span>
                     <span class="lineup-move-spacer"></span>
                 </div>
@@ -228,7 +228,7 @@
                                             title="@AssistUpTitle(activeTeam, player.Name)"
                                             aria-label="@AssistUpTitle(activeTeam, player.Name)"
                                             @onclick="() => AddAssist(activeTeam, participant)">
-                                        <i class="fas fa-shoe-prints"></i>
+                                        <i class="fas fa-person-running"></i>
                                         <span class="tally-count">@participant.Assists</span>
                                     </button>
                                 </span>

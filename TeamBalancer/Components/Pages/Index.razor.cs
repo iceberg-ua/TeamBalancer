@@ -583,6 +583,16 @@ public partial class Index
     }
 
     /// <summary>
+    /// Opens the games this squad has already played.
+    /// </summary>
+    private void GoToHistory()
+    {
+        _showMenu = false;
+
+        Navigation.NavigateTo("/history");
+    }
+
+    /// <summary>
     /// Reloads the header and the player count after the active list changed - which can
     /// happen from this screen's own switcher, or from the manage screen deleting the list
     /// that was active.

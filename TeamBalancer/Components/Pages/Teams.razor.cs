@@ -354,15 +354,6 @@ public partial class Teams
     }
 
     /// <summary>
-    /// Gets the name shown for the team at a position in the list. The strategies name teams
-    /// "Team A", "Team B", ... by that same position, and rebuilding the label here is what
-    /// lets it be translated - the stored name is generated in Core, which has no
-    /// localization of its own.
-    /// </summary>
-    /// <param name="index">The team's index in <see cref="GeneratedTeams"/>.</param>
-    private string TeamName(int index) => Loc["teams.name", (char)('A' + index)];
-
-    /// <summary>
     /// Gets a team's overall rating: the mean of its three skill averages. This is the figure
     /// each half of the scoreboard puts under the team's name.
     /// </summary>
@@ -377,12 +368,6 @@ public partial class Teams
         string.Create(
             CultureInfo.InvariantCulture,
             $"{Math.Clamp(value / MaxSkillRating * 100, 0, 100):F1}%");
-
-    /// <summary>
-    /// Gets the modifier class that tints a team's chrome. Teams alternate between the
-    /// accent and its sibling shade rather than taking a hue of their own.
-    /// </summary>
-    private static string TeamColorClass(int index) => index % 2 == 0 ? "team-a" : "team-b";
 
     /// <summary>
     /// Goes back to pick players, from the empty screen where there is no split to lose.

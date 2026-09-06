@@ -47,6 +47,14 @@ public class ActivePlayerRepository : IActivePlayerRepository
     /// </summary>
     public Guid CurrentListId => _currentListId;
 
+    /// <inheritdoc />
+    public async Task<Guid> GetCurrentListIdAsync()
+    {
+        await EnsureInitializedAsync();
+
+        return _currentListId;
+    }
+
     /// <summary>
     /// Makes another list the active one and remembers the choice.
     /// </summary>

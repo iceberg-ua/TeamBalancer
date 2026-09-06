@@ -1,0 +1,97 @@
+@page "/history"
+@inherits LocalizedComponentBase
+@using TeamBalancer.Core.Models
+
+<LayoutSection Section="Header">
+    <div class="header-with-back">
+        <button class="back-button" @onclick="GoHome" title="@(Loc["common.back"])">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+        </button>
+        @* Which squad's history this is, and how much of it there is - the same shape of
+           subline the Teams and Match screens carry. *@
+        <div class="header-title-block-left">
+            <h1 class="header-title-left">@Loc["history.title"]</h1>
+            <span class="header-subline">@HeaderSubline</span>
+        </div>
+    </div>
+</LayoutSection>
+
+<LayoutSection Section="Footer">
+    <div class="button-group">
+        <button class="btn btn-secondary" @onclick="GoHome">@Loc["common.home"]</button>
+    </div>
+</LayoutSection>
+
+<div class="page-container">
+    <div class="page-content-narrow history-pane">
+
+        @if (_isLoading)
+        {
+            <div class="loading text-center text-muted card-padding">@Loc["history.loading"]</div>
+        }
+        else if (_loadError.Length > 0)
+        {
+            @* The file could not be read. Said plainly rather than shown as an empty history,
+               which would tell a squad with a season behind it that it has never played. *@
+            <div class="alert alert-danger">@_loadError</div>
+        }
+        else if (_matches.Count == 0)
+        {
+            @* Nothing has been finished on this list yet. The hint says how a match gets here,
+               because the answer is two screens away and not obvious from this one. *@
+            <div class="history-empty">
+                <i class="fas fa-clock-rotate-left"></i>
+                <p>@Loc["history.empty"]</p>
+                <p class="history-empty-hint">@Loc["history.emptyHint"]</p>
+            </div>
+        }
+        else
+        {
+            <div class="history-scroll scroll-shadows">
+                <div class="history-rows">
+                    @foreach (var match in _matches)
+                    {
+                        var item = match;
+
+                        <button type="button" class="history-row"
+                                @onclick="() => OpenMatch(item.Id)"
+                                title="@(Loc["history.open"])">
+
+                            <span class="history-head">
+                                <span class="history-when">@FormatPlayedAt(item.PlayedAt)</span>
+                                <span class="history-count">@Loc["playerList.playerCount", item.PlayerCount]</span>
+                            </span>
+
+                            @* Two sides, named and scored. The side that was beaten steps back
+                               and everyone else stays at full, so a draw reads as a draw rather
+                               than as two defeats. *@
+                            <span class="history-result">
+                                <span class="history-side is-a @(WasBeaten(item, 0) ? "is-beaten" : "")">
+                                    @TeamName(0)
+                                </span>
+                                <span class="history-score">
+                                    <span class="history-goals is-a">@item.Teams[0].Score</span>
+                                    <span class="history-dash">&#8211;</span>
+                                    <span class="history-goals is-b">@item.Teams[1].Score</span>
+                                </span>
+                                <span class="history-side is-b @(WasBeaten(item, 1) ? "is-beaten" : "")">
+                                    @TeamName(1)
+                                </span>
+                            </span>
+
+                            @* Said on the row rather than only in the detail: it is the reason a
+                               scoreline and its named scorers will not add up when opened. *@
+                            @if (item.HasUnattributedGoals)
+                            {
+                                <span class="history-note">
+                                    <i class="fas fa-circle-question"></i>
+                                    @Loc["match.unattributed", item.UnattributedGoals]
+                                </span>
+                            }
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>

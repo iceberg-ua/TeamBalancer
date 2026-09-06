@@ -167,6 +167,17 @@
   "match.finishYes": "Ja, beenden",
   "match.saveError": "Das Spiel konnte nicht gespeichert werden: {0}",
 
+  "history.title": "Verlauf",
+  "history.loading": "Spiele werden geladen…",
+  "history.matchCount": "{0} Spiel(e)",
+  "history.empty": "Es wurde noch kein Spiel beendet.",
+  "history.emptyHint": "Teams erstellen, die Aufteilung annehmen und das Spiel beenden – dann steht es hier.",
+  "history.open": "Dieses Spiel anzeigen",
+  "history.notFound": "Dieses Spiel ist nicht mehr im Verlauf.",
+  "history.backToHistory": "Zurück zum Verlauf",
+  "history.playerGoals": "{0}: {1} Tor(e)",
+  "history.playerAssists": "{0}: {1} Vorlage(n)",
+
   "share.showQr": "Als QR-Code teilen",
   "share.scanQr": "QR-Code scannen",
   "share.scanTitle": "Kader scannen",

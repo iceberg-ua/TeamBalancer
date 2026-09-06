@@ -26,6 +26,19 @@ Notable changes to Team Balancer, newest first.
 - Reshuffle keeps its place in the footer next to the new Accept button, as its
   own shuffle glyph.
 
+### History
+
+- The games you have finished are kept, and there is now a screen that reads
+  them back. History in the home menu opens it: every match this squad has
+  played, most recent first, with the date, the two sides and the score.
+- Opening a match shows it in full — both line-ups as they stood at the final
+  whistle, including anyone who turned up late, and what each player scored and
+  set up. Goals nobody was named for are noted rather than hidden.
+- The history follows the squad you have open, so switching lists switches the
+  games along with it.
+- Players are shown under the name they played under. Renaming someone, or
+  removing them from the list, does not rewrite a game already played.
+
 ## 2.1 — 2026-08-20
 
 ### Sharing
