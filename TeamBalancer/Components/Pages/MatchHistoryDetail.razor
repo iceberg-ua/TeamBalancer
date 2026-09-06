@@ -1,0 +1,140 @@
+@page "/history/{MatchId:guid}"
+@inherits LocalizedComponentBase
+@using TeamBalancer.Core.Models
+
+<LayoutSection Section="Header">
+    <div class="header-with-back">
+        <button class="back-button" @onclick="GoBack" title="@(Loc["common.back"])">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+        </button>
+        <div class="header-title-block-left">
+            <h1 class="header-title-left">@Loc["match.title"]</h1>
+            <span class="header-subline">@HeaderSubline</span>
+        </div>
+    </div>
+</LayoutSection>
+
+<LayoutSection Section="Footer">
+    <div class="button-group">
+        <button class="btn btn-secondary" @onclick="GoBack">@Loc["history.backToHistory"]</button>
+    </div>
+</LayoutSection>
+
+<div class="page-container">
+    <div class="page-content-narrow history-detail-pane">
+
+        @if (_isLoading)
+        {
+            <div class="loading text-center text-muted card-padding">@Loc["history.loading"]</div>
+        }
+        else if (_match is null)
+        {
+            @* The id in the address does not name a match this app has. Reached by going back
+               to a match deleted from the file by hand, or by an address typed wrong. *@
+            <div class="text-center card-padding">
+                <p>@Loc["history.notFound"]</p>
+                <button class="btn btn-primary" @onclick="GoBack">@Loc["history.backToHistory"]</button>
+            </div>
+        }
+        else
+        {
+            var match = _match;
+            var activeIndex = ActiveIndex;
+            var activeTeam = match.Teams[activeIndex];
+
+            @* The Teams and Match shape, with the score settled: the side being shown is the
+               tinted, ringed half with the caret pointing down at its line-up. *@
+            <div class="scoreboard">
+                <div class="score-sides" role="tablist">
+                    @for (var i = 0; i < match.Teams.Count; i++)
+                    {
+                        var index = i;
+                        var team = match.Teams[index];
+
+                        if (index > 0)
+                        {
+                            <span class="score-vs">VS</span>
+                        }
+
+                        <button type="button"
+                                role="tab"
+                                aria-selected="@(index == activeIndex ? "true" : "false")"
+                                class="score-side @TeamColorClass(index) @(index == activeIndex ? "is-shown" : "")"
+                                title="@(Loc["teams.showTeam", team.Name])"
+                                @onclick="() => _activeTabIndex = index">
+                            <span class="side-name">@team.Name</span>
+                            <span class="history-side-score">@team.Score</span>
+                            <span class="side-count" title="@(Loc["playerList.playerCount", team.Players.Count])">
+                                @team.Players.Count
+                            </span>
+                        </button>
+                    }
+                </div>
+
+                @* Said once for the match rather than per side, exactly as the Match screen says
+                   it while the game is on. Here it explains why the named goals below will not
+                   add up to the score above. *@
+                @if (match.HasUnattributedGoals)
+                {
+                    <div class="scoreboard-rule"></div>
+                    <p class="history-note">
+                        <i class="fas fa-circle-question"></i>
+                        @Loc["match.unattributed", match.UnattributedGoals]
+                    </p>
+                }
+            </div>
+
+            @if (activeTeam.Players.Count == 0)
+            {
+                <p class="no-players-hint text-center text-muted">@Loc["teams.noPlayersOnTeam"]</p>
+            }
+            else
+            {
+                @* The same two marks the Match screen heads its tallies with - the ball and the
+                   runner are narrower than "Goals" and "Assists" in any language. *@
+                <div class="lineup-head">
+                    <span class="lineup-label">@Loc["match.lineup", activeTeam.Name]</span>
+                    <span class="history-head-gap"></span>
+                    <span class="history-head-tally" title="@(Loc["match.goals"])">
+                        <i class="fas fa-futbol"></i>
+                    </span>
+                    <span class="history-head-tally" title="@(Loc["match.assists"])">
+                        <i class="fas fa-person-running"></i>
+                    </span>
+                </div>
+
+                <div class="lineup-scroll scroll-shadows">
+                    <div class="lineup @TeamColorClass(activeIndex)">
+                        @* Whoever did most, first. The file keeps no position or rating for a
+                           player - only the name they were recorded under - so the order the
+                           other screens use is not available here, and it is the wrong order
+                           anyway: what a finished match is read for is who scored. *@
+                        @foreach (var player in activeTeam.Players
+                            .OrderByDescending(p => p.Goals)
+                            .ThenByDescending(p => p.Assists)
+                            .ThenBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase))
+                        {
+                            <div class="lineup-row">
+                                <span class="row-identity">
+                                    <span class="row-name">@player.Name</span>
+                                </span>
+
+                                <span class="history-stat @(player.Goals > 0 ? "is-counted" : "")"
+                                      title="@(Loc["history.playerGoals", player.Name, player.Goals])">
+                                    <i class="fas fa-futbol"></i>
+                                    <span class="history-stat-count">@player.Goals</span>
+                                </span>
+
+                                <span class="history-stat @(player.Assists > 0 ? "is-counted" : "")"
+                                      title="@(Loc["history.playerAssists", player.Name, player.Assists])">
+                                    <i class="fas fa-person-running"></i>
+                                    <span class="history-stat-count">@player.Assists</span>
+                                </span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>

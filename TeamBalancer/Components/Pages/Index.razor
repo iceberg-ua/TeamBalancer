@@ -110,6 +110,15 @@
                 </button>
             </div>
             <div class="menu-items">
+                @* A place to go rather than something to do to this squad, so it leads the
+                   menu and the file actions follow it under a rule of their own. *@
+                <button class="menu-item" @onclick="GoToHistory">
+                    <i class="fas fa-clock-rotate-left"></i>
+                    <span>@Loc["history.title"]</span>
+                </button>
+
+                <div class="menu-divider"></div>
+
                 <button class="menu-item" @onclick="ExportPlayers">
                     <i class="fas fa-upload"></i>
                     <span>@Loc["home.exportPlayers"]</span>

@@ -167,6 +167,17 @@
   "match.finishYes": "Yes, finish",
   "match.saveError": "Could not save the match: {0}",
 
+  "history.title": "History",
+  "history.loading": "Loading matches…",
+  "history.matchCount": "{0} match(es)",
+  "history.empty": "No matches have been finished yet.",
+  "history.emptyHint": "Create teams, accept the split, then finish the match to see it here.",
+  "history.open": "Show this match",
+  "history.notFound": "This match is no longer in the history.",
+  "history.backToHistory": "Back to history",
+  "history.playerGoals": "{0}: {1} goal(s)",
+  "history.playerAssists": "{0}: {1} assist(s)",
+
   "share.showQr": "Share as QR code",
   "share.scanQr": "Scan a QR code",
   "share.scanTitle": "Scan a squad",

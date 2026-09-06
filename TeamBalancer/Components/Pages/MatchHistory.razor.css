@@ -1,0 +1,161 @@
+/* The pane itself does not scroll - the list of games inside it does, so the empty state
+   stays centred in the space rather than sitting at the top of a scroller. */
+.history-pane {
+    overflow: hidden;
+}
+
+.history-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* The 2px inset is what keeps a row's focus ring whole - the scroller clips at its padding
+   box, so full-width rows lose the ring down their sides. Same note as .lineup. */
+.history-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding: 2px 2px 0.5rem;
+}
+
+/* The whole row is the tap target: opening the match is the only thing there is to do with
+   one on this screen. */
+.history-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    width: 100%;
+    padding: 0.6rem 0.7rem;
+    border: none;
+    border-radius: 10px;
+    background: var(--color-surface-raised);
+    box-shadow: 0 0 0 1px rgba(233, 233, 237, 0.09);
+    color: var(--color-text);
+    text-align: left;
+    cursor: pointer;
+}
+
+.history-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+}
+
+/* Pushed to the far end of the line so the dates stay a column down the list. */
+.history-count {
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.history-result {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Both sides take an equal share of what is left, which is what centres the score between
+   them however long the two names are. */
+.history-side {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Only the side that lost steps back. Dimming everything that did not win would dim both
+   halves of a draw, and a draw is not two defeats. */
+.history-side.is-beaten {
+    font-weight: 600;
+    opacity: 0.62;
+}
+
+.history-side.is-a {
+    color: var(--color-team-a);
+}
+
+.history-side.is-b {
+    color: var(--color-team-b);
+    text-align: right;
+}
+
+/* Tabular figures so the scorelines line up down the list rather than shifting with the
+   width of each digit. */
+.history-score {
+    display: inline-flex;
+    align-items: baseline;
+    flex-shrink: 0;
+    gap: 0.3rem;
+    font-size: 1.15rem;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.history-goals.is-a {
+    color: var(--color-team-a);
+}
+
+.history-goals.is-b {
+    color: var(--color-team-b);
+}
+
+.history-dash {
+    color: var(--color-text-muted);
+    font-weight: 600;
+}
+
+.history-note {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.68rem;
+    color: var(--color-text-muted);
+}
+
+/* The same shape as the home screen's empty roster, so an app with nothing in it yet reads
+   the same way on both screens. */
+.history-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    text-align: center;
+    padding: 1.5rem;
+}
+
+.history-empty i {
+    font-size: 1.875rem;
+    color: var(--color-neutral-800);
+}
+
+.history-empty p {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--color-text-muted);
+    max-width: 16rem;
+}
+
+/* Nested rather than flat: the rule above it is `.history-empty p`, which would otherwise be
+   the more specific of the two and win. */
+.history-empty .history-empty-hint {
+    font-size: 0.8rem;
+}
+
+@media (min-width: 768px) {
+    .history-side {
+        font-size: 1rem;
+    }
+
+    .history-score {
+        font-size: 1.3rem;
+    }
+}

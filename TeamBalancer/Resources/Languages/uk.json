@@ -167,6 +167,17 @@
   "match.finishYes": "Так, завершити",
   "match.saveError": "Не вдалося зберегти матч: {0}",
 
+  "history.title": "Історія",
+  "history.loading": "Завантаження матчів…",
+  "history.matchCount": "матчів: {0}",
+  "history.empty": "Ще не завершено жодного матчу.",
+  "history.emptyHint": "Створіть команди, прийміть розподіл і завершіть матч — тоді він з'явиться тут.",
+  "history.open": "Показати цей матч",
+  "history.notFound": "Цього матчу вже немає в історії.",
+  "history.backToHistory": "Назад до історії",
+  "history.playerGoals": "{0} — голів: {1}",
+  "history.playerAssists": "{0} — асистів: {1}",
+
   "share.showQr": "Поділитися QR-кодом",
   "share.scanQr": "Сканувати QR-код",
   "share.scanTitle": "Сканування складу",

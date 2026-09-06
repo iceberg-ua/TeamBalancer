@@ -7,7 +7,7 @@ using TeamBalancer.Core.Services.Interfaces;
 
 /// <summary>
 /// Stores finished matches in <c>matches.csv</c>, alongside the player files, one row per
-/// player per match.
+/// player per match, and reads them back for the history screen.
 /// </summary>
 /// <remarks>
 /// A match is a shape a flat file does not hold naturally - a match has two sides, a side has
@@ -30,6 +30,18 @@ public class CsvMatchRepository : IMatchRepository
     /// The header row of matches.csv.
     /// </summary>
     private const string Header = "MatchId,PlayedAt,ListId,Team,Score,PlayerId,PlayerName,Goals,Assists";
+
+    /// <summary>
+    /// The number of columns <see cref="Header"/> names. A row that has any other number of
+    /// them is not one this repository wrote.
+    /// </summary>
+    private const int ColumnCount = 9;
+
+    /// <summary>
+    /// The line endings a row can be separated by. The file is written with the platform's,
+    /// but it can be carried between one platform and another, so reading accepts either.
+    /// </summary>
+    private static readonly char[] NewLineCharacters = ['\r', '\n'];
 
     private readonly string _dataDirectory;
     private readonly string _filePath;
@@ -147,4 +159,220 @@ public class CsvMatchRepository : IMatchRepository
             Directory.CreateDirectory(_dataDirectory);
         }
     }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<FinishedMatch>> GetAllAsync()
+    {
+        if (!File.Exists(_filePath))
+        {
+            return [];
+        }
+
+        string contents;
+
+        // The same lock the appends take. A finish is a read-then-write of this file, and a
+        // read landing in the middle of one would see a match with only half its rows and
+        // show it as a game somebody sat out.
+        await _writeLock.WaitAsync();
+
+        try
+        {
+            contents = await File.ReadAllTextAsync(_filePath);
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+
+        return Parse(contents);
+    }
+
+    /// <summary>
+    /// One row of matches.csv, read back into its columns.
+    /// </summary>
+    private sealed record Row(
+        Guid MatchId,
+        DateTime PlayedAt,
+        Guid ListId,
+        string TeamName,
+        int Score,
+        Guid PlayerId,
+        string PlayerName,
+        int Goals,
+        int Assists);
+
+    /// <summary>
+    /// Reads the whole file into matches, newest first.
+    /// </summary>
+    /// <remarks>
+    /// Rows are grouped back into matches by <c>MatchId</c> and then into sides by team name,
+    /// both in the order they appear in the file, which is the order they were written in.
+    /// Nothing here trusts the file to be well formed: it is plain text in a directory the
+    /// user's other tools can reach, and one bad row must cost that row rather than the
+    /// history.
+    /// </remarks>
+    private static List<FinishedMatch> Parse(string contents)
+    {
+        var order = new List<Guid>();
+        var grouped = new Dictionary<Guid, List<Row>>();
+
+        foreach (var line in contents.Split(NewLineCharacters, StringSplitOptions.RemoveEmptyEntries))
+        {
+            // The header falls out here along with anything damaged - "MatchId" is not a guid -
+            // so it needs no check of its own. That also means a stray second header, which an
+            // append should never write but a hand-edited file may hold, costs nothing.
+            if (!TryParseRow(line, out var row))
+            {
+                continue;
+            }
+
+            if (!grouped.TryGetValue(row.MatchId, out var rows))
+            {
+                rows = [];
+                grouped[row.MatchId] = rows;
+                order.Add(row.MatchId);
+            }
+
+            rows.Add(row);
+        }
+
+        var matches = order.ConvertAll(id => BuildMatch(grouped[id]));
+
+        // Reversed before the sort rather than after it: OrderByDescending is stable, so two
+        // matches finished within the same tick would otherwise come back oldest first, which
+        // is the one thing "most recent first" must not do.
+        matches.Reverse();
+
+        return [.. matches.OrderByDescending(m => m.PlayedAt)];
+    }
+
+    /// <summary>
+    /// Builds a match from the rows that carry its id.
+    /// </summary>
+    /// <param name="rows">The match's rows, in the order the file holds them.</param>
+    private static FinishedMatch BuildMatch(List<Row> rows)
+    {
+        var order = new List<string>();
+        var sides = new Dictionary<string, List<Row>>(StringComparer.Ordinal);
+
+        foreach (var row in rows)
+        {
+            if (!sides.TryGetValue(row.TeamName, out var sideRows))
+            {
+                sideRows = [];
+                sides[row.TeamName] = sideRows;
+                order.Add(row.TeamName);
+            }
+
+            sideRows.Add(row);
+        }
+
+        // The match columns are repeated on every row, so any row of the match answers for it.
+        var first = rows[0];
+
+        return new FinishedMatch
+        {
+            Id = first.MatchId,
+            PlayedAt = first.PlayedAt,
+            ListId = first.ListId,
+            Teams = [.. order.Select(name => BuildTeam(name, sides[name]))]
+        };
+    }
+
+    /// <summary>
+    /// Builds one side from its rows.
+    /// </summary>
+    /// <param name="name">The team name the rows share.</param>
+    /// <param name="rows">The side's rows, in the order the file holds them.</param>
+    private static FinishedTeam BuildTeam(string name, List<Row> rows) => new()
+    {
+        Name = name,
+
+        // The score is repeated on every row of the side, so the first row carries it.
+        Score = rows[0].Score,
+
+        // A side left with nobody on it is written as one row against the empty guid, because
+        // the score belongs to the side rather than to anyone on it. That row is not a player
+        // and must not become a nameless entry in the line-up.
+        Players =
+        [
+            .. rows
+                .Where(row => row.PlayerId != Guid.Empty)
+                .Select(row => new FinishedPlayer
+                {
+                    Id = row.PlayerId,
+                    Name = row.PlayerName,
+                    Goals = row.Goals,
+                    Assists = row.Assists
+                })
+        ]
+    };
+
+    /// <summary>
+    /// Reads one line into its columns, rejecting anything this repository could not have
+    /// written.
+    /// </summary>
+    /// <param name="line">The line to read.</param>
+    /// <param name="row">The row read, when the line holds one.</param>
+    /// <returns>True when the line is a match row.</returns>
+    private static bool TryParseRow(string line, out Row row)
+    {
+        row = null!;
+
+        var cells = line.Split(',');
+
+        // Exactly the columns written, not merely enough of them. Names cannot carry a comma -
+        // CsvSafeName sees to that wherever one is entered, and team names are generated - so a
+        // row that has split into more cells than it should is damaged rather than escaped, and
+        // reading its first nine cells would quietly attribute goals to the wrong player.
+        if (cells.Length != ColumnCount)
+        {
+            return false;
+        }
+
+        if (!Guid.TryParse(cells[0], out var matchId) ||
+            !Guid.TryParse(cells[2], out var listId) ||
+            !Guid.TryParse(cells[5], out var playerId))
+        {
+            return false;
+        }
+
+        // Round-trip, invariant, exactly as written - so a phone whose culture has since
+        // changed still reads back the timestamps it wrote under the old one.
+        if (!DateTime.TryParseExact(
+                cells[1],
+                "O",
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.RoundtripKind,
+                out var playedAt))
+        {
+            return false;
+        }
+
+        if (!TryParseCount(cells[4], out var score) ||
+            !TryParseCount(cells[7], out var goals) ||
+            !TryParseCount(cells[8], out var assists))
+        {
+            return false;
+        }
+
+        row = new Row(matchId, playedAt, listId, cells[3], score, playerId, cells[6], goals, assists);
+
+        return true;
+    }
+
+    /// <summary>
+    /// Reads a tally or a score: a whole number that cannot be negative.
+    /// </summary>
+    /// <remarks>
+    /// A negative is refused rather than clamped. Nothing in the app can write one, so a row
+    /// holding one has been edited by hand into something that is no longer a record of a
+    /// game, and taking the rest of its numbers at face value would be reading a result out of
+    /// a row that has already proved it is not one.
+    /// </remarks>
+    /// <param name="cell">The cell to read.</param>
+    /// <param name="value">The number read.</param>
+    /// <returns>True when the cell holds a count.</returns>
+    private static bool TryParseCount(string cell, out int value) =>
+        int.TryParse(cell, NumberStyles.Integer, CultureInfo.InvariantCulture, out value) && value >= 0;
 }

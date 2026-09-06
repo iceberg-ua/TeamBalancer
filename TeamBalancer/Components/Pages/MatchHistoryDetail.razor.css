@@ -1,0 +1,76 @@
+/* The scoreboard holds its place and the line-up scrolls under it, the same split the Teams
+   and Match screens use. */
+.history-detail-pane {
+    overflow: hidden;
+}
+
+/* ---- Scoreboard ---- */
+/* Where the Teams screen puts the overall rating and the Match screen puts its stepper, the
+   result goes: this match is over, and the score is the whole of what it says. */
+.history-side-score {
+    font-size: 1.7rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+}
+
+/* The same amber the Match screen says this in, and for the same reason - a goal nobody was
+   named for is worth mentioning but is not damage. Here it explains a scoreline the line-up
+   below will not add up to. */
+.history-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin: 0;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #e8c477;
+}
+
+/* ---- Lineup ---- */
+/* Pushes the two tally headings over their columns. */
+.history-head-gap {
+    flex: 1;
+}
+
+.history-head-tally {
+    width: 3rem;
+    flex-shrink: 0;
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+}
+
+/* ---- Tallies ---- */
+/* The Match screen's pill with the buttons taken out of it: a finished match is read, not
+   tapped. Same size and colour so a line-up reads the same on both screens. */
+.history-stat {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    width: 3rem;
+    height: 1.75rem;
+    flex-shrink: 0;
+    border: 1px solid rgba(233, 233, 237, 0.14);
+    border-radius: 9px;
+    color: var(--color-text-muted);
+    font-size: 0.7rem;
+    font-variant-numeric: tabular-nums;
+}
+
+/* A player who did something takes the side's colour, so the line-up can be read for who was
+   involved without reading any of the numbers. The colour comes from the --tally-* properties
+   the shared .lineup.team-a / .team-b rules set, which is why this needs none of its own. */
+.history-stat.is-counted {
+    background: var(--tally-color);
+    border-color: var(--tally-color);
+    color: var(--tally-ink);
+    font-weight: 700;
+}
+
+.history-stat-count {
+    font-weight: 700;
+}
