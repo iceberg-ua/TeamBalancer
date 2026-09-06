@@ -1,4 +1,3 @@
-using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using TeamBalancer.Components.Layout;
 using TeamBalancer.Core.Models;
@@ -37,6 +36,14 @@ public partial class MatchHistory
     private List<FinishedMatch> _matches = [];
     private string _activeListName = string.Empty;
     private bool _isLoading = true;
+    private string _loadError = string.Empty;
+
+    /// <summary>
+    /// Counts the loads that have been started. A load that finds the count moved on has been
+    /// overtaken - by a list switch, or by coming back to the screen - and drops what it read
+    /// rather than writing the previous squad's games in under the current squad's name.
+    /// </summary>
+    private int _loadGeneration;
 
     #endregion
 
@@ -56,32 +63,6 @@ public partial class MatchHistory
             return string.IsNullOrEmpty(_activeListName)
                 ? played
                 : $"{_activeListName} · {played}";
-        }
-    }
-
-    /// <summary>
-    /// Gets the culture dates are written in: the one the user picked in the app, falling back
-    /// to the device's.
-    /// </summary>
-    /// <remarks>
-    /// The app translates its words without touching the thread's culture, which is right for
-    /// almost every screen - there is nothing culture-shaped on them. A date is different: it
-    /// is the content here rather than a detail of it, and "6 Sep" sitting in a Ukrainian
-    /// screen reads as a bug. An unknown or unmapped code falls back rather than throwing, so a
-    /// language added to the switcher without a matching culture still shows dates.
-    /// </remarks>
-    private CultureInfo DateCulture
-    {
-        get
-        {
-            try
-            {
-                return CultureInfo.GetCultureInfo(Loc.CurrentLanguage);
-            }
-            catch (CultureNotFoundException)
-            {
-                return CultureInfo.CurrentCulture;
-            }
         }
     }
 
@@ -137,16 +118,53 @@ public partial class MatchHistory
     /// </remarks>
     private async Task LoadHistory()
     {
+        var generation = ++_loadGeneration;
+
         _isLoading = true;
+        _loadError = string.Empty;
 
-        // Ordering is the repository's - most recent first - and is deliberately not redone
-        // here, so the one place that knows how the file is written is the one place that
-        // decides what "most recent" means.
-        var everything = await MatchRepository.GetAllAsync();
-        var listId = ActivePlayerRepository.CurrentListId;
+        try
+        {
+            // Asked for rather than read off the repository: CurrentListId is Guid.Empty until
+            // something has made it resolve, and this screen can be arrived at without the home
+            // screen having run - a restart landing on the route the app was left on. Reading
+            // it unresolved would filter every match away and show a squad with a season behind
+            // it the screen for a squad that has never played.
+            var listId = await ActivePlayerRepository.GetCurrentListIdAsync();
 
-        _matches = [.. everything.Where(match => match.ListId == listId)];
-        _activeListName = await ActiveListName(listId);
+            // Ordering is the repository's - most recent first - and is deliberately not redone
+            // here, so the one place that knows how the file is written is the one place that
+            // decides what "most recent" means.
+            var everything = await MatchRepository.GetAllAsync();
+
+            var mine = everything.Where(match => match.ListId == listId).ToList();
+            var name = await ActiveListName(listId);
+
+            // Nothing is written into the screen until every read is back, so a load that has
+            // been overtaken has nothing half-applied to undo.
+            if (generation != _loadGeneration)
+            {
+                return;
+            }
+
+            _matches = mine;
+            _activeListName = name;
+        }
+        catch (Exception ex)
+        {
+            if (generation != _loadGeneration)
+            {
+                return;
+            }
+
+            // matches.csv is plain text in a directory the user's other tools can reach, so a
+            // read can fail on a phone that is doing nothing wrong. Said on the screen, the way
+            // the Match screen says a save failed - the alternative is an exception out of the
+            // renderer, which takes the app down, behind a spinner that never stops.
+            _matches = [];
+            _activeListName = string.Empty;
+            _loadError = Loc["history.loadError", ex.Message];
+        }
 
         _isLoading = false;
 
@@ -169,43 +187,11 @@ public partial class MatchHistory
     /// <summary>
     /// Reloads after the active list changed, since this screen shows one list's games.
     /// </summary>
-    private void HandleListChanged() => InvokeAsync(LoadHistory);
-
-    /// <summary>
-    /// Writes when a match was played, in the reader's own timezone. Storage is UTC so that
-    /// games keep their order across a timezone change; only the reading converts.
-    /// </summary>
-    /// <param name="playedAt">The UTC timestamp the match was finished at.</param>
-    private string FormatPlayedAt(DateTime playedAt)
-    {
-        var local = playedAt.ToLocalTime();
-        var culture = DateCulture;
-
-        // The culture's own short date and short time, rather than a pattern of our own: a
-        // pattern picked here would be wrong in some language the app already ships.
-        return $"{local.ToString("d", culture)} · {local.ToString("t", culture)}";
-    }
-
-    /// <summary>
-    /// Names one side of a match.
-    /// </summary>
     /// <remarks>
-    /// A finished match always has two sides, because that is what a split is. This reads a
-    /// file rather than a split, though, so both accessors answer for an index that is not
-    /// there instead of letting a hand-edited row take the screen down.
+    /// The task is not held onto because <see cref="LoadHistory"/> reports its own failures on
+    /// the screen rather than throwing: there is nothing left for a caller to observe.
     /// </remarks>
-    /// <param name="match">The match.</param>
-    /// <param name="index">Which side.</param>
-    private static string SideName(FinishedMatch match, int index) =>
-        index < match.Teams.Count ? match.Teams[index].Name : string.Empty;
-
-    /// <summary>
-    /// Gets what one side scored.
-    /// </summary>
-    /// <param name="match">The match.</param>
-    /// <param name="index">Which side.</param>
-    private static int SideScore(FinishedMatch match, int index) =>
-        index < match.Teams.Count ? match.Teams[index].Score : 0;
+    private void HandleListChanged() => InvokeAsync(LoadHistory);
 
     /// <summary>
     /// Gets whether one side lost.
@@ -218,18 +204,8 @@ public partial class MatchHistory
     /// </remarks>
     /// <param name="match">The match.</param>
     /// <param name="index">Which side.</param>
-    private static bool WasBeaten(FinishedMatch match, int index)
-    {
-        if (match.Teams.Count < 2)
-        {
-            return false;
-        }
-
-        var mine = SideScore(match, index);
-        var theirs = SideScore(match, 1 - index);
-
-        return mine < theirs;
-    }
+    private static bool WasBeaten(FinishedMatch match, int index) =>
+        match.Teams[index].Score < match.Teams[1 - index].Score;
 
     /// <summary>
     /// Opens one match in full.

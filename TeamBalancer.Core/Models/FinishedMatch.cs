@@ -35,7 +35,9 @@ public class FinishedMatch
     public required Guid ListId { get; init; }
 
     /// <summary>
-    /// Gets the sides, in the order they were written.
+    /// Gets the sides, in the order they were written. Always at least two: a match is two
+    /// sides, and rows that do not make two are not read back as a result at all, so a screen
+    /// can show both halves of a scoreline without checking that the second half is there.
     /// </summary>
     public required IReadOnlyList<FinishedTeam> Teams { get; init; }
 

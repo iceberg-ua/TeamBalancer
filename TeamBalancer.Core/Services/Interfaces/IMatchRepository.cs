@@ -25,4 +25,16 @@ public interface IMatchRepository
     /// </remarks>
     /// <returns>The finished matches, newest first; empty when none have been played.</returns>
     Task<IReadOnlyList<FinishedMatch>> GetAllAsync();
+
+    /// <summary>
+    /// Reads back one finished match, or null when the storage no longer holds it.
+    /// </summary>
+    /// <remarks>
+    /// Here so that a screen showing one game does not have to build every game to find it.
+    /// A match that is no longer there is an ordinary answer rather than a failure: an address
+    /// can outlive the match it names, and the screen says so.
+    /// </remarks>
+    /// <param name="matchId">The match to read.</param>
+    /// <returns>The match, or null when no result is stored under that identifier.</returns>
+    Task<FinishedMatch?> GetByIdAsync(Guid matchId);
 }

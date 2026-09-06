@@ -9,9 +9,24 @@ namespace TeamBalancer.Core.Services.Interfaces;
 public interface IActivePlayerRepository : IPlayerRepository
 {
     /// <summary>
-    /// Gets the identifier of the list currently being read and written.
+    /// Gets the identifier of the list currently being read and written, once something has
+    /// resolved which list that is. It is <see cref="Guid.Empty"/> before then, so a screen
+    /// that reads it without having read players first gets an answer that matches no list.
+    /// Use <see cref="GetCurrentListIdAsync"/> unless the screen is already holding players.
     /// </summary>
     Guid CurrentListId { get; }
+
+    /// <summary>
+    /// Resolves which list is active, if that has not happened yet, and gets its identifier.
+    /// </summary>
+    /// <remarks>
+    /// The answer to <see cref="CurrentListId"/> without the order of arrival mattering. A
+    /// screen reached before the home screen has loaded - a deep link, or a restart landing on
+    /// the route it was left on - has nothing to make the repository resolve, and asking for
+    /// the identifier is a poor reason to read a whole squad's players.
+    /// </remarks>
+    /// <returns>The identifier of the active list.</returns>
+    Task<Guid> GetCurrentListIdAsync();
 
     /// <summary>
     /// Raised after the active list changes, so mounted screens can reload their players.

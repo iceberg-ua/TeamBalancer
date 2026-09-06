@@ -38,6 +38,12 @@ public class CsvMatchRepository : IMatchRepository
     private const int ColumnCount = 9;
 
     /// <summary>
+    /// The number of sides a result has. A match is two sides playing each other, so rows that
+    /// yield fewer are not a result - see <see cref="Parse"/>.
+    /// </summary>
+    private const int SidesPerMatch = 2;
+
+    /// <summary>
     /// The line endings a row can be separated by. The file is written with the platform's,
     /// but it can be carried between one platform and another, so reading accepts either.
     /// </summary>
@@ -163,28 +169,71 @@ public class CsvMatchRepository : IMatchRepository
     /// <inheritdoc />
     public async Task<IReadOnlyList<FinishedMatch>> GetAllAsync()
     {
-        if (!File.Exists(_filePath))
+        var contents = await ReadFileAsync();
+
+        return contents is null ? [] : Parse(contents);
+    }
+
+    /// <inheritdoc />
+    public async Task<FinishedMatch?> GetByIdAsync(Guid matchId)
+    {
+        var contents = await ReadFileAsync();
+
+        if (contents is null)
         {
-            return [];
+            return null;
         }
 
-        string contents;
+        // The whole file is still read - a flat file cannot be seeked by match - but only the
+        // rows carrying this id are built into anything. Opening one game out of a season is
+        // then a scan rather than a season's worth of objects thrown away to keep one.
+        var rows = new List<Row>();
 
-        // The same lock the appends take. A finish is a read-then-write of this file, and a
-        // read landing in the middle of one would see a match with only half its rows and
-        // show it as a game somebody sat out.
+        foreach (var line in contents.Split(NewLineCharacters, StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (TryParseRow(line, out var row) && row.MatchId == matchId)
+            {
+                rows.Add(row);
+            }
+        }
+
+        if (rows.Count == 0)
+        {
+            return null;
+        }
+
+        var match = BuildMatch(rows);
+
+        // Held to the same rule the history list is read under: rows that do not make a result
+        // are not one, whichever way they were asked for.
+        return IsResult(match) ? match : null;
+    }
+
+    /// <summary>
+    /// Reads the file, or answers null when the app has never written one.
+    /// </summary>
+    /// <remarks>
+    /// Takes the same lock the appends take. A finish is a read-then-write of this file, and a
+    /// read landing in the middle of one would see a match with only half its rows and show it
+    /// as a game somebody sat out.
+    /// </remarks>
+    private async Task<string?> ReadFileAsync()
+    {
+        if (!File.Exists(_filePath))
+        {
+            return null;
+        }
+
         await _writeLock.WaitAsync();
 
         try
         {
-            contents = await File.ReadAllTextAsync(_filePath);
+            return await File.ReadAllTextAsync(_filePath);
         }
         finally
         {
             _writeLock.Release();
         }
-
-        return Parse(contents);
     }
 
     /// <summary>
@@ -209,7 +258,9 @@ public class CsvMatchRepository : IMatchRepository
     /// both in the order they appear in the file, which is the order they were written in.
     /// Nothing here trusts the file to be well formed: it is plain text in a directory the
     /// user's other tools can reach, and one bad row must cost that row rather than the
-    /// history.
+    /// history. Rows that end up making less than a match cost the match, though: a game with
+    /// only one side is not a result, and settling that here is what lets every screen read
+    /// both halves of a scoreline without checking first that the second half is there.
     /// </remarks>
     private static List<FinishedMatch> Parse(string contents)
     {
@@ -236,7 +287,7 @@ public class CsvMatchRepository : IMatchRepository
             rows.Add(row);
         }
 
-        var matches = order.ConvertAll(id => BuildMatch(grouped[id]));
+        var matches = order.ConvertAll(id => BuildMatch(grouped[id])).FindAll(IsResult);
 
         // Reversed before the sort rather than after it: OrderByDescending is stable, so two
         // matches finished within the same tick would otherwise come back oldest first, which
@@ -245,6 +296,18 @@ public class CsvMatchRepository : IMatchRepository
 
         return [.. matches.OrderByDescending(m => m.PlayedAt)];
     }
+
+    /// <summary>
+    /// Gets whether what was read back is a result rather than the remains of one.
+    /// </summary>
+    /// <remarks>
+    /// Nothing this repository writes can fail this: a match is appended from a split, and a
+    /// split is two sides. It fails on a file edited by hand, or one whose every row for a
+    /// side was damaged badly enough to be dropped - and a lone side shown as a game against a
+    /// blank opponent that lost 0 would be a result the app invented.
+    /// </remarks>
+    /// <param name="match">The match read back.</param>
+    private static bool IsResult(FinishedMatch match) => match.Teams.Count >= SidesPerMatch;
 
     /// <summary>
     /// Builds a match from the rows that carry its id.

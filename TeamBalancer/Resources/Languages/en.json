@@ -169,6 +169,7 @@
 
   "history.title": "History",
   "history.loading": "Loading matches…",
+  "history.loadError": "Could not read the match history: {0}",
   "history.matchCount": "{0} match(es)",
   "history.empty": "No matches have been finished yet.",
   "history.emptyHint": "Create teams, accept the split, then finish the match to see it here.",

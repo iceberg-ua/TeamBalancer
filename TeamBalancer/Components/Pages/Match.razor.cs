@@ -249,21 +249,6 @@ public partial class Match
     }
 
     /// <summary>
-    /// Gets the name shown for the side at a position in the match, rebuilt from the index for
-    /// the same reason the Teams screen rebuilds it: the stored name is generated in Core,
-    /// which has no localization of its own.
-    /// </summary>
-    /// <param name="index">The side's index in the match.</param>
-    private string TeamName(int index) => Loc["teams.name", (char)('A' + index)];
-
-    /// <summary>
-    /// Gets the modifier class tinting a side's chrome, alternating between the accent and
-    /// its sibling shade exactly as the Teams screen does.
-    /// </summary>
-    /// <param name="index">The side's index in the match.</param>
-    private static string TeamColorClass(int index) => index % 2 == 0 ? "team-a" : "team-b";
-
-    /// <summary>
     /// Gets the wording for the button that takes a goal off a side's score. It explains
     /// itself when it is disabled, because "why can I not press this" is the question a score
     /// pinned to its scorers will otherwise raise.

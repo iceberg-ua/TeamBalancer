@@ -322,11 +322,108 @@ public class CsvMatchHistoryTests
 
             // A name that somehow carries a comma. Reading the first nine cells would credit
             // the goal to "Petro" and lose the rest of the row, so the row goes instead.
-            $"{matchId},{playedAt},{listId},Team A,1,{Guid.NewGuid()},Petro,Jr,1,0");
+            $"{matchId},{playedAt},{listId},Team A,1,{Guid.NewGuid()},Petro,Jr,1,0",
+            $"{matchId},{playedAt},{listId},Team B,0,{Guid.NewGuid()},Olena,0,0");
 
         var match = Assert.Single(await repository.GetAllAsync());
 
+        // The damaged row costs that row; the match around it is still a result.
         Assert.Equal("Ivan", Assert.Single(match.Teams[0].Players).Name);
+        Assert.Equal("Olena", Assert.Single(match.Teams[1].Players).Name);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_AMatchLeftWithOnlyOneSide_IsNotReadBackAsAResult()
+    {
+        using var directory = new TempDataDirectory();
+        var repository = new CsvMatchRepository(directory.Path_);
+
+        var matchId = Guid.NewGuid();
+        var listId = Guid.NewGuid();
+        var playedAt = new DateTime(2026, 5, 4, 17, 30, 0, DateTimeKind.Utc)
+            .ToString("O", CultureInfo.InvariantCulture);
+
+        await WriteRawAsync(
+            directory,
+            Header,
+            $"{matchId},{playedAt},{listId},Team A,3,{Guid.NewGuid()},Ivan,3,0");
+
+        // Nothing this repository writes can leave a match with one side - a match is appended
+        // from a split, and a split is two - so this is a hand-edited file, or one whose every
+        // row for the other side was damaged. Either way it is not a result: shown, it would be
+        // a game against a blank opponent that lost 0, which nobody played.
+        Assert.Empty(await repository.GetAllAsync());
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_ReadsBackTheMatchAskedFor()
+    {
+        using var directory = new TempDataDirectory();
+        var repository = new CsvMatchRepository(directory.Path_);
+        var listId = Guid.NewGuid();
+
+        var wanted = NewMatch(listId);
+
+        await repository.AppendAsync(NewMatch(listId));
+        await repository.AppendAsync(wanted);
+        await repository.AppendAsync(NewMatch(listId));
+
+        var match = await repository.GetByIdAsync(wanted.Id);
+
+        Assert.NotNull(match);
+        Assert.Equal(wanted.Id, match.Id);
+        Assert.Equal(wanted.PlayedAt, match.PlayedAt);
+        Assert.Equal(listId, match.ListId);
+
+        // The same match the whole-file read builds, so the detail screen shows what the list
+        // screen said it would.
+        Assert.Equal(3, match.PlayerCount);
+        Assert.Equal(2, match.Teams[0].Score);
+        Assert.Equal(1, match.Teams[1].Score);
+        Assert.Equal(2, match.Teams[0].Players.Single(p => p.Name == "Ivan").Goals);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_WithAnIdTheFileDoesNotHold_ReturnsNothing()
+    {
+        using var directory = new TempDataDirectory();
+        var repository = new CsvMatchRepository(directory.Path_);
+
+        await repository.AppendAsync(NewMatch(Guid.NewGuid()));
+
+        // An address can outlive the match it names - the file is one the user's other tools
+        // can reach - and that is an answer rather than a failure.
+        Assert.Null(await repository.GetByIdAsync(Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_WithNoFile_ReturnsNothing()
+    {
+        using var directory = new TempDataDirectory();
+        var repository = new CsvMatchRepository(directory.Path_);
+
+        Assert.Null(await repository.GetByIdAsync(Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_AMatchLeftWithOnlyOneSide_IsNotReadBackAsAResult()
+    {
+        using var directory = new TempDataDirectory();
+        var repository = new CsvMatchRepository(directory.Path_);
+
+        var matchId = Guid.NewGuid();
+        var listId = Guid.NewGuid();
+        var playedAt = new DateTime(2026, 5, 4, 17, 30, 0, DateTimeKind.Utc)
+            .ToString("O", CultureInfo.InvariantCulture);
+
+        await WriteRawAsync(
+            directory,
+            Header,
+            $"{matchId},{playedAt},{listId},Team A,3,{Guid.NewGuid()},Ivan,3,0");
+
+        // Asked for by id, the same rule applies: a screen must not be handed half a game just
+        // because it named one.
+        Assert.Null(await repository.GetByIdAsync(matchId));
     }
 
     [Fact]
