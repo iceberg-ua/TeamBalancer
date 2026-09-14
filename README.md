@@ -65,6 +65,22 @@ description of the algorithm and the alternatives that were considered.
   merge into an existing one that adds newcomers, takes the sender's ratings for players
   already there, and removes nobody
 
+### Matches and History
+- ✅ **Match recording** - accepting a split opens a Match screen that records the score, the
+  scorers and their assists while the game is played; the score counts the named goals, or
+  holds a figure entered by hand until more goals are named than it says
+- 🎯 One assist per goal at most, so a side can never be credited with more assists than it
+  scored; goals with nobody named for them still count and are shown as unattributed
+- ➕ Late arrivals join either side, from the list or as someone new, without a rebalance; a
+  player moved across takes their goals with them
+- 💾 Finished matches are appended to `matches.csv` beside the player files, one row per player
+  per match, with the match and side columns repeated on each row. The player's name is
+  stored with the row, so renaming or removing someone does not rewrite a game already played
+- 📜 **History** - the active list's matches, newest first; opening one shows both line-ups as
+  they stood at the final whistle and what each player scored and set up
+- 🛡️ The reader drops a damaged row rather than the file, and drops a match left with fewer
+  than two sides; an install that has never finished a match simply has no file yet
+
 ### Languages
 - 🌍 English, German and Ukrainian, switchable from the home screen without restarting
 - 📱 Starts in the device's language when it is one of the three, and falls back to English

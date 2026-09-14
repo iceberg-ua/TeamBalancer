@@ -2,7 +2,7 @@
 
 Notable changes to Team Balancer, newest first.
 
-## Unreleased
+## 2.2 — 2026-09-13
 
 ### Matches
 
