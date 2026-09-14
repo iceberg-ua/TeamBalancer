@@ -16,26 +16,20 @@ public class MatchTeam
     public List<MatchPlayer> Players { get; init; } = [];
 
     /// <summary>
-    /// Gets the score entered by hand, which is zero until the user enters one.
+    /// Gets the figure set on the scoreboard itself - typed into the box or tapped up with the
+    /// plus button - which is zero until the user sets one.
     /// </summary>
     /// <remarks>
-    /// This is not the score shown - <see cref="Score"/> is. Keeping the entered figure apart
-    /// from the one on the scoreboard is what lets goals be attributed to scorers afterwards
-    /// without the total moving underneath the user.
+    /// This is not the score shown - <see cref="Score"/> is. Keeping the figure set on the
+    /// scoreboard apart from the goals pinned to players is what lets scorers be named
+    /// afterwards without the total moving underneath the user.
+    ///
+    /// Typing and tapping land in the same figure on purpose. A goal tapped on is a goal whose
+    /// scorer has not been named yet, exactly as each goal in a typed figure is, so naming a
+    /// scorer afterwards fills one of those goals rather than adding another beside it. Three
+    /// taps and then one scorer is a score of three with one scorer known, not a score of four.
     /// </remarks>
     public int ManualScore { get; private set; }
-
-    /// <summary>
-    /// Gets the goals recorded with nobody named for them - the corner-of-the-eye goal, tapped
-    /// straight onto the scoreboard.
-    /// </summary>
-    /// <remarks>
-    /// These are goals in their own right, counted alongside the attributed ones rather than
-    /// folded into <see cref="ManualScore"/>. Folding them in would make the next goal pinned
-    /// to a scorer disappear into the figure they had raised: a side that scored one named
-    /// goal, one nobody saw, and then a second named goal would show two rather than three.
-    /// </remarks>
-    public int AnonymousGoals { get; private set; }
 
     /// <summary>
     /// Gets the number of goals that have been attributed to a scorer.
@@ -48,32 +42,27 @@ public class MatchTeam
     public int AttributedAssists => Players.Sum(p => p.Assists);
 
     /// <summary>
-    /// Gets the goals actually recorded one by one, whether or not a scorer was named for them.
-    /// </summary>
-    public int RecordedGoals => AttributedGoals + AnonymousGoals;
-
-    /// <summary>
     /// Gets the figure the score can never go below: the goals and assists pinned to a player.
     /// A goal carries at most one assist, so a side credited with five assists scored at least
     /// five goals, exactly as a side with five named scorers did - both are evidence of goals
     /// that were definitely scored.
     /// </summary>
     /// <remarks>
-    /// Anonymous goals are not in the floor and the figure entered by hand is not either, since
-    /// both can be taken back off the scoreboard by the button that put them there.
+    /// The figure set on the scoreboard is not in the floor, since the minus button can take it
+    /// back off the way the plus button or the box put it on.
     /// </remarks>
     public int ScoreFloor => Math.Max(AttributedGoals, AttributedAssists);
 
     /// <summary>
-    /// Gets the score: the larger of what was entered by hand and what the goals and assists
-    /// recorded prove was scored.
+    /// Gets the score: the larger of the figure set on the scoreboard and what the goals and
+    /// assists pinned to players prove was scored.
     /// </summary>
     /// <remarks>
     /// The whole behaviour asked of the scoreboard falls out of that comparison. With nothing
-    /// entered by hand the score simply counts the goals as they are recorded, named or not.
-    /// With a figure entered, that figure stands while scorers are named, because naming them
-    /// cannot make the count exceed it. Record one goal too many and the count takes over,
-    /// which is the only way the score can be pushed past what was entered.
+    /// set, the score simply counts the scorers as they are named. With a figure set, however
+    /// it was set, that figure stands while scorers are named, because naming them cannot make
+    /// the count exceed it. Name one goal too many and the count takes over, which is the only
+    /// way the score can be pushed past what was set.
     ///
     /// It is recomputed rather than remembered, so deleting a goal that had pushed the score
     /// up lets it fall back to whichever term is now the larger.
@@ -86,7 +75,7 @@ public class MatchTeam
     /// three goals and no assists. Without assists in the floor that side would be left
     /// claiming more assists than goals; with them, its score cannot fall that far.
     /// </remarks>
-    public int Score => Math.Max(ManualScore, Math.Max(RecordedGoals, AttributedAssists));
+    public int Score => Math.Max(ManualScore, ScoreFloor);
 
     /// <summary>
     /// Gets the goals in the score that no scorer has been named for. Never negative, since
@@ -105,6 +94,10 @@ public class MatchTeam
     /// stored figure the scoreboard disagrees with would surface later as a score that jumps on
     /// its own when a goal is deleted.
     /// </summary>
+    /// <remarks>
+    /// A figure below the score but above the floor is accepted: nothing it takes off is
+    /// pinned to anyone, so typing it does exactly what pressing minus that many times would.
+    /// </remarks>
     /// <param name="value">The score to set.</param>
     /// <returns>True if the score was set, false if it was below <see cref="ScoreFloor"/>.</returns>
     public bool TrySetScore(int value)
@@ -116,11 +109,6 @@ public class MatchTeam
 
         ManualScore = value;
 
-        // Typing a score under the goals tapped onto the scoreboard takes those goals off it,
-        // exactly as pressing minus that many times would. They are not pinned to anyone, so
-        // there is nothing here that the user has to go and undo first.
-        AnonymousGoals = Math.Min(AnonymousGoals, value - AttributedGoals);
-
         return true;
     }
 
@@ -128,23 +116,12 @@ public class MatchTeam
     /// Adds a goal to the score without naming who scored it.
     /// </summary>
     /// <remarks>
-    /// Where the score is already ahead of the goals recorded - a figure entered by hand, or an
-    /// assist standing in for a goal nobody was named for - that lead is what is carrying the
-    /// unnamed goals, so it is what grows. Otherwise the goal is recorded as one more anonymous
-    /// goal, so that naming a scorer afterwards adds to it rather than being swallowed by it.
-    /// Either way the score goes up by exactly one.
+    /// The goal goes into the figure set on the scoreboard, set one above the score as it
+    /// stands, so the score goes up by exactly one whichever term was holding it. A scorer
+    /// named afterwards then fills that goal rather than adding one of their own - see
+    /// <see cref="ManualScore"/>.
     /// </remarks>
-    public void IncrementScore()
-    {
-        if (Score > RecordedGoals)
-        {
-            ManualScore = Score + 1;
-        }
-        else
-        {
-            AnonymousGoals++;
-        }
-    }
+    public void IncrementScore() => ManualScore = Score + 1;
 
     /// <summary>
     /// Gets whether the score can be taken down by one. It cannot go below the goals and
@@ -154,8 +131,12 @@ public class MatchTeam
 
     /// <summary>
     /// Takes one off the score, ignoring the request when every goal in it is pinned to a
-    /// player. Whichever of the two loose terms is holding the score up comes down with it.
+    /// player.
     /// </summary>
+    /// <remarks>
+    /// A score above the floor can only be held there by the figure set on the scoreboard, so
+    /// that figure is what comes down.
+    /// </remarks>
     public void DecrementScore()
     {
         if (!CanDecrementScore)
@@ -163,10 +144,7 @@ public class MatchTeam
             return;
         }
 
-        var target = Score - 1;
-
-        ManualScore = Math.Min(ManualScore, target);
-        AnonymousGoals = Math.Min(AnonymousGoals, target - AttributedGoals);
+        ManualScore = Score - 1;
     }
 
     /// <summary>
@@ -177,7 +155,8 @@ public class MatchTeam
 
     /// <summary>
     /// Credits a player on this side with a goal. Always allowed: a goal is its own evidence,
-    /// and it takes the score up with it once the named goals outnumber the figure entered.
+    /// and it takes the score up with it once the named goals outnumber the figure set on the
+    /// scoreboard.
     /// </summary>
     /// <param name="participant">The scorer.</param>
     public void AddGoal(MatchPlayer participant) => participant.AddGoal();

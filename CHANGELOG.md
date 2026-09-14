@@ -2,6 +2,14 @@
 
 Notable changes to Team Balancer, newest first.
 
+## Unreleased
+
+### Fixes
+
+- A score raised with the plus button now fills up as you name the scorers, the
+  same as one typed in. Tapping a side up to 3 and then naming a scorer used to
+  make it 4; it now stays at 3 until a fourth goal is named.
+
 ## 2.2 — 2026-09-13
 
 ### Matches

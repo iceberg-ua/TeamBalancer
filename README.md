@@ -68,7 +68,8 @@ description of the algorithm and the alternatives that were considered.
 ### Matches and History
 - ✅ **Match recording** - accepting a split opens a Match screen that records the score, the
   scorers and their assists while the game is played; the score counts the named goals, or
-  holds a figure entered by hand until more goals are named than it says
+  holds a figure set by hand - typed in, or tapped up with plus - until more goals are named
+  than it says
 - 🎯 One assist per goal at most, so a side can never be credited with more assists than it
   scored; goals with nobody named for them still count and are shown as unattributed
 - ➕ Late arrivals join either side, from the list or as someone new, without a rebalance; a

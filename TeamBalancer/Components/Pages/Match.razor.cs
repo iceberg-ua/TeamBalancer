@@ -378,7 +378,7 @@ public partial class Match
 
     /// <summary>
     /// Credits a player with a goal, which also raises their side's score once the goals named
-    /// exceed whatever was entered by hand.
+    /// exceed the figure set on the scoreboard, whether it was typed in or tapped up.
     /// </summary>
     /// <param name="team">The side they scored for.</param>
     /// <param name="participant">The scorer.</param>

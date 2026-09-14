@@ -3,12 +3,12 @@ namespace TeamBalancer.Core.Tests.Models;
 using TeamBalancer.Core.Models;
 
 /// <summary>
-/// Covers the rule the scoreboard runs on: a side's score is the larger of the figure entered
-/// by hand and the goals actually recorded, named or not. Everything the user was promised - a
-/// score that counts itself when nobody enters one, a score that holds still while scorers are
-/// named afterwards, a score that gives way when the names outnumber it, and a goal tapped
-/// straight onto the scoreboard that stays a goal of its own - is that one comparison, so it is
-/// pinned down here rather than left to be re-derived from the screen.
+/// Covers the rule the scoreboard runs on: a side's score is the larger of the figure set on
+/// the scoreboard - typed in or tapped up - and the goals and assists pinned to players.
+/// Everything the user was promised - a score that counts itself when nobody sets one, a score
+/// that holds still while scorers are named afterwards however it was set, and a score that
+/// gives way when the names outnumber it - is that one comparison, so it is pinned down here
+/// rather than left to be re-derived from the screen.
 /// </summary>
 public class MatchScoreTests
 {
@@ -466,10 +466,37 @@ public class MatchScoreTests
         Assert.True(to.AttributedAssists <= to.Score);
     }
 
-    // ---- A goal tapped onto the scoreboard is a goal of its own ----
+    // ---- A goal tapped onto the scoreboard is filled by the scorers named ----
 
     [Fact]
-    public void IncrementScore_ThenNamingTheNextScorer_AddsToTheScoreRatherThanDisappearingIntoIt()
+    public void IncrementScore_ThenNamingScorers_HoldsTheScoreUntilTheyOutnumberIt()
+    {
+        var team = NewTeam("Ivan", "Petro");
+
+        // Three go in and the scoreboard is tapped up to three before anyone is named.
+        team.IncrementScore();
+        team.IncrementScore();
+        team.IncrementScore();
+        Assert.Equal(3, team.Score);
+
+        // Naming a scorer fills one of those three rather than adding a fourth beside them.
+        team.AddGoal(team.Players[0]);
+        Assert.Equal(3, team.Score);
+        Assert.Equal(2, team.UnattributedGoals);
+
+        team.AddGoal(team.Players[0]);
+        team.AddGoal(team.Players[1]);
+        Assert.Equal(3, team.Score);
+        Assert.False(team.HasUnattributedGoals);
+
+        // A fourth scorer is one more than the scoreboard says, which is the only way the
+        // count takes over.
+        team.AddGoal(team.Players[1]);
+        Assert.Equal(4, team.Score);
+    }
+
+    [Fact]
+    public void IncrementScore_BetweenNamedGoals_IsFilledByTheNextScorerNamed()
     {
         var team = NewTeam("Ivan", "Petro");
 
@@ -477,19 +504,37 @@ public class MatchScoreTests
         team.AddGoal(team.Players[0]);
         Assert.Equal(1, team.Score);
 
-        // A second goes in and nobody sees the scorer, so it goes straight on the scoreboard.
+        // A second goes in before anyone can say who scored it, so it goes straight on the
+        // scoreboard.
         team.IncrementScore();
         Assert.Equal(2, team.Score);
         Assert.Equal(1, team.UnattributedGoals);
 
-        // Petro scores the third. It is a goal in its own right: the anonymous one is still
-        // sitting in the score, and must not be quietly used up by the goal after it.
+        // Petro is named next. He is the scorer of the goal already on the board, not of a
+        // third one - the same as he would be had the two been typed in as a figure.
         team.AddGoal(team.Players[1]);
 
-        Assert.Equal(3, team.Score);
+        Assert.Equal(2, team.Score);
         Assert.Equal(2, team.AttributedGoals);
+        Assert.False(team.HasUnattributedGoals);
+    }
+
+    [Fact]
+    public void RemoveGoal_AfterItFilledATappedGoal_LeavesThatGoalOnTheScoreboard()
+    {
+        var team = NewTeam("Ivan");
+
+        team.IncrementScore();
+        team.AddGoal(team.Players[0]);
+        Assert.Equal(1, team.Score);
+
+        // The wrong scorer was named. Taking him back unnames the goal; the goal itself was
+        // put on the scoreboard by the plus button and stays until minus takes it off.
+        team.RemoveGoal(team.Players[0]);
+
+        Assert.Equal(1, team.Score);
         Assert.Equal(1, team.UnattributedGoals);
-        Assert.True(team.HasUnattributedGoals);
+        Assert.True(team.CanDecrementScore);
     }
 
     [Fact]
