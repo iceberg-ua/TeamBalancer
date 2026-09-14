@@ -1410,11 +1410,13 @@ button.list-switcher:hover,
 }
 
 /* ---- Lineup ---- */
+/* The sides take the rows' own padding plus the 2px .lineup insets them by, so a column
+   heading sits over its column rather than 2px outside it. */
 .lineup-head {
     display: flex;
     align-items: center;
     gap: 0.55rem;
-    padding: 0 0.625rem 0.55rem;
+    padding: 0 calc(0.625rem + 2px) 0.55rem;
     flex-shrink: 0;
 }
 

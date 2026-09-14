@@ -134,9 +134,14 @@
 }
 
 /* Sits over the tally column below it and matches its width, the way "Rating" heads the
-   ratings on the screens that show them. */
+   ratings on the screens that show them. The mark is centred over the pill rather than over
+   the whole column: the column also holds the minus circle to the pill's left, and a mark
+   centred across both lands left of the pill it heads. The inset is that circle and the gap
+   after it - .tally-minus's width plus .tally-group's gap - so it has to follow them if
+   either changes. */
 .lineup-tally {
     width: 3.9rem;
+    padding-left: 1.4rem;
     flex-shrink: 0;
     text-align: center;
     font-size: 0.7rem;
