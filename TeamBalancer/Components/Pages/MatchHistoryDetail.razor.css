@@ -74,3 +74,44 @@
 .history-stat-count {
     font-weight: 700;
 }
+
+/* ---- Deleting ---- */
+/* Back to history takes the room the delete button leaves, the way the Match screen's Finish
+   sits beside its add-a-player button. Only while the two are paired: where there is no match
+   on screen to delete, it stays the lone button it always was. */
+.footer-back.is-paired {
+    flex: 1;
+}
+
+/* Sized down from the shared icon-button glyph to sit level with the Match screen's
+   add-a-player figure, the footer icon it sits in place of. */
+.footer-delete i {
+    font-size: 1.5rem;
+}
+
+/* Lit in the red of the answer it is waiting for while its sheet is open. The shared armed
+   secondary button is amber, which is the colour of a warning rather than of a delete. */
+.footer-delete.is-armed {
+    background-color: rgba(161, 58, 66, 0.16);
+    border-color: rgba(161, 58, 66, 0.75);
+    color: #e5a7ab;
+}
+
+/* The result about to be deleted, read back at the size the Match screen reads a result back
+   at before it is saved. */
+.delete-score {
+    margin: 0;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text);
+}
+
+/* Pulled up under the score it dates: the two say which match together. */
+.delete-when {
+    margin: -0.5rem 0 0;
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+}

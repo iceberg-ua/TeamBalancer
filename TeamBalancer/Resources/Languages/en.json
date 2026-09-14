@@ -178,6 +178,10 @@
   "history.backToHistory": "Back to history",
   "history.playerGoals": "{0}: {1} goal(s)",
   "history.playerAssists": "{0}: {1} assist(s)",
+  "history.delete": "Delete this match",
+  "history.deleteTitle": "Delete this match?",
+  "history.deleteBody": "It is removed from the history along with every goal and assist in it. This cannot be undone.",
+  "history.deleteError": "Could not delete the match: {0}",
 
   "share.showQr": "Share as QR code",
   "share.scanQr": "Scan a QR code",

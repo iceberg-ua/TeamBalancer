@@ -79,6 +79,9 @@ description of the algorithm and the alternatives that were considered.
   stored with the row, so renaming or removing someone does not rewrite a game already played
 - 📜 **History** - the active list's matches, newest first; opening one shows both line-ups as
   they stood at the final whistle and what each player scored and set up
+- 🗑️ A finished match can be deleted from its detail screen, behind a confirmation. It is the
+  one time `matches.csv` is rewritten rather than appended to: the new contents go to a
+  temporary file that then replaces it, and lines the reader cannot parse are kept
 - 🛡️ The reader drops a damaged row rather than the file, and drops a match left with fewer
   than two sides; an install that has never finished a match simply has no file yet
 

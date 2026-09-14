@@ -8,8 +8,9 @@ using TeamBalancer.Core.Models;
 public interface IMatchRepository
 {
     /// <summary>
-    /// Stores a finished match. Matches are only ever added, never changed, which is what
-    /// makes finishing a game one cheap write however many have been played before it.
+    /// Stores a finished match. A stored match is never edited afterwards - only added, and
+    /// removed whole if the user deletes it - which is what makes finishing a game one cheap
+    /// write however many have been played before it.
     /// </summary>
     /// <param name="match">The match to store.</param>
     Task AppendAsync(MatchRecord match);
@@ -37,4 +38,19 @@ public interface IMatchRepository
     /// <param name="matchId">The match to read.</param>
     /// <returns>The match, or null when no result is stored under that identifier.</returns>
     Task<FinishedMatch?> GetByIdAsync(Guid matchId);
+
+    /// <summary>
+    /// Removes one finished match from storage, all of it.
+    /// </summary>
+    /// <remarks>
+    /// A match that is not there is an ordinary answer rather than a failure, for the reason
+    /// <see cref="GetByIdAsync"/> gives: the screen asking can be showing a match that has
+    /// already gone.
+    /// </remarks>
+    /// <param name="matchId">The match to remove.</param>
+    /// <returns>
+    /// True when the match was found and removed; false when nothing was stored under that
+    /// identifier.
+    /// </returns>
+    Task<bool> DeleteAsync(Guid matchId);
 }

@@ -8,7 +8,7 @@ namespace TeamBalancer.Components.Pages;
 /// <summary>
 /// Code-behind for the MatchHistoryDetail component: one finished match in full - both
 /// line-ups as they stood at the final whistle, the score, and each player's goals and
-/// assists.
+/// assists - and the way to delete it from the history.
 /// </summary>
 /// <remarks>
 /// The match is fetched by id rather than handed over by the screen that listed it. That keeps
@@ -18,6 +18,8 @@ namespace TeamBalancer.Components.Pages;
 /// </remarks>
 public partial class MatchHistoryDetail
 {
+    private const string HistoryRoute = "/history";
+
     #region Injected Dependencies
 
     [Inject]
@@ -58,6 +60,23 @@ public partial class MatchHistoryDetail
     /// </summary>
     private int _activeTabIndex;
 
+    /// <summary>
+    /// Whether the sheet asking to delete this match is open.
+    /// </summary>
+    private bool _confirmingDelete;
+
+    /// <summary>
+    /// Set while the file is being rewritten without this match, so the button that started it
+    /// is held down until it is over - see <see cref="ConfirmDelete"/>.
+    /// </summary>
+    private bool _isDeleting;
+
+    /// <summary>
+    /// Why the last delete failed, or empty. Said on the sheet, which stays open for another
+    /// try.
+    /// </summary>
+    private string _deleteError = string.Empty;
+
     #endregion
 
     #region Properties
@@ -86,6 +105,18 @@ public partial class MatchHistoryDetail
             return $"{FormatPlayedAt(_match.PlayedAt)} · {count}";
         }
     }
+
+    /// <summary>
+    /// Gets the result as one line, for the sheet that asks before deleting it - written the
+    /// way the Match screen reads a result back before saving it.
+    /// </summary>
+    private string Scoreline => _match is not { Teams.Count: >= 2 }
+        ? string.Empty
+        : Loc["match.scoreline",
+            TeamName(0),
+            _match.Teams[0].Score,
+            _match.Teams[1].Score,
+            TeamName(1)];
 
     #endregion
 
@@ -139,8 +170,11 @@ public partial class MatchHistoryDetail
         _loadError = string.Empty;
 
         // The side last looked at belongs to the match that was open, so a different match
-        // opens on its first side rather than wherever the previous one was left.
+        // opens on its first side rather than wherever the previous one was left. A delete
+        // that was being asked about belonged to it too.
         _activeTabIndex = 0;
+        _confirmingDelete = false;
+        _deleteError = string.Empty;
 
         try
         {
@@ -168,11 +202,82 @@ public partial class MatchHistoryDetail
     }
 
     /// <summary>
+    /// Opens the sheet that asks before deleting. Nothing is removed until it is answered.
+    /// </summary>
+    private void AskToDelete()
+    {
+        if (_match is null)
+        {
+            return;
+        }
+
+        _deleteError = string.Empty;
+        _confirmingDelete = true;
+
+        // The button that asked is in the layout's footer, and stays lit while the sheet is up.
+        Layout?.Refresh();
+    }
+
+    /// <summary>
+    /// Closes the sheet, changing nothing. Refused while the delete is running: the rewrite
+    /// finishes either way, and closing the sheet over it would leave the user looking at a
+    /// match that is already gone.
+    /// </summary>
+    private void CancelDelete()
+    {
+        if (_isDeleting)
+        {
+            return;
+        }
+
+        _confirmingDelete = false;
+        _deleteError = string.Empty;
+
+        Layout?.Refresh();
+    }
+
+    /// <summary>
+    /// Removes the match from the history and goes back to the list, which reads the file
+    /// again on arrival and so no longer shows it.
+    /// </summary>
+    /// <remarks>
+    /// A failed delete leaves the sheet open with the reason on it and the match still in the
+    /// history: the rewrite goes through a copy of the file, so a failure part way changes
+    /// nothing. A match that turns out to be gone already is not a failure - the history the
+    /// user asked for is the one they have - so the answer the repository gives is not needed
+    /// here.
+    /// </remarks>
+    private async Task ConfirmDelete()
+    {
+        if (_match is null || _isDeleting)
+        {
+            return;
+        }
+
+        _isDeleting = true;
+        _deleteError = string.Empty;
+
+        try
+        {
+            await MatchRepository.DeleteAsync(_match.Id);
+        }
+        catch (Exception ex)
+        {
+            _deleteError = Loc["history.deleteError", ex.Message];
+            _isDeleting = false;
+
+            return;
+        }
+
+        Navigation.NavigateTo(HistoryRoute);
+    }
+
+    /// <summary>
     /// Goes back to the history list.
     /// </summary>
     private void GoBack()
     {
-        Navigation.NavigateTo("/history");
+        Navigation.NavigateTo(HistoryRoute);
     }
 
     #endregion

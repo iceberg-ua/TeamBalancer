@@ -16,7 +16,21 @@
 
 <LayoutSection Section="Footer">
     <div class="button-group">
-        <button class="btn btn-secondary" @onclick="GoBack">@Loc["history.backToHistory"]</button>
+        <button class="btn btn-secondary footer-back @(_match is not null ? "is-paired" : "")"
+                @onclick="GoBack">
+            @Loc["history.backToHistory"]
+        </button>
+
+        @* Only once there is a match on screen to delete. It asks rather than acts, and stays
+           lit under the sheet while it is asking, the way the Match screen's buttons do. *@
+        @if (_match is not null)
+        {
+            <button class="btn btn-secondary btn-icon footer-delete @(_confirmingDelete ? "is-armed" : "")"
+                    @onclick="AskToDelete"
+                    title="@(Loc["history.delete"])" aria-label="@(Loc["history.delete"])">
+                <i class="fas fa-trash-can"></i>
+            </button>
+        }
     </div>
 </LayoutSection>
 
@@ -39,7 +53,7 @@
         else if (_match is null)
         {
             @* The id in the address does not name a match this app has. Reached by going back
-               to a match deleted from the file by hand, or by an address typed wrong. *@
+               to a match that has since been deleted, or by an address typed wrong. *@
             <div class="text-center card-padding">
                 <p>@Loc["history.notFound"]</p>
                 <button class="btn btn-primary" @onclick="GoBack">@Loc["history.backToHistory"]</button>
@@ -147,3 +161,43 @@
         }
     </div>
 </div>
+
+@* Deleting is asked the way the Match screen asks its questions - a mark, the result being
+   talked about, a line of what happens, and a pair of answers - in the red every other delete
+   in the app answers in, because this one cannot be taken back. *@
+@if (_confirmingDelete && _match is not null)
+{
+    <div class="sheet-overlay" @onclick="CancelDelete">
+        <div class="sheet" role="dialog" aria-modal="true" @onclick:stopPropagation="true">
+            <div class="sheet-head">
+                <span class="sheet-mark is-danger"><i class="fas fa-trash-can"></i></span>
+                <span class="sheet-title">@Loc["history.deleteTitle"]</span>
+            </div>
+
+            @* Which match, said twice over - the result and when it was played - since the
+               sheet covers the screen that was showing it. *@
+            <p class="delete-score">@Scoreline</p>
+            <p class="delete-when">@FormatPlayedAt(_match.PlayedAt)</p>
+            <p class="sheet-body">@Loc["history.deleteBody"]</p>
+
+            @if (!string.IsNullOrEmpty(_deleteError))
+            {
+                <div class="alert alert-danger">@_deleteError</div>
+            }
+
+            <div class="sheet-actions">
+                <button class="btn btn-secondary" @onclick="CancelDelete" disabled="@_isDeleting">
+                    @Loc["common.cancel"]
+                </button>
+
+                @* Held down while the file is rewritten. The handler gives way at the await and
+                   the sheet is repainted mid-delete, so a button left live would take a second
+                   tap and start a second rewrite behind the first. *@
+                <button class="btn btn-danger" @onclick="ConfirmDelete" disabled="@_isDeleting">
+                    <i class="fas @(_isDeleting ? "fa-spinner fa-spin" : "fa-trash-can")"></i>
+                    @Loc["common.delete"]
+                </button>
+            </div>
+        </div>
+    </div>
+}

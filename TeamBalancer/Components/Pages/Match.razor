@@ -308,7 +308,7 @@
                     @* Held down for the length of the write. The handler gives way at the
                        await and Blazor repaints the sheet mid-save, so a button left live
                        would take a second tap and append the same match to the file twice -
-                       in a file that is only ever appended to, and so never corrected. *@
+                       a duplicate no reader could tell from a game played twice. *@
                     <button class="btn btn-success" @onclick="ConfirmFinish" disabled="@_isSaving">
                         <i class="fas @(_isSaving ? "fa-spinner fa-spin" : "fa-flag-checkered")"></i>
                         @Loc["match.finishYes"]

@@ -16,8 +16,10 @@ using TeamBalancer.Core.Services.Interfaces;
 /// back together. The alternative, a row per match with the line-ups packed into a cell, would
 /// need an escaping scheme of its own inside a format that already has one.
 ///
-/// The file is only ever appended to, which is what makes a finish a single cheap write no
-/// matter how many matches have been played before it.
+/// A finish only ever appends to the file, which is what makes it a single cheap write no
+/// matter how many matches have been played before it. The one time the file is rewritten is
+/// when the user deletes a match - see <see cref="DeleteAsync"/> - and a row is never edited
+/// in place.
 /// </remarks>
 public class CsvMatchRepository : IMatchRepository
 {
@@ -53,9 +55,10 @@ public class CsvMatchRepository : IMatchRepository
     private readonly string _filePath;
 
     /// <summary>
-    /// Serializes appends. Two matches cannot be finished at once through the UI, but an
-    /// append is a read-then-write of the same file and the cost of holding a lock over it is
-    /// nothing next to the cost of interleaving two of them.
+    /// Serializes the writes - appends and deletes - and the reads behind them. Two of them
+    /// cannot be started at once through the UI, but each is a read-then-write of the same
+    /// file, and the cost of holding a lock over it is nothing next to the cost of
+    /// interleaving two.
     /// </summary>
     private readonly SemaphoreSlim _writeLock = new(1, 1);
 
@@ -131,10 +134,11 @@ public class CsvMatchRepository : IMatchRepository
                 // dropping it would lose a result that is still half of the scoreline.
                 //
                 // The empty guid rather than an empty cell: PlayerId is a guid column in a file
-                // that is only ever appended to, so a reader meets this row for as long as the
-                // file lives and needs a value it can parse and then recognise as nobody. The
-                // name beside it stays blank - a stand-in name would have to be one no player
-                // could be called, and the id has already said this row is not a player.
+                // whose rows are never edited once written, so a reader meets this row for as
+                // long as the match is kept and needs a value it can parse and then recognise as
+                // nobody. The name beside it stays blank - a stand-in name would have to be one
+                // no player could be called, and the id has already said this row is not a
+                // player.
                 sb.AppendLine(string.Create(
                     CultureInfo.InvariantCulture,
                     $"{matchColumns},{Guid.Empty},,0,0"));
@@ -207,6 +211,91 @@ public class CsvMatchRepository : IMatchRepository
         // Held to the same rule the history list is read under: rows that do not make a result
         // are not one, whichever way they were asked for.
         return IsResult(match) ? match : null;
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// The one place the file is rewritten rather than appended to. Only the rows carrying this
+    /// match's id are dropped; every other line is copied across as it stands - the header, the
+    /// other matches, and any line this repository cannot read. A damaged row is still the
+    /// user's, and deleting one game is no reason to throw it away.
+    ///
+    /// The new contents are written beside the file and then moved over it, so a write that
+    /// fails part way - storage full, the app killed mid-write - leaves the history exactly as
+    /// it was rather than cut short. On the same volume the move replaces the file in one step.
+    /// </remarks>
+    public async Task<bool> DeleteAsync(Guid matchId)
+    {
+        await _writeLock.WaitAsync();
+
+        try
+        {
+            if (!File.Exists(_filePath))
+            {
+                return false;
+            }
+
+            var contents = await File.ReadAllTextAsync(_filePath);
+            var kept = new StringBuilder();
+            var removed = false;
+
+            foreach (var line in contents.Split(NewLineCharacters, StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (TryParseRow(line, out var row) && row.MatchId == matchId)
+                {
+                    removed = true;
+                    continue;
+                }
+
+                kept.AppendLine(line);
+            }
+
+            // Nothing to take out, so nothing is rewritten: a file left untouched is a file the
+            // write cannot damage.
+            if (!removed)
+            {
+                return false;
+            }
+
+            var tempPath = _filePath + ".tmp";
+
+            try
+            {
+                await File.WriteAllTextAsync(tempPath, kept.ToString());
+                File.Move(tempPath, _filePath, overwrite: true);
+            }
+            catch
+            {
+                // The history is still the file it was. The half-written copy beside it is the
+                // only thing to clean up, and failing to must not hide the error that matters.
+                TryDelete(tempPath);
+                throw;
+            }
+
+            return true;
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Deletes a file if it can, and says nothing if it cannot.
+    /// </summary>
+    /// <param name="path">The file to delete.</param>
+    private static void TryDelete(string path)
+    {
+        try
+        {
+            File.Delete(path);
+        }
+        catch (IOException)
+        {
+        }
+        catch (UnauthorizedAccessException)
+        {
+        }
     }
 
     /// <summary>

@@ -7,8 +7,8 @@ namespace TeamBalancer.Components.Pages;
 
 /// <summary>
 /// Code-behind for the MatchHistory component: the games this squad has finished, most recent
-/// first. Read-only - matches.csv is only ever appended to, and nothing here changes a result
-/// that has already been written down.
+/// first. Read-only - a match is deleted from its own screen, behind a confirmation, and
+/// nothing here changes a result that has already been written down.
 /// </summary>
 public partial class MatchHistory
 {
