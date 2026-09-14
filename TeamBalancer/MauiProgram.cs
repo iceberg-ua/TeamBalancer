@@ -81,7 +81,8 @@ public static class MauiProgram
 		services.AddSingleton<IPlayerRepository>(sp => sp.GetRequiredService<IActivePlayerRepository>());
 
 		// Register the store for finished matches. It writes matches.csv into the same data
-		// directory as the player files, and is only ever appended to.
+		// directory as the player files: appended to on every finish, rewritten only when a
+		// match is deleted.
 		services.AddSingleton<IMatchRepository>(_ => new CsvMatchRepository(dataDirectory));
 
 		// Register CSV import/export service

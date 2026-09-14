@@ -4,6 +4,12 @@ Notable changes to Team Balancer, newest first.
 
 ## Unreleased
 
+### History
+
+- A finished match can now be deleted. Open it from History and tap the bin next
+  to Back to history. The app asks first, shows which match it is, and warns that
+  a deleted match cannot be brought back.
+
 ### Fixes
 
 - A score raised with the plus button now fills up as you name the scorers, the

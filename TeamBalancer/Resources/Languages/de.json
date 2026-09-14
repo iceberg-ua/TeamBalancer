@@ -178,6 +178,10 @@
   "history.backToHistory": "Zurück zum Verlauf",
   "history.playerGoals": "{0}: {1} Tor(e)",
   "history.playerAssists": "{0}: {1} Vorlage(n)",
+  "history.delete": "Dieses Spiel löschen",
+  "history.deleteTitle": "Dieses Spiel löschen?",
+  "history.deleteBody": "Es wird mit allen Toren und Vorlagen aus dem Verlauf entfernt. Das lässt sich nicht rückgängig machen.",
+  "history.deleteError": "Das Spiel konnte nicht gelöscht werden: {0}",
 
   "share.showQr": "Als QR-Code teilen",
   "share.scanQr": "QR-Code scannen",

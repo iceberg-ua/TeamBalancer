@@ -7,9 +7,10 @@ using TeamBalancer.Core.Tests.TestSupport;
 
 /// <summary>
 /// Covers matches.csv: the shape of the rows a finished match becomes, the header that has to
-/// lead the file, and the append that must never turn into an overwrite. The file is only ever
-/// added to and never rewritten, so a row written wrong today is a row every future reader has
-/// to cope with - which is why the shape is pinned here rather than checked by eye once.
+/// lead the file, the append that must never turn into an overwrite, and the one rewrite the
+/// file ever gets - deleting a match - which must take that match's rows and nothing else. A
+/// row written wrong today is a row every future reader has to cope with, which is why the
+/// shape is pinned here rather than checked by eye once.
 /// </summary>
 public class CsvMatchRepositoryTests
 {
@@ -207,5 +208,107 @@ public class CsvMatchRepositoryTests
         var repository = new CsvMatchRepository(directory.Path_);
 
         await Assert.ThrowsAsync<ArgumentNullException>(() => repository.AppendAsync(null!));
+    }
+
+    // ---- Deleting a match ----
+
+    [Fact]
+    public async Task DeleteAsync_RemovesThatMatchAndLeavesTheOthers()
+    {
+        using var directory = new TempDataDirectory();
+        var repository = new CsvMatchRepository(directory.Path_);
+
+        var first = NewMatch(Guid.NewGuid());
+        var second = NewMatch(Guid.NewGuid());
+
+        await repository.AppendAsync(first);
+        await repository.AppendAsync(second);
+
+        Assert.True(await repository.DeleteAsync(first.Id));
+
+        var remaining = Assert.Single(await repository.GetAllAsync());
+        Assert.Equal(second.Id, remaining.Id);
+        Assert.Null(await repository.GetByIdAsync(first.Id));
+
+        // The header stays, once, and the copy the rewrite went through is not left beside
+        // the file.
+        var lines = NonEmptyLines(directory.Read(CsvMatchRepository.MatchesFileName));
+
+        Assert.Equal(3, lines.Length);
+        Assert.Equal(Header, lines[0]);
+        Assert.DoesNotContain(lines, line => line.StartsWith(first.Id.ToString(), StringComparison.Ordinal));
+        Assert.Single(Directory.GetFiles(directory.Path_));
+    }
+
+    [Fact]
+    public async Task DeleteAsync_AMatchThatIsNotThere_ReturnsFalseAndLeavesTheFileAlone()
+    {
+        using var directory = new TempDataDirectory();
+        var repository = new CsvMatchRepository(directory.Path_);
+
+        await repository.AppendAsync(NewMatch(Guid.NewGuid()));
+        var before = directory.Read(CsvMatchRepository.MatchesFileName);
+
+        Assert.False(await repository.DeleteAsync(Guid.NewGuid()));
+        Assert.Equal(before, directory.Read(CsvMatchRepository.MatchesFileName));
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WithNoFileYet_ReturnsFalseAndCreatesNone()
+    {
+        using var directory = new TempDataDirectory();
+        var repository = new CsvMatchRepository(directory.Path_);
+
+        Assert.False(await repository.DeleteAsync(Guid.NewGuid()));
+        Assert.False(File.Exists(Path.Combine(directory.Path_, CsvMatchRepository.MatchesFileName)));
+    }
+
+    [Fact]
+    public async Task DeleteAsync_KeepsLinesItCannotRead()
+    {
+        using var directory = new TempDataDirectory();
+        var filePath = Path.Combine(directory.Path_, CsvMatchRepository.MatchesFileName);
+
+        // A line nobody can parse as a match - edited by hand, or damaged. It is not this
+        // repository's to throw away just because another match is being deleted.
+        const string damaged = "not,a,match,row";
+        await File.WriteAllTextAsync(filePath, Header + Environment.NewLine + damaged + Environment.NewLine);
+
+        var repository = new CsvMatchRepository(directory.Path_);
+        var doomed = NewMatch(Guid.NewGuid());
+
+        await repository.AppendAsync(doomed);
+        await repository.AppendAsync(NewMatch(Guid.NewGuid()));
+
+        Assert.True(await repository.DeleteAsync(doomed.Id));
+
+        var lines = NonEmptyLines(directory.Read(CsvMatchRepository.MatchesFileName));
+
+        Assert.Contains(damaged, lines);
+        Assert.Single(await repository.GetAllAsync());
+    }
+
+    [Fact]
+    public async Task DeleteAsync_TheLastMatch_LeavesAFileTheNextFinishCanStillAppendTo()
+    {
+        using var directory = new TempDataDirectory();
+        var repository = new CsvMatchRepository(directory.Path_);
+
+        var only = NewMatch(Guid.NewGuid());
+        await repository.AppendAsync(only);
+
+        Assert.True(await repository.DeleteAsync(only.Id));
+        Assert.Empty(await repository.GetAllAsync());
+
+        // The header survives the delete, so the next match lands under it rather than in a
+        // file whose first row no reader can name.
+        var next = NewMatch(Guid.NewGuid());
+        await repository.AppendAsync(next);
+
+        var lines = NonEmptyLines(directory.Read(CsvMatchRepository.MatchesFileName));
+
+        Assert.Equal(Header, lines[0]);
+        Assert.Single(lines, line => line == Header);
+        Assert.Equal(next.Id, Assert.Single(await repository.GetAllAsync()).Id);
     }
 }

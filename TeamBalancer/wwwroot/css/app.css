@@ -1609,6 +1609,12 @@ button.list-switcher:hover,
     color: #bce3a3;
 }
 
+/* A delete: the red .btn-danger answers in, softened to a mark as the other two are. */
+.sheet-mark.is-danger {
+    background: rgba(161, 58, 66, 0.18);
+    color: #e5a7ab;
+}
+
 .sheet-title {
     flex: 1;
     min-width: 0;

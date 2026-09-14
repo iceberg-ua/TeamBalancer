@@ -178,6 +178,10 @@
   "history.backToHistory": "Назад до історії",
   "history.playerGoals": "{0} — голів: {1}",
   "history.playerAssists": "{0} — асистів: {1}",
+  "history.delete": "Видалити цей матч",
+  "history.deleteTitle": "Видалити цей матч?",
+  "history.deleteBody": "Його буде вилучено з історії разом з усіма голами та асистами. Цю дію не можна скасувати.",
+  "history.deleteError": "Не вдалося видалити матч: {0}",
 
   "share.showQr": "Поділитися QR-кодом",
   "share.scanQr": "Сканувати QR-код",

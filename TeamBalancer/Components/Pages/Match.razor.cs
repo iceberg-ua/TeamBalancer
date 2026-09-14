@@ -577,8 +577,8 @@ public partial class Match
     /// away the only copy of a game that had just been played.
     ///
     /// The write is the one thing on this screen that gives way part-done: the sheet is
-    /// repainted while it is in flight, so the flag closes the door behind the first tap. The
-    /// file is only ever appended to, which makes a second tap a second copy of the match
+    /// repainted while it is in flight, so the flag closes the door behind the first tap. A
+    /// finish appends to the file, which makes a second tap a second copy of the match
     /// rather than an overwrite of the first, and no reader could tell that from a game that
     /// really was played twice. It is released only when the write failed and the sheet is
     /// staying open to be tried again; a write that worked leaves the screen entirely.
