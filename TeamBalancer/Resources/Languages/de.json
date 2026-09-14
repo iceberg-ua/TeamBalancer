@@ -169,6 +169,7 @@
 
   "history.title": "Verlauf",
   "history.loading": "Spiele werden geladen…",
+  "history.loadError": "Der Spielverlauf konnte nicht gelesen werden: {0}",
   "history.matchCount": "{0} Spiel(e)",
   "history.empty": "Es wurde noch kein Spiel beendet.",
   "history.emptyHint": "Teams erstellen, die Aufteilung annehmen und das Spiel beenden – dann steht es hier.",
