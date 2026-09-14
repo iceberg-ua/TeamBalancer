@@ -246,6 +246,10 @@ public partial class MatchHistoryDetail
     /// nothing. A match that turns out to be gone already is not a failure - the history the
     /// user asked for is the one they have - so the answer the repository gives is not needed
     /// here.
+    ///
+    /// The list replaces this page in the navigation history rather than being pushed on top
+    /// of it. This page now names a match that no longer exists, so leaving it underneath
+    /// would make Back land on it and say "not found".
     /// </remarks>
     private async Task ConfirmDelete()
     {
@@ -269,7 +273,7 @@ public partial class MatchHistoryDetail
             return;
         }
 
-        Navigation.NavigateTo(HistoryRoute);
+        Navigation.NavigateTo(HistoryRoute, replace: true);
     }
 
     /// <summary>

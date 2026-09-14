@@ -52,8 +52,9 @@
         }
         else if (_match is null)
         {
-            @* The id in the address does not name a match this app has. Reached by going back
-               to a match that has since been deleted, or by an address typed wrong. *@
+            @* The id in the address does not name a match this app has - an address typed
+               wrong, or one that outlived its match. Deleting from this screen is not a way
+               here: it replaces this page with the list rather than leaving it to go back to. *@
             <div class="text-center card-padding">
                 <p>@Loc["history.notFound"]</p>
                 <button class="btn btn-primary" @onclick="GoBack">@Loc["history.backToHistory"]</button>
